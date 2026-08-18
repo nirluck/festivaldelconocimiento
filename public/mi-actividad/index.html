@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis actividades · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra__in">
+    <a class="barra__logo" href="/">
+      <img src="/assets/img/icono-festcon.png" alt="">
+      <b>Festival del Conocimiento<span>Ensenada · 17 al 24 de octubre de 2026</span></b>
+    </a>
+    <nav>
+      <a href="/mi-actividad/" aria-current="page">Mis actividades</a>
+      <a href="/panel/" data-solo-coordinacion>Tablero</a>
+      <a href="/registro/">Registrar otra</a>
+      <span class="barra__quien" data-quien></span>
+      <button class="salir" type="button" data-salir>Salir</button>
+    </nav>
+  </div>
+</header>
+
+<main class="hoja hoja--media" id="pagina">
+  <div class="cargando">Cargando…</div>
+</main>
+
+<footer class="pie">
+  ¿Necesitas ayuda? <a href="mailto:jperalta@ens.cnyn.unam.mx">jperalta@ens.cnyn.unam.mx</a>
+</footer>
+
+<script type="module">
+import { db, exigirSesion, montarEncabezado, catalogos, llenar,
+         aviso, limpiarAviso, explicar, fecha, fechaHora, escapar } from '/assets/js/app.js';
+import { ALERTAS } from '/assets/js/config.js';
+
+const $ = s => document.querySelector(s);
+const pagina = $('#pagina');
+const params = new URLSearchParams(location.search);
+
+let yo = null;
+
+/* ========================================================================= */
+(async function iniciar() {
+  yo = await exigirSesion();
+  if (!yo) return;
+  montarEncabezado(yo);
+
+  await completarPendiente();
+
+  const id = params.get('id');
+  if (id) await verDetalle(id);
+  else await verLista();
+})();
+
+/**
+ * Si se registró cuando el proyecto exigía confirmar el correo, la actividad
+ * quedó guardada en el navegador. Ahora que sí hay sesión, se da de alta.
+ */
+async function completarPendiente() {
+  const guardada = localStorage.getItem('fdc_actividad_pendiente');
+  if (!guardada) return;
+  try {
+    const act = JSON.parse(guardada);
+    await db.from('actividades').insert({ ...act, responsable_id: yo.id });
+  } catch (e) { /* si falla, no bloqueamos la página */ }
+  localStorage.removeItem('fdc_actividad_pendiente');
+}
+
+/* ============================== LISTA ==================================== */
+async function verLista() {
+  const { data, error } = await db
+    .from('vista_actividades')
+    .select('*')
+    .order('creado', { ascending: false });
+
+  if (error) {
+    pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(error))}</div>`;
+    return;
+  }
+
+  const nueva = params.get('nueva')
+    ? `<div class="aviso aviso--ok">Tu actividad quedó registrada. Te avisaremos cuando la coordinación la revise.</div>`
+    : '';
+
+  if (!data.length) {
+    pagina.innerHTML = `${nueva}
+      <div class="titulo"><p class="kicker">Tu cuenta</p><h1>Todavía no tienes actividades</h1></div>
+      <div class="vacio">
+        <h3>Aquí aparecerán las actividades que registres</h3>
+        <p>Da de alta la primera y desde aquí podrás reportar cómo va.</p>
+        <a class="btn btn--principal" href="/registro/">Registrar una actividad</a>
+      </div>`;
+    return;
+  }
+
+  pagina.innerHTML = `${nueva}
+    <div class="titulo">
+      <p class="kicker">Tu cuenta</p>
+      <h1>Mis actividades</h1>
+      <p class="entrada">Da clic en cualquiera para reportar cómo va o corregir sus datos.</p>
+    </div>
+    <div class="acts">${data.map(tarjeta).join('')}</div>`;
+}
+
+function tarjeta(a) {
+  const estados = {
+    propuesta:  '<span class="eje">En revisión</span>',
+    aprobada:   '<span class="chip chip--verde">Aprobada</span>',
+    rechazada:  '<span class="eje">No seleccionada</span>',
+  };
+  return `
+    <article class="act">
+      <div class="act__top">
+        <h3>${escapar(a.actividad)}</h3>
+        ${estados[a.estado] || ''}
+      </div>
+      <div class="act__meta">
+        <span class="eje">${escapar(a.eje || 'Sin eje')}</span>
+        <span>${escapar(a.tipo || '')}</span>
+        ${a.dia ? `<span>· ${escapar(a.dia)}</span>` : ''}
+      </div>
+      <div>
+        <div class="act__barra"><i style="width:${a.avance}%"></i></div>
+      </div>
+      <div class="act__pie">
+        <span>${a.avance}% de avance${a.envios ? ` · ${a.envios} reporte${a.envios === 1 ? '' : 's'}` : ' · sin reportes'}</span>
+        <a class="btn btn--chico btn--linea" href="?id=${a.id}">Ver y reportar</a>
+      </div>
+    </article>`;
+}
+
+/* ============================= DETALLE =================================== */
+async function verDetalle(id) {
+  const { data: a, error } = await db
+    .from('vista_actividades').select('*').eq('id', id).single();
+
+  if (error || !a) {
+    pagina.innerHTML = `<div class="aviso aviso--mal">No encontramos esa actividad.</div>
+      <a class="btn btn--linea" href="/mi-actividad/">Volver a mis actividades</a>`;
+    return;
+  }
+
+  const { data: historial } = await db
+    .from('reportes').select('*')
+    .eq('actividad_id', id).order('creado', { ascending: false });
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker"><a href="/mi-actividad/">← Mis actividades</a></p>
+      <h1>${escapar(a.actividad)}</h1>
+      <p class="entrada">
+        <span class="eje">${escapar(a.eje || '')}</span>
+        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.dia ? ' · ' + escapar(a.dia) : ''}
+      </p>
+    </div>
+
+    <div class="aviso" id="aviso" hidden></div>
+
+    <form class="tarjeta" id="forma-reporte">
+      <fieldset style="margin-bottom:0">
+        <legend>Reportar avance</legend>
+        <p class="leyenda">
+          Cuéntanos cómo va. Cada envío queda guardado, así que puedes reportar
+          las veces que haga falta.
+        </p>
+
+        <div class="campos">
+          <div class="campo">
+            <label for="avance">¿Qué tanto has avanzado?</label>
+            <div class="rango">
+              <input type="range" id="avance" min="0" max="100" step="5" value="${a.avance}">
+              <output id="salida">${a.avance}%</output>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="avances">¿Qué has logrado desde el último reporte?</label>
+            <textarea id="avances" placeholder="Lo que ya está resuelto o confirmado."></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="necesidades">¿Qué necesitas?</label>
+            <textarea id="necesidades" placeholder="Equipo, espacio, difusión, apoyo de la coordinación…"></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="problematica">¿Hay alguna problemática?</label>
+            <textarea id="problematica" placeholder="Déjalo vacío si no hay nada atorado."></textarea>
+            <span class="pista">Si escribes algo aquí, la coordinación lo verá marcado para darle seguimiento.</span>
+          </div>
+
+          <div class="campo">
+            <label for="siguiente">¿Cuál es tu siguiente paso?</label>
+            <input type="text" id="siguiente" placeholder="Ej. Confirmar al ponente esta semana">
+          </div>
+
+          <div class="campo">
+            <label for="alerta">¿Está en riesgo de no realizarse?</label>
+            <select id="alerta"></select>
+          </div>
+        </div>
+
+        <div class="acciones">
+          <button type="submit" class="btn btn--principal" id="enviar">Enviar reporte</button>
+        </div>
+      </fieldset>
+    </form>
+
+    <h2 style="margin:38px 0 14px">Historial de reportes</h2>
+    ${historial && historial.length ? `
+      <div class="tabla-caja">
+        <table>
+          <thead><tr><th>Fecha</th><th class="num">Avance</th><th>Qué reportó</th></tr></thead>
+          <tbody>${historial.map(r => `
+            <tr>
+              <td>${escapar(fechaHora(r.creado))}</td>
+              <td class="num"><strong>${r.avance}%</strong></td>
+              <td>${escapar(r.avances || '—')}${r.problematica ? `<br><span style="color:var(--rojo)">Problemática: ${escapar(r.problematica)}</span>` : ''}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : `<div class="vacio"><p>Todavía no has enviado ningún reporte.</p></div>`}
+  `;
+
+  llenar($('#alerta'), ALERTAS);
+  $('#alerta').value = a.alerta && ALERTAS.includes(a.alerta) ? a.alerta : ALERTAS[0];
+
+  const rango = $('#avance'), salida = $('#salida');
+  rango.addEventListener('input', () => { salida.textContent = rango.value + '%'; });
+
+  $('#forma-reporte').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const btn = $('#enviar'), cajaAviso = $('#aviso');
+    limpiarAviso(cajaAviso);
+    btn.disabled = true; btn.textContent = 'Enviando…';
+
+    const { error: err } = await db.from('reportes').insert({
+      actividad_id: id,
+      avance:       parseInt(rango.value, 10),
+      avances:      $('#avances').value.trim(),
+      necesidades:  $('#necesidades').value.trim(),
+      problematica: $('#problematica').value.trim(),
+      siguiente:    $('#siguiente').value.trim(),
+      alerta:       $('#alerta').value,
+    });
+
+    if (err) {
+      aviso(cajaAviso, 'mal', explicar(err));
+      btn.disabled = false; btn.textContent = 'Enviar reporte';
+      return;
+    }
+    location.href = '?id=' + id + '&enviado=1';
+  });
+
+  if (params.get('enviado')) {
+    aviso($('#aviso'), 'ok', 'Gracias, tu reporte quedó registrado.');
+  }
+}
+</script>
+</body>
+</html>

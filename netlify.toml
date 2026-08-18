@@ -1,0 +1,56 @@
+# =============================================================================
+#  Netlify · Festival del Conocimiento
+#  Sitio estático: no hay paso de compilación. Netlify publica /public tal cual.
+# =============================================================================
+
+[build]
+  publish = "public"
+  command = ""
+
+# Cabeceras de seguridad razonables para un sitio institucional.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(), microphone=(), camera=()"
+
+# Las imágenes y tipografías no cambian: que el navegador las guarde.
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# El CSS y el JS sí cambian entre despliegues: se revalidan.
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Las páginas internas no deben salir en buscadores.
+[[headers]]
+  for = "/panel/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/mi-actividad/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Rutas cómodas
+[[redirects]]
+  from = "/reporte"
+  to   = "/mi-actividad/"
+  status = 301
+
+[[redirects]]
+  from = "/login"
+  to   = "/entrar/"
+  status = 301

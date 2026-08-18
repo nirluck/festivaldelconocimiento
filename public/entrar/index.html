@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra__in">
+    <a class="barra__logo" href="/">
+      <img src="/assets/img/icono-festcon.png" alt="">
+      <b>Festival del Conocimiento<span>Ensenada · 17 al 24 de octubre de 2026</span></b>
+    </a>
+    <nav><a href="/registro/">Registrar una actividad</a></nav>
+  </div>
+</header>
+
+<main class="hoja hoja--angosta">
+
+  <div class="titulo">
+    <p class="kicker">Acceso</p>
+    <h1>Entra a tu cuenta</h1>
+    <p class="entrada">
+      Con tu correo y contraseña puedes consultar tus actividades, corregir datos
+      y reportar avances.
+    </p>
+  </div>
+
+  <div class="aviso" id="aviso" hidden></div>
+
+  <!-- ---------------- Entrar ---------------- -->
+  <form id="forma" class="tarjeta" novalidate>
+    <div class="campos">
+      <div class="campo">
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" autocomplete="email" required>
+        <span class="error-campo" id="e-correo" hidden></span>
+      </div>
+      <div class="campo">
+        <label for="clave">Contraseña</label>
+        <input type="password" id="clave" autocomplete="current-password" required>
+        <span class="error-campo" id="e-clave" hidden></span>
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button type="submit" class="btn btn--principal" id="enviar">Entrar</button>
+      <button type="button" class="btn btn--chico btn--linea" id="olvide">Olvidé mi contraseña</button>
+    </div>
+  </form>
+
+  <p class="entrada" style="margin-top:24px">
+    ¿Todavía no tienes cuenta? <a href="/registro/">Registra tu actividad</a> y se crea sola.
+  </p>
+</main>
+
+<footer class="pie">
+  Festival del Conocimiento · Centro de Nanociencias y Nanotecnología, UNAM · Ensenada, B.C.
+</footer>
+
+<script type="module">
+import { db, perfil, aviso, limpiarAviso, explicar } from '/assets/js/app.js';
+
+const $ = s => document.querySelector(s);
+const forma = $('#forma'), cajaAviso = $('#aviso'), btn = $('#enviar');
+
+/* A dónde quería ir antes de que le pidiéramos entrar */
+const vuelve = new URLSearchParams(location.search).get('vuelve');
+
+/* Si vuelve del correo de recuperación, Supabase deja la sesión abierta */
+if (location.hash.includes('type=recovery')) {
+  aviso(cajaAviso, 'info', 'Entraste con el enlace de recuperación. Cambia tu contraseña desde tu cuenta.');
+}
+
+/* Ya tiene sesión: no tiene caso mostrarle el formulario */
+(async () => {
+  const p = await perfil();
+  if (p) destino(p);
+})();
+
+function destino(p) {
+  if (vuelve && vuelve.startsWith('/')) { location.replace(vuelve); return; }
+  location.replace(p.rol === 'coordinacion' ? '/panel/' : '/mi-actividad/');
+}
+
+function marcar(id, mensaje) {
+  const campo = $('#' + id), err = $('#e-' + id);
+  campo.setAttribute('aria-invalid', mensaje ? 'true' : 'false');
+  err.textContent = mensaje || ''; err.hidden = !mensaje;
+}
+
+forma.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  limpiarAviso(cajaAviso);
+
+  const correo = $('#correo').value.trim();
+  const clave  = $('#clave').value;
+  let ok = true;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) { marcar('correo', 'Escribe un correo válido.'); ok = false; }
+  else marcar('correo', '');
+  if (!clave) { marcar('clave', 'Escribe tu contraseña.'); ok = false; } else marcar('clave', '');
+  if (!ok) return;
+
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try {
+    const { error } = await db.auth.signInWithPassword({ email: correo, password: clave });
+    if (error) throw error;
+    const p = await perfil();
+    destino(p);
+  } catch (e) {
+    aviso(cajaAviso, 'mal', explicar(e));
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+/* ------------------------------------------------------------ recuperar -- */
+$('#olvide').addEventListener('click', async () => {
+  limpiarAviso(cajaAviso);
+  const correo = $('#correo').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+    marcar('correo', 'Escribe tu correo aquí arriba y vuelve a pulsar.');
+    $('#correo').focus();
+    return;
+  }
+  try {
+    const { error } = await db.auth.resetPasswordForEmail(correo, {
+      redirectTo: location.origin + '/entrar/',
+    });
+    if (error) throw error;
+    aviso(cajaAviso, 'ok',
+      'Te mandamos un correo para recuperar tu contraseña. Revisa también la carpeta de spam.');
+  } catch (e) {
+    aviso(cajaAviso, 'mal', explicar(e));
+  }
+});
+</script>
+</body>
+</html>

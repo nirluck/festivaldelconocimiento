@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /panel/
+Disallow: /mi-actividad/
+Disallow: /entrar/
+
+Sitemap: https://festivaldelconocimiento.org/sitemap.xml

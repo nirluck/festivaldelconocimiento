@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Entorno local
+.env
+.env.local
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Netlify
+.netlify/
+
+# Editores
+.vscode/
+.idea/
+*.swp

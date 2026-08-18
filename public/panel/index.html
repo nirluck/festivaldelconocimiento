@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+<style>
+  .resumen{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:26px}
+  @media(min-width:760px){.resumen{grid-template-columns:repeat(4,1fr)}}
+  .dato{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+        padding:18px 20px;box-shadow:var(--sombra)}
+  .dato b{display:block;font-family:var(--f-disp);font-size:2rem;line-height:1;
+          font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .dato span{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-3)}
+  .dato--rojo b{color:var(--rojo)} .dato--ambar b{color:var(--ambar)}
+  .dato--verde b{color:var(--sem-verde)} .dato--total b{color:var(--turquesa-tx)}
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .filtros select,.filtros input{width:auto;min-width:170px}
+  .motivo{font-size:.82rem;color:var(--tx-3);display:block;margin-top:3px}
+  .barrita{width:76px;height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;margin-top:5px}
+  .barrita i{display:block;height:100%;background:var(--turquesa);border-radius:99px}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra__in">
+    <a class="barra__logo" href="/">
+      <img src="/assets/img/icono-festcon.png" alt="">
+      <b>Festival del Conocimiento<span>Coordinación</span></b>
+    </a>
+    <nav>
+      <a href="/panel/" aria-current="page">Tablero</a>
+      <a href="/mi-actividad/">Mis actividades</a>
+      <span class="barra__quien" data-quien></span>
+      <button class="salir" type="button" data-salir>Salir</button>
+    </nav>
+  </div>
+</header>
+
+<main class="hoja" id="pagina">
+  <div class="cargando">Cargando el tablero…</div>
+</main>
+
+<footer class="pie">Festival del Conocimiento · Coordinación general</footer>
+
+<script type="module">
+import { db, exigirSesion, montarEncabezado, explicar,
+         fecha, fechaHora, escapar } from '/assets/js/app.js';
+
+const $ = s => document.querySelector(s);
+const pagina = $('#pagina');
+let filas = [], esperado = 0;
+
+(async function iniciar() {
+  const yo = await exigirSesion('coordinacion');
+  if (!yo) return;
+  montarEncabezado(yo);
+  await cargar();
+})();
+
+async function cargar() {
+  const { data, error } = await db
+    .from('vista_actividades').select('*')
+    .eq('archivada', false)
+    .order('urgencia', { ascending: true })
+    .order('actividad', { ascending: true });
+
+  if (error) {
+    pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(error))}</div>`;
+    return;
+  }
+  filas = data || [];
+  esperado = filas.length ? filas[0].esperado : 0;
+  pintar();
+}
+
+function pintar() {
+  const n = c => filas.filter(f => f.color === c).length;
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker">Coordinación</p>
+      <h1>Tablero de actividades</h1>
+      <p class="entrada">
+        Ordenado por urgencia. Hoy lo esperado es <strong>${esperado}%</strong> de avance
+        en cualquier actividad.
+      </p>
+    </div>
+
+    <div class="resumen">
+      <div class="dato dato--total"><b>${filas.length}</b><span>Actividades</span></div>
+      <div class="dato dato--rojo"><b>${n('rojo')}</b><span>En riesgo</span></div>
+      <div class="dato dato--ambar"><b>${n('ambar')}</b><span>Requieren atención</span></div>
+      <div class="dato dato--verde"><b>${n('verde')}</b><span>En tiempo</span></div>
+    </div>
+
+    <div class="filtros">
+      <select id="f-color">
+        <option value="">Todos los colores</option>
+        <option value="rojo">Solo en riesgo</option>
+        <option value="ambar">Solo requieren atención</option>
+        <option value="verde">Solo en tiempo</option>
+      </select>
+      <select id="f-estado">
+        <option value="">Todos los estados</option>
+        <option value="propuesta">En revisión</option>
+        <option value="aprobada">Aprobadas</option>
+        <option value="rechazada">No seleccionadas</option>
+      </select>
+      <input type="text" id="f-buscar" placeholder="Buscar actividad o responsable">
+      <button class="btn btn--chico btn--linea" id="csv" type="button">Descargar CSV</button>
+    </div>
+
+    <div id="tabla"></div>`;
+
+  ['f-color', 'f-estado'].forEach(id => $('#' + id).addEventListener('change', tabla));
+  $('#f-buscar').addEventListener('input', tabla);
+  $('#csv').addEventListener('click', exportar);
+  tabla();
+}
+
+function filtradas() {
+  const c = $('#f-color').value, e = $('#f-estado').value;
+  const q = $('#f-buscar').value.trim().toLowerCase();
+  return filas.filter(f =>
+    (!c || f.color === c) &&
+    (!e || f.estado === e) &&
+    (!q || (f.actividad + ' ' + f.responsable + ' ' + f.correo).toLowerCase().includes(q))
+  );
+}
+
+function tabla() {
+  const d = filtradas();
+  if (!d.length) {
+    $('#tabla').innerHTML = `<div class="vacio"><h3>Nada que mostrar</h3>
+      <p>Ninguna actividad coincide con los filtros.</p></div>`;
+    return;
+  }
+
+  const etiquetas = { propuesta: 'En revisión', aprobada: 'Aprobada', rechazada: 'No seleccionada' };
+
+  $('#tabla').innerHTML = `
+    <div class="tabla-caja">
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th><th>Actividad</th><th>Responsable</th>
+            <th class="num">Avance</th><th class="num">Días</th><th>Situación</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${d.map(f => `
+            <tr>
+              <td>
+                <span class="luces luces--${f.color}"><i></i><i></i><i></i></span>
+                <span class="chip chip--${f.color}">${escapar(f.etiqueta)}</span>
+              </td>
+              <td>
+                <strong>${escapar(f.actividad)}</strong>
+                <span class="motivo">
+                  <span class="eje">${escapar(f.eje || '—')}</span>
+                  ${escapar(f.tipo || '')}${f.dia ? ' · ' + escapar(f.dia) : ''}
+                  · ${escapar(etiquetas[f.estado] || f.estado)}
+                </span>
+              </td>
+              <td>
+                ${escapar(f.responsable || '—')}
+                <span class="motivo"><a href="mailto:${escapar(f.correo)}">${escapar(f.correo)}</a></span>
+              </td>
+              <td class="num">
+                <strong>${f.avance}%</strong>
+                <div class="barrita"><i style="width:${f.avance}%"></i></div>
+              </td>
+              <td class="num">${f.dias_sin}</td>
+              <td>
+                ${escapar(f.motivo)}
+                ${f.problematica ? `<span class="motivo" style="color:var(--rojo)">Problemática: ${escapar(f.problematica)}</span>` : ''}
+                ${f.necesidades ? `<span class="motivo">Necesita: ${escapar(f.necesidades)}</span>` : ''}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="entrada" style="margin-top:14px;font-size:.86rem">
+      ${d.length} de ${filas.length} actividades.
+    </p>`;
+}
+
+/* ----------------------------------------------------------- exportar --- */
+function exportar() {
+  const cols = [
+    ['Color','color'], ['Etiqueta','etiqueta'], ['Motivo','motivo'],
+    ['Actividad','actividad'], ['Responsable','responsable'], ['Correo','correo'],
+    ['Teléfono','telefono'], ['Eje','eje'], ['Tipo','tipo'], ['Sede','sede'],
+    ['Día','dia'], ['Estado','estado'], ['Avance %','avance'], ['Esperado %','esperado'],
+    ['Días sin reportar','dias_sin'], ['Reportes','envios'], ['Alerta declarada','alerta'],
+    ['Avances','avances'], ['Necesidades','necesidades'], ['Problemática','problematica'],
+    ['Siguiente paso','siguiente'], ['Contactado','contactado'],
+    ['Fecha contacto','seg_fecha'], ['Medio','seg_medio'],
+    ['Notas seguimiento','seg_notas'], ['Creado','creado'], ['Actualizado','actualizado'],
+  ];
+  const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const filasCsv = [cols.map(c => esc(c[0])).join(',')]
+    .concat(filtradas().map(f => cols.map(c => esc(f[c[1]])).join(',')));
+
+  // BOM para que Excel abra los acentos correctamente
+  const blob = new Blob(['﻿' + filasCsv.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'festival-actividades-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar una actividad · Festival del Conocimiento</title>
+<meta name="description" content="Da de alta tu actividad para el Festival del Conocimiento 2026, del 17 al 24 de octubre en Ensenada, Baja California.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra__in">
+    <a class="barra__logo" href="/">
+      <img src="/assets/img/icono-festcon.png" alt="">
+      <b>Festival del Conocimiento<span>Ensenada · 17 al 24 de octubre de 2026</span></b>
+    </a>
+    <nav>
+      <a href="/entrar/">Ya tengo cuenta</a>
+    </nav>
+  </div>
+</header>
+
+<main class="hoja hoja--angosta">
+
+  <div class="titulo">
+    <p class="kicker">Registro</p>
+    <h1>Registra tu actividad</h1>
+    <p class="entrada">
+      Cuéntanos qué quieres presentar en el festival. Al registrarla creas también tu
+      cuenta, y con ella podrás volver cuando quieras para consultar su estado,
+      corregir datos o reportar cómo va.
+    </p>
+  </div>
+
+  <div class="aviso" id="aviso" hidden></div>
+
+  <form id="forma" class="tarjeta" novalidate>
+
+    <!-- ---------- Cuenta: se oculta si ya inició sesión ---------- -->
+    <fieldset id="bloque-cuenta">
+      <legend>Tus datos</legend>
+      <p class="leyenda">Con estos datos creamos tu cuenta para que puedas volver.</p>
+
+      <div class="campos campos--2">
+        <div class="campo completo">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" name="nombre" autocomplete="name" required>
+          <span class="error-campo" id="e-nombre" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo" name="correo" autocomplete="email" required>
+          <span class="pista">Aquí te escribiremos sobre tu actividad.</span>
+          <span class="error-campo" id="e-correo" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" autocomplete="tel">
+          <span class="pista">Opcional, pero ayuda si necesitamos localizarte rápido.</span>
+        </div>
+
+        <div class="campo completo">
+          <label for="clave">Contraseña</label>
+          <input type="password" id="clave" name="clave" autocomplete="new-password"
+                 minlength="8" required>
+          <span class="pista">Mínimo 8 caracteres. La usarás para volver a entrar.</span>
+          <span class="error-campo" id="e-clave" hidden></span>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ---------- Actividad ---------- -->
+    <fieldset>
+      <legend>Tu actividad</legend>
+      <p class="leyenda">Si algo todavía no está definido, elige «Por definir» y lo ajustamos después.</p>
+
+      <div class="campos campos--2">
+        <div class="campo completo">
+          <label for="actividad">Nombre de la actividad</label>
+          <input type="text" id="actividad" name="actividad" required
+                 placeholder="Ej. Taller de astronomía para familias">
+          <span class="error-campo" id="e-actividad" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="eje">Eje</label>
+          <select id="eje" name="eje" required></select>
+          <span class="error-campo" id="e-eje" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="tipo">Tipo de actividad</label>
+          <select id="tipo" name="tipo" required></select>
+          <span class="error-campo" id="e-tipo" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="sede">Sede</label>
+          <select id="sede" name="sede"></select>
+        </div>
+
+        <div class="campo">
+          <label for="dia">Día</label>
+          <select id="dia" name="dia"></select>
+        </div>
+
+        <div class="campo completo">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" name="descripcion"
+                    placeholder="De qué trata, a qué público va dirigida y qué necesitas para realizarla."></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="acciones">
+      <button type="submit" class="btn btn--principal" id="enviar">Registrar actividad</button>
+      <span class="pista" id="pie-forma">Podrás editarla después desde tu cuenta.</span>
+    </div>
+  </form>
+</main>
+
+<footer class="pie">
+  Festival del Conocimiento · Centro de Nanociencias y Nanotecnología, UNAM · Ensenada, B.C.<br>
+  ¿Dudas? <a href="mailto:jperalta@ens.cnyn.unam.mx">jperalta@ens.cnyn.unam.mx</a>
+</footer>
+
+<script type="module">
+import { db, perfil, catalogos, llenar, aviso, limpiarAviso, explicar } from '/assets/js/app.js';
+
+const $ = s => document.querySelector(s);
+const forma  = $('#forma');
+const cajaAviso = $('#aviso');
+const btn    = $('#enviar');
+const bloqueCuenta = $('#bloque-cuenta');
+
+let yaEntro = null;
+
+/* --------------------------------------------------------- preparación -- */
+(async function iniciar() {
+  // Si ya tiene sesión, no le volvemos a pedir sus datos.
+  yaEntro = await perfil();
+  if (yaEntro) {
+    bloqueCuenta.remove();
+    $('#pie-forma').textContent = 'Se registrará a nombre de ' + (yaEntro.nombre || yaEntro.correo) + '.';
+  }
+
+  try {
+    const cat = await catalogos();
+    llenar($('#eje'),  cat.ejes.map(e => e.nombre), 'Elige un eje');
+    llenar($('#tipo'), cat.tipos, 'Elige un tipo');
+    llenar($('#sede'), cat.sedes, 'Elige una sede');
+    llenar($('#dia'),  cat.dias,  'Elige un día');
+  } catch (e) {
+    aviso(cajaAviso, 'mal', explicar(e));
+    document.querySelector('#enviar').disabled = true;
+  }
+})();
+
+/* ------------------------------------------------------------ validación -- */
+function marcar(id, mensaje) {
+  const campo = $('#' + id), err = $('#e-' + id);
+  if (!campo) return;
+  campo.setAttribute('aria-invalid', mensaje ? 'true' : 'false');
+  if (err) { err.textContent = mensaje || ''; err.hidden = !mensaje; }
+}
+
+function validar() {
+  let ok = true;
+  const pedir = (id, msg, cond) => {
+    if (!$('#' + id)) return;
+    if (cond) { marcar(id, msg); ok = false; } else { marcar(id, ''); }
+  };
+
+  if (!yaEntro) {
+    pedir('nombre', 'Escribe tu nombre.', !$('#nombre').value.trim());
+    const correo = $('#correo').value.trim();
+    pedir('correo', 'Escribe un correo válido.', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo));
+    pedir('clave',  'La contraseña necesita al menos 8 caracteres.', $('#clave').value.length < 8);
+  }
+  pedir('actividad', 'Ponle nombre a tu actividad.', !$('#actividad').value.trim());
+  pedir('eje',  'Elige un eje.',  !$('#eje').value);
+  pedir('tipo', 'Elige un tipo.', !$('#tipo').value);
+
+  if (!ok) {
+    const primero = forma.querySelector('[aria-invalid="true"]');
+    if (primero) primero.focus();
+  }
+  return ok;
+}
+
+/* ---------------------------------------------------------------- envío -- */
+forma.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  limpiarAviso(cajaAviso);
+  if (!validar()) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Registrando…';
+
+  const actividad = {
+    actividad:   $('#actividad').value.trim(),
+    eje:         $('#eje').value,
+    tipo:        $('#tipo').value,
+    sede:        $('#sede').value || '',
+    dia:         $('#dia').value || '',
+    descripcion: $('#descripcion').value.trim(),
+  };
+
+  try {
+    let usuarioId = yaEntro?.id;
+
+    /* -------- 1. Crear la cuenta, si hace falta -------- */
+    if (!yaEntro) {
+      const { data, error } = await db.auth.signUp({
+        email: $('#correo').value.trim(),
+        password: $('#clave').value,
+        options: {
+          data: {
+            nombre:   $('#nombre').value.trim(),
+            telefono: $('#telefono').value.trim(),
+          },
+        },
+      });
+      if (error) throw error;
+
+      // Si el proyecto exige confirmar el correo, signUp NO devuelve sesión:
+      // sin sesión no hay permiso para escribir. Guardamos la actividad y la
+      // damos de alta en cuanto entre, para no perderle el trabajo.
+      if (!data.session) {
+        localStorage.setItem('fdc_actividad_pendiente', JSON.stringify(actividad));
+        aviso(cajaAviso, 'info',
+          'Te mandamos un correo para confirmar tu cuenta. Revisa también la carpeta de ' +
+          'spam. En cuanto la confirmes y entres, tu actividad quedará registrada.');
+        forma.hidden = true;
+        return;
+      }
+      usuarioId = data.session.user.id;
+    }
+
+    /* -------- 2. Dar de alta la actividad -------- */
+    const { error: errAct } = await db
+      .from('actividades')
+      .insert({ ...actividad, responsable_id: usuarioId });
+    if (errAct) throw errAct;
+
+    location.href = '/mi-actividad/?nueva=1';
+
+  } catch (e) {
+    aviso(cajaAviso, 'mal', explicar(e));
+    btn.disabled = false;
+    btn.textContent = 'Registrar actividad';
+  }
+});
+</script>
+</body>
+</html>
