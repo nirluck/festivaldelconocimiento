@@ -220,8 +220,24 @@ grant select on public.vista_actividades to authenticated;
 -- =============================================================================
 --  ASCENDER A LA COORDINACIÓN
 --
---  Regístrate primero desde el sitio con tu correo, y luego ejecuta esto
---  cambiando la dirección. Es la única acción que se hace a mano.
+--  Da de alta la cuenta primero (desde el sitio, o en Supabase ▸ Authentication
+--  ▸ Users ▸ Add user marcando «Auto Confirm User») y luego ejecuta esto con su
+--  correo.
+--
+--  OJO con el disparador: «proteger_rol» rechaza los cambios de rol que no
+--  vengan de una cuenta de coordinación. Como al principio no existe ninguna, y
+--  el editor SQL no actúa como ningún usuario, el candado se bloquearía a sí
+--  mismo. Por eso se levanta durante la operación y se vuelve a poner.
 -- =============================================================================
--- update public.perfiles set rol = 'coordinacion'
---  where correo = 'jperalta@ens.cnyn.unam.mx';
+
+-- alter table public.perfiles disable trigger perfiles_proteger_rol;
+--
+-- insert into public.perfiles (id, correo, nombre, rol)
+-- select u.id, u.email,
+--        coalesce(nullif(u.raw_user_meta_data ->> 'nombre', ''), 'Coordinación'),
+--        'coordinacion'
+--   from auth.users u
+--  where u.email = lower('tu-correo@ejemplo.mx')
+-- on conflict (id) do update set rol = 'coordinacion';
+--
+-- alter table public.perfiles enable trigger perfiles_proteger_rol;

@@ -15,3 +15,6 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Archivos con contraseñas: nunca al repositorio
+*.local.sql

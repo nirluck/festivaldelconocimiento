@@ -67,13 +67,28 @@ hecha para vivir en el navegador. Lo que protege los datos son las reglas de
 
 ### 5 · Darte de alta como coordinación
 
-Regístrate primero desde el sitio como cualquier otra persona y luego, en el
-SQL Editor:
+Da de alta la cuenta primero: desde `/registro` en el sitio, o en Supabase ▸
+**Authentication ▸ Users ▸ Add user** marcando *Auto Confirm User*.
+
+Luego, en el SQL Editor:
 
 ```sql
-update public.perfiles set rol = 'coordinacion'
- where correo = 'tu-correo@ejemplo.mx';
+alter table public.perfiles disable trigger perfiles_proteger_rol;
+
+insert into public.perfiles (id, correo, nombre, rol)
+select u.id, u.email,
+       coalesce(nullif(u.raw_user_meta_data ->> 'nombre', ''), 'Coordinación'),
+       'coordinacion'
+  from auth.users u
+ where u.email = lower('tu-correo@ejemplo.mx')
+on conflict (id) do update set rol = 'coordinacion';
+
+alter table public.perfiles enable trigger perfiles_proteger_rol;
 ```
+
+> El paso de desactivar el disparador **no es opcional**. `proteger_rol` rechaza
+> los cambios de rol que no vengan de una cuenta de coordinación, y como al
+> principio no existe ninguna, el candado se bloquearía a sí mismo.
 
 ---
 
