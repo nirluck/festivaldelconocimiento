@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="/assets/img/icono-festcon.png">
 <link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
 <style>
   .resumen{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:26px}
   @media(min-width:760px){.resumen{grid-template-columns:repeat(4,1fr)}}
@@ -26,20 +27,7 @@
 </head>
 <body>
 
-<header class="barra">
-  <div class="barra__in">
-    <a class="barra__logo" href="/">
-      <img src="/assets/img/icono-festcon.png" alt="">
-      <b>Festival del Conocimiento<span>Coordinación</span></b>
-    </a>
-    <nav>
-      <a href="/panel/" aria-current="page">Tablero</a>
-      <a href="/mi-actividad/">Mis actividades</a>
-      <span class="barra__quien" data-quien></span>
-      <button class="salir" type="button" data-salir>Salir</button>
-    </nav>
-  </div>
-</header>
+<div data-cabecera></div>
 
 <main class="hoja" id="pagina">
   <div class="cargando">Cargando el tablero…</div>
@@ -48,8 +36,9 @@
 <footer class="pie">Festival del Conocimiento · Coordinación general</footer>
 
 <script type="module">
-import { db, exigirSesion, montarEncabezado, explicar,
+import { db, exigirSesion, explicar,
          fecha, fechaHora, escapar } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -58,7 +47,7 @@ let filas = [], esperado = 0;
 (async function iniciar() {
   const yo = await exigirSesion('coordinacion');
   if (!yo) return;
-  montarEncabezado(yo);
+  montarCabecera(yo);
   await cargar();
 })();
 

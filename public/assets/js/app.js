@@ -27,6 +27,9 @@ export async function perfil() {
     .eq('id', s.user.id)
     .single();
   if (error) return null;
+  // La cabecera de la landing lee esto para decidir si ofrecer el Tablero,
+  // sin tener que descargar Supabase en la página más visitada del sitio.
+  try { localStorage.setItem('fdc_rol', data.rol); } catch (e) {}
   return data;
 }
 
@@ -159,20 +162,4 @@ export function fechaHora(iso) {
 export function escapar(s) {
   return String(s ?? '').replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
-
-/* ------------------------------------------------- encabezado compartido -- */
-
-/** Pinta el nombre de quien entró y engancha el botón de salir. */
-export function montarEncabezado(p) {
-  const quien = document.querySelector('[data-quien]');
-  if (quien) quien.textContent = p.nombre || p.correo;
-
-  const btn = document.querySelector('[data-salir]');
-  if (btn) btn.addEventListener('click', salir);
-
-  // El enlace al panel solo existe para la coordinación
-  document.querySelectorAll('[data-solo-coordinacion]').forEach(el => {
-    if (p.rol !== 'coordinacion') el.remove();
-  });
 }

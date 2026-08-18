@@ -7,6 +7,7 @@
 <meta name="description" content="Del 17 al 24 de octubre de 2026 en Ensenada, Baja California. Ocho días de ciencia, arte, tecnología y humanidades. Actividades gratuitas para toda la comunidad. Impulsado por el CNyN-UNAM.">
 <link rel="icon" href="assets/img/icono-festcon.png">
 <link rel="stylesheet" href="assets/css/landing.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
 </head>
 <body>
 
@@ -23,6 +24,8 @@
   Todo el CSS está encapsulado bajo la clase .fdc para no afectar al tema.
   ============================================================================
 -->
+
+<div data-cabecera></div>
 
 <div class="fdc fdc--bleed">
 
@@ -89,20 +92,6 @@
     <span></span>
   </a>
 </header>
-
-<!-- ══════════════════════════════ NAV DE ANCLAS ══════════════════════════════ -->
-<nav class="fdc-chips" aria-label="Secciones del festival">
-  <div class="fdc-chips__track">
-    <a href="#fdc-festival">El festival</a>
-    <a href="#fdc-2026">Edición 2026</a>
-    <a href="#fdc-programa">Programa</a>
-    <a href="#fdc-video">Video</a>
-    <a href="#fdc-memoria">Memoria 2025</a>
-    <a href="#fdc-galeria">Galería</a>
-    <a href="#fdc-sedes">Sedes</a>
-    <a href="#fdc-participa">Participa</a>
-  </div>
-</nav>
 
 <!-- ════════════════════════════ DATOS RÁPIDOS ════════════════════════════════ -->
 <section class="fdc-stats" aria-label="Datos del festival">
@@ -520,5 +509,9 @@
 </div><!-- /.fdc -->
 
 <script src="assets/js/landing.js"></script>
+<script type="module">
+  import { montarCabecera } from '/assets/js/cabecera.js';
+  montarCabecera();
+</script>
 </body>
 </html>

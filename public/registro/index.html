@@ -8,20 +8,11 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="/assets/img/icono-festcon.png">
 <link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
 </head>
 <body>
 
-<header class="barra">
-  <div class="barra__in">
-    <a class="barra__logo" href="/">
-      <img src="/assets/img/icono-festcon.png" alt="">
-      <b>Festival del Conocimiento<span>Ensenada · 17 al 24 de octubre de 2026</span></b>
-    </a>
-    <nav>
-      <a href="/entrar/">Ya tengo cuenta</a>
-    </nav>
-  </div>
-</header>
+<div data-cabecera></div>
 
 <main class="hoja hoja--angosta">
 
@@ -131,6 +122,9 @@
 
 <script type="module">
 import { db, perfil, catalogos, llenar, aviso, limpiarAviso, explicar } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
+
+montarCabecera();
 
 const $ = s => document.querySelector(s);
 const forma  = $('#forma');

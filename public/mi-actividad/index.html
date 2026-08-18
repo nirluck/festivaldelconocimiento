@@ -7,24 +7,11 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="/assets/img/icono-festcon.png">
 <link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
 </head>
 <body>
 
-<header class="barra">
-  <div class="barra__in">
-    <a class="barra__logo" href="/">
-      <img src="/assets/img/icono-festcon.png" alt="">
-      <b>Festival del Conocimiento<span>Ensenada · 17 al 24 de octubre de 2026</span></b>
-    </a>
-    <nav>
-      <a href="/mi-actividad/" aria-current="page">Mis actividades</a>
-      <a href="/panel/" data-solo-coordinacion>Tablero</a>
-      <a href="/registro/">Registrar otra</a>
-      <span class="barra__quien" data-quien></span>
-      <button class="salir" type="button" data-salir>Salir</button>
-    </nav>
-  </div>
-</header>
+<div data-cabecera></div>
 
 <main class="hoja hoja--media" id="pagina">
   <div class="cargando">Cargando…</div>
@@ -35,8 +22,9 @@
 </footer>
 
 <script type="module">
-import { db, exigirSesion, montarEncabezado, catalogos, llenar,
+import { db, exigirSesion, catalogos, llenar,
          aviso, limpiarAviso, explicar, fecha, fechaHora, escapar } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
 import { ALERTAS } from '/assets/js/config.js';
 
 const $ = s => document.querySelector(s);
@@ -49,7 +37,7 @@ let yo = null;
 (async function iniciar() {
   yo = await exigirSesion();
   if (!yo) return;
-  montarEncabezado(yo);
+  montarCabecera(yo);
 
   await completarPendiente();
 
