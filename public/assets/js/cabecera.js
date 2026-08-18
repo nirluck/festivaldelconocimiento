@@ -14,7 +14,7 @@
      montarCabecera(perfil);    // con el perfil ya confirmado
    ========================================================================== */
 
-import { SUPABASE_URL, FESTIVAL } from './config.js';
+import { SUPABASE_URL } from './config.js';
 
 /* Secciones de la landing. Se muestran como anclas cuando estás en ella y como
    enlaces de vuelta cuando estás en cualquier otra página. */
@@ -114,10 +114,7 @@ export function montarCabecera(perfil) {
       <div class="cab__in">
         <a class="cab__marca" href="/" aria-label="Festival del Conocimiento, inicio">
           <img src="/assets/img/icono-festcon.png" alt="" width="34">
-          <span>
-            <b>Festival del Conocimiento</b>
-            <i>Ensenada · ${esc(FESTIVAL.texto.replace('del ', '').replace(' de 2026', ' 2026'))}</i>
-          </span>
+          <b>Festival del Conocimiento</b>
         </a>
 
         <button class="cab__toggle" type="button" aria-expanded="false"
