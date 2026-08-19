@@ -81,7 +81,7 @@ if (location.hash.includes('type=recovery')) {
 
 function destino(p) {
   if (vuelve && vuelve.startsWith('/')) { location.replace(vuelve); return; }
-  location.replace(p.rol === 'coordinacion' ? '/panel/' : '/mi-actividad/');
+  location.replace(p.rol === 'administrador' ? '/panel/' : '/mi-actividad/');
 }
 
 function marcar(id, mensaje) {

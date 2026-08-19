@@ -72,9 +72,16 @@ async function verLista() {
     return;
   }
 
-  const nueva = params.get('nueva')
-    ? `<div class="aviso aviso--ok">Tu actividad quedó registrada. Te avisaremos cuando la coordinación la revise.</div>`
-    : '';
+  let nueva = '';
+  if (params.get('bienvenida')) {
+    nueva = `<div class="aviso aviso--ok">
+      <strong>Tu actividad quedó registrada y tu cuenta ya está lista.</strong><br>
+      Esta es tu página: desde aquí reportas cómo va tu actividad las veces que
+      haga falta y consultas su estado cuando quieras. Para volver, entra con tu
+      correo y tu contraseña desde «Entrar».</div>`;
+  } else if (params.get('nueva')) {
+    nueva = `<div class="aviso aviso--ok">Tu actividad quedó registrada.</div>`;
+  }
 
   if (!data.length) {
     pagina.innerHTML = `${nueva}
@@ -91,27 +98,26 @@ async function verLista() {
     <div class="titulo">
       <p class="kicker">Tu cuenta</p>
       <h1>Mis actividades</h1>
-      <p class="entrada">Da clic en cualquiera para reportar cómo va o corregir sus datos.</p>
+      <p class="entrada">Da clic en cualquiera para reportar cómo va.</p>
+      <p style="margin-top:18px">
+        <a class="btn btn--principal" href="/registro/">Registrar otra actividad</a>
+      </p>
     </div>
     <div class="acts">${data.map(tarjeta).join('')}</div>`;
 }
 
 function tarjeta(a) {
-  const estados = {
-    propuesta:  '<span class="eje">En revisión</span>',
-    aprobada:   '<span class="chip chip--verde">Aprobada</span>',
-    rechazada:  '<span class="eje">No seleccionada</span>',
-  };
   return `
     <article class="act">
       <div class="act__top">
         <h3>${escapar(a.actividad)}</h3>
-        ${estados[a.estado] || ''}
+        <span class="chip chip--${a.color}">${escapar(a.etiqueta)}</span>
       </div>
       <div class="act__meta">
         <span class="eje">${escapar(a.eje || 'Sin eje')}</span>
         <span>${escapar(a.tipo || '')}</span>
         ${a.dia ? `<span>· ${escapar(a.dia)}</span>` : ''}
+        ${a.hora ? `<span>· ${escapar(a.hora.slice(0,5))} h</span>` : ''}
       </div>
       <div>
         <div class="act__barra"><i style="width:${a.avance}%"></i></div>
@@ -144,7 +150,7 @@ async function verDetalle(id) {
       <h1>${escapar(a.actividad)}</h1>
       <p class="entrada">
         <span class="eje">${escapar(a.eje || '')}</span>
-        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.dia ? ' · ' + escapar(a.dia) : ''}
+        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.dia ? ' · ' + escapar(a.dia) : ''}${a.hora ? ' · ' + escapar(a.hora.slice(0,5)) + ' h' : ''}
       </p>
     </div>
 

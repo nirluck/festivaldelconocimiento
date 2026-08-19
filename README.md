@@ -20,6 +20,10 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/02-semaforo.sql` | Cálculo del semáforo y la vista maestra |
 | `sql/03-rls.sql` | Reglas de acceso por fila. **Sin esto los datos quedan abiertos** |
 | `sql/04-catalogos.sql` | Ejes, tipos, sedes y días |
+| `sql/06-cambios.sql` | Roles nuevos, hora y requerimientos, sin aprobación |
+
+> El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
+> El `05` lleva contraseña y por eso está fuera del repositorio.
 
 El último devuelve un conteo: deberías ver 4 ejes, 14 tipos, 14 sedes,
 10 días y 6 ajustes.
@@ -65,7 +69,7 @@ hecha para vivir en el navegador. Lo que protege los datos son las reglas de
    en *Redirect URLs*. Sin esto, el enlace de recuperación de contraseña
    regresa a `localhost`.
 
-### 5 · Darte de alta como coordinación
+### 5 · Darte de alta como administrador
 
 Da de alta la cuenta primero: desde `/registro` en el sitio, o en Supabase ▸
 **Authentication ▸ Users ▸ Add user** marcando *Auto Confirm User*.
@@ -78,10 +82,10 @@ alter table public.perfiles disable trigger perfiles_proteger_rol;
 insert into public.perfiles (id, correo, nombre, rol)
 select u.id, u.email,
        coalesce(nullif(u.raw_user_meta_data ->> 'nombre', ''), 'Coordinación'),
-       'coordinacion'
+       'administrador'
   from auth.users u
  where u.email = lower('tu-correo@ejemplo.mx')
-on conflict (id) do update set rol = 'coordinacion';
+on conflict (id) do update set rol = 'administrador';
 
 alter table public.perfiles enable trigger perfiles_proteger_rol;
 ```
@@ -97,10 +101,10 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | Ruta | Qué es | Quién entra |
 |---|---|---|
 | `/` | Landing pública | Cualquiera |
-| `/registro/` | Alta de actividad **y** creación de cuenta en un paso | Cualquiera |
+| `/registro/` | Alta de actividad **y** creación de cuenta en un paso | Por invitación |
 | `/entrar/` | Acceso y recuperación de contraseña | Con cuenta |
-| `/mi-actividad/` | Sus actividades, historial y reporte de avances | Responsable |
-| `/panel/` | Tablero con semáforos, seguimiento y exportación | Coordinación |
+| `/mi-actividad/` | Sus actividades, historial y reporte de avances | Coordinador |
+| `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
 
 ---
 
@@ -160,8 +164,25 @@ abriendo el archivo con doble clic**: hace falta servirlas por HTTP.
 
 ---
 
+## Los dos roles
+
+| Rol | Quién es | Qué alcanza |
+|---|---|---|
+| **coordinador** | Quien inscribe, organiza y reporta una actividad | Solo las suyas. Puede tener varias |
+| **administrador** | Quien da seguimiento a todas. Puede haber varios | Todo, más el seguimiento privado |
+
+El registro es **por invitación**: no se anuncia en el menú del sitio y a
+`/registro` se llega por la liga que manda la administración. Por eso las
+actividades **no requieren aprobación**: quien las inscribe ya fue invitado.
+
+---
+
 ## Decisiones que conviene recordar
 
+- **La confirmación de correo debe quedar DESACTIVADA.** Si se activa, el alta
+  no devuelve sesión, la actividad no se puede guardar y —peor— cada intento
+  dispara un correo. El servicio incluido en el plan gratuito permite muy pocos
+  por hora, así que el segundo registro choca con «demasiados intentos».
 - **Nada de tokens en URLs.** El sistema anterior protegía cada expediente con
   una llave dentro de la dirección, que no caducaba nunca: si el correo se
   reenviaba, se compartía el expediente. Ahora cada persona tiene su cuenta.

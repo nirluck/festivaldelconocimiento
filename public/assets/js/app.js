@@ -36,7 +36,7 @@ export async function perfil() {
 /**
  * Exige sesión para ver la página. Si no la hay, manda a /entrar recordando
  * a dónde quería ir.
- * @param {string} rol  'coordinacion' para exigir además ese rol.
+ * @param {string} rol  'administrador' para exigir además ese rol.
  */
 export async function exigirSesion(rol) {
   const p = await perfil();
@@ -45,7 +45,7 @@ export async function exigirSesion(rol) {
     location.replace('/entrar/?vuelve=' + vuelve);
     return null;
   }
-  if (rol === 'coordinacion' && p.rol !== 'coordinacion') {
+  if (rol === 'administrador' && p.rol !== 'administrador') {
     location.replace('/mi-actividad/');
     return null;
   }

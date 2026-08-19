@@ -33,7 +33,7 @@
   <div class="cargando">Cargando el tablero…</div>
 </main>
 
-<footer class="pie">Festival del Conocimiento · Coordinación general</footer>
+<footer class="pie">Festival del Conocimiento · Administración</footer>
 
 <script type="module">
 import { db, exigirSesion, explicar,
@@ -45,7 +45,7 @@ const pagina = $('#pagina');
 let filas = [], esperado = 0;
 
 (async function iniciar() {
-  const yo = await exigirSesion('coordinacion');
+  const yo = await exigirSesion('administrador');
   if (!yo) return;
   montarCabecera(yo);
   await cargar();
@@ -72,7 +72,7 @@ function pintar() {
 
   pagina.innerHTML = `
     <div class="titulo">
-      <p class="kicker">Coordinación</p>
+      <p class="kicker">Administración</p>
       <h1>Tablero de actividades</h1>
       <p class="entrada">
         Ordenado por urgencia. Hoy lo esperado es <strong>${esperado}%</strong> de avance
@@ -94,30 +94,23 @@ function pintar() {
         <option value="ambar">Solo requieren atención</option>
         <option value="verde">Solo en tiempo</option>
       </select>
-      <select id="f-estado">
-        <option value="">Todos los estados</option>
-        <option value="propuesta">En revisión</option>
-        <option value="aprobada">Aprobadas</option>
-        <option value="rechazada">No seleccionadas</option>
-      </select>
       <input type="text" id="f-buscar" placeholder="Buscar actividad o responsable">
       <button class="btn btn--chico btn--linea" id="csv" type="button">Descargar CSV</button>
     </div>
 
     <div id="tabla"></div>`;
 
-  ['f-color', 'f-estado'].forEach(id => $('#' + id).addEventListener('change', tabla));
+  $('#f-color').addEventListener('change', tabla);
   $('#f-buscar').addEventListener('input', tabla);
   $('#csv').addEventListener('click', exportar);
   tabla();
 }
 
 function filtradas() {
-  const c = $('#f-color').value, e = $('#f-estado').value;
+  const c = $('#f-color').value;
   const q = $('#f-buscar').value.trim().toLowerCase();
   return filas.filter(f =>
     (!c || f.color === c) &&
-    (!e || f.estado === e) &&
     (!q || (f.actividad + ' ' + f.responsable + ' ' + f.correo).toLowerCase().includes(q))
   );
 }
@@ -129,8 +122,6 @@ function tabla() {
       <p>Ninguna actividad coincide con los filtros.</p></div>`;
     return;
   }
-
-  const etiquetas = { propuesta: 'En revisión', aprobada: 'Aprobada', rechazada: 'No seleccionada' };
 
   $('#tabla').innerHTML = `
     <div class="tabla-caja">
@@ -152,8 +143,8 @@ function tabla() {
                 <strong>${escapar(f.actividad)}</strong>
                 <span class="motivo">
                   <span class="eje">${escapar(f.eje || '—')}</span>
-                  ${escapar(f.tipo || '')}${f.dia ? ' · ' + escapar(f.dia) : ''}
-                  · ${escapar(etiquetas[f.estado] || f.estado)}
+                  ${escapar(f.tipo || '')}${f.dia ? ' · ' + escapar(f.dia) : ''}${f.hora ? ' · ' + escapar(f.hora.slice(0,5)) + ' h' : ''}
+                  ${f.sede ? '· ' + escapar(f.sede) : ''}
                 </span>
               </td>
               <td>
@@ -185,10 +176,12 @@ function exportar() {
     ['Color','color'], ['Etiqueta','etiqueta'], ['Motivo','motivo'],
     ['Actividad','actividad'], ['Responsable','responsable'], ['Correo','correo'],
     ['Teléfono','telefono'], ['Eje','eje'], ['Tipo','tipo'], ['Sede','sede'],
-    ['Día','dia'], ['Estado','estado'], ['Avance %','avance'], ['Esperado %','esperado'],
+    ['Día','dia'], ['Hora','hora'], ['Hora fin','hora_fin'],
+    ['Avance %','avance'], ['Esperado %','esperado'],
     ['Días sin reportar','dias_sin'], ['Reportes','envios'], ['Alerta declarada','alerta'],
     ['Avances','avances'], ['Necesidades','necesidades'], ['Problemática','problematica'],
-    ['Siguiente paso','siguiente'], ['Contactado','contactado'],
+    ['Siguiente paso','siguiente'], ['Requerimientos','requerimientos'],
+    ['Contactado','contactado'],
     ['Fecha contacto','seg_fecha'], ['Medio','seg_medio'],
     ['Notas seguimiento','seg_notas'], ['Creado','creado'], ['Actualizado','actualizado'],
   ];

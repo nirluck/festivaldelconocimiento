@@ -47,7 +47,7 @@ function sesionGuardada() {
     return {
       nombre: s.user?.user_metadata?.nombre || s.user?.email || '',
       correo: s.user?.email || '',
-      rol: localStorage.getItem('fdc_rol') || 'responsable',
+      rol: localStorage.getItem('fdc_rol') || 'coordinador',
     };
   } catch (e) {
     return null;
@@ -82,7 +82,7 @@ export function montarCabecera(perfil) {
     enlaces = [['/', 'El festival']];
     if (quien) {
       enlaces.push(['/mi-actividad/', 'Mis actividades']);
-      if (quien.rol === 'coordinacion') enlaces.push(['/panel/', 'Tablero']);
+      if (quien.rol === 'administrador') enlaces.push(['/panel/', 'Tablero']);
     }
   }
 
@@ -95,17 +95,17 @@ export function montarCabecera(perfil) {
   let authHtml;
   if (quien) {
     const extra = esLanding
-      ? `<a class="cab__btn cab__btn--linea" href="${quien.rol === 'coordinacion' ? '/panel/' : '/mi-actividad/'}">
-           ${quien.rol === 'coordinacion' ? 'Tablero' : 'Mis actividades'}</a>`
+      ? `<a class="cab__btn cab__btn--linea" href="${quien.rol === 'administrador' ? '/panel/' : '/mi-actividad/'}">
+           ${quien.rol === 'administrador' ? 'Tablero' : 'Mis actividades'}</a>`
       : '';
     authHtml = `
       ${extra}
       <span class="cab__quien" title="${esc(quien.correo)}">${esc(quien.nombre || quien.correo)}</span>
       <button class="cab__btn cab__btn--salir" type="button" data-salir>Salir</button>`;
   } else {
-    authHtml = `
-      <a class="cab__btn cab__btn--linea" href="/entrar/">Entrar</a>
-      <a class="cab__btn cab__btn--cta" href="/registro/">Registrar actividad</a>`;
+    // El registro es por invitación: no se anuncia en el menú. A /registro se
+    // llega por la liga que manda la administración.
+    authHtml = `<a class="cab__btn cab__btn--cta" href="/entrar/">Entrar</a>`;
   }
 
   /* ------------------------------------- montaje ------------------------- */

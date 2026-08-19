@@ -100,10 +100,29 @@
           <select id="dia" name="dia"></select>
         </div>
 
+        <div class="campo">
+          <label for="hora">Hora de inicio</label>
+          <input type="time" id="hora" name="hora">
+          <span class="pista">Si aún no la defines, déjala vacía.</span>
+        </div>
+
+        <div class="campo">
+          <label for="hora_fin">Hora de término</label>
+          <input type="time" id="hora_fin" name="hora_fin">
+          <span class="pista">Opcional. Sirve para calcular la duración.</span>
+        </div>
+
         <div class="campo completo">
           <label for="descripcion">Descripción</label>
           <textarea id="descripcion" name="descripcion"
-                    placeholder="De qué trata, a qué público va dirigida y qué necesitas para realizarla."></textarea>
+                    placeholder="De qué trata y a qué público va dirigida."></textarea>
+        </div>
+
+        <div class="campo completo">
+          <label for="requerimientos">Requerimientos</label>
+          <textarea id="requerimientos" name="requerimientos"
+                    placeholder="Equipo, montaje, mobiliario, proyección, sonido, apoyo de personal…"></textarea>
+          <span class="pista">Qué hace falta para que la actividad pueda realizarse.</span>
         </div>
       </div>
     </fieldset>
@@ -197,12 +216,17 @@ forma.addEventListener('submit', async (ev) => {
   btn.textContent = 'Registrando…';
 
   const actividad = {
-    actividad:   $('#actividad').value.trim(),
-    eje:         $('#eje').value,
-    tipo:        $('#tipo').value,
-    sede:        $('#sede').value || '',
-    dia:         $('#dia').value || '',
-    descripcion: $('#descripcion').value.trim(),
+    actividad:      $('#actividad').value.trim(),
+    eje:            $('#eje').value,
+    tipo:           $('#tipo').value,
+    sede:           $('#sede').value || '',
+    dia:            $('#dia').value || '',
+    // Los campos de hora vacíos se mandan como null, no como cadena vacía:
+    // la columna es de tipo «time» y rechazaría ''.
+    hora:           $('#hora').value || null,
+    hora_fin:       $('#hora_fin').value || null,
+    descripcion:    $('#descripcion').value.trim(),
+    requerimientos: $('#requerimientos').value.trim(),
   };
 
   try {
@@ -242,7 +266,8 @@ forma.addEventListener('submit', async (ev) => {
       .insert({ ...actividad, responsable_id: usuarioId });
     if (errAct) throw errAct;
 
-    location.href = '/mi-actividad/?nueva=1';
+    location.href = yaEntro ? '/mi-actividad/?nueva=1'
+                            : '/mi-actividad/?bienvenida=1';
 
   } catch (e) {
     aviso(cajaAviso, 'mal', explicar(e));
