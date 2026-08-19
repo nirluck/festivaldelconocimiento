@@ -13,16 +13,26 @@
 
 
 -- =============================================================================
+--  0 · SE LEVANTAN LOS CANDADOS
+--
+--  Los dos disparadores vigilan justo lo que esta migración va a cambiar, y
+--  ambos exigen ser administrador. Como el editor SQL no actúa como ningún
+--  usuario, rechazarían la propia migración. Se levantan al principio y se
+--  vuelven a poner al final: así ningún orden interno puede fallar.
+--
+--  Si algo se rompiera a media ejecución, PostgreSQL revierte el archivo
+--  completo —incluidos estos ALTER— y los candados quedan puestos.
+-- =============================================================================
+alter table public.perfiles    disable trigger perfiles_proteger_rol;
+alter table public.actividades disable trigger actividades_proteger_estado;
+
+
+-- =============================================================================
 --  1 · ROLES
 --
 --  «Coordinador» es quien inscribe, organiza y reporta una actividad.
 --  «Administrador» es quien da seguimiento a todas. Puede haber varios.
 -- =============================================================================
-
--- El disparador rechaza cambios de rol que no vengan de un administrador, y
--- aquí justamente estamos renombrando lo que ese disparador vigila.
-alter table public.perfiles disable trigger perfiles_proteger_rol;
-
 alter table public.perfiles drop constraint if exists perfiles_rol_check;
 
 update public.perfiles set rol = 'administrador' where rol = 'coordinacion';
@@ -32,8 +42,6 @@ alter table public.perfiles
   add constraint perfiles_rol_check check (rol in ('coordinador', 'administrador'));
 
 alter table public.perfiles alter column rol set default 'coordinador';
-
-alter table public.perfiles enable trigger perfiles_proteger_rol;
 
 
 -- ---------------------------------------------------------------------------
@@ -329,6 +337,13 @@ grant select on public.vista_actividades to authenticated;
 --  Ya no queda ninguna política que la use.
 -- =============================================================================
 drop function if exists public.es_coordinacion();
+
+
+-- =============================================================================
+--  7 · SE VUELVEN A PONER LOS CANDADOS
+-- =============================================================================
+alter table public.perfiles    enable trigger perfiles_proteger_rol;
+alter table public.actividades enable trigger actividades_proteger_estado;
 
 
 -- =============================================================================
