@@ -1,5 +1,10 @@
 # Festival del Conocimiento · sitio y sistema de seguimiento
 
+> **¿Vas a continuar el desarrollo?** Empieza por **[PLAN.md](PLAN.md)**: ahí
+> están el modelo de datos completo, las decisiones ya tomadas, las trampas
+> encontradas y la ruta módulo por módulo. Este README cubre solo la puesta en
+> marcha de lo que ya funciona.
+
 Sitio público y sistema interno del Festival del Conocimiento
 (Ensenada, Baja California · **17 al 24 de octubre de 2026**).
 
