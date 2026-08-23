@@ -383,6 +383,9 @@ repiten los patrones.
 Cada fase es entregable por sí sola. Las dos primeras son prerrequisito de todo
 lo demás.
 
+**Orden recomendado:** A → B → C → D. A partir de la E hace falta resolver el
+correo (fase H), que está aplazado por decisión del equipo.
+
 ---
 
 ### Fase A · Núcleo
@@ -547,23 +550,38 @@ cuáles miden mejor — que es justo lo que pidió el equipo.
 
 ---
 
-### Fase H · Correo — transversal, empezar ya
+### Fase H · Correo — aplazada por decisión del equipo
 
-**No es una fase secuencial: es un trámite que bloquea a E, F y G.** Conviene
-arrancarlo en paralelo con la fase A.
+**Estado: pospuesta.** Se descartó el SMTP institucional del CNyN por la
+burocracia que implica. La contratación de un proveedor se analizará más
+adelante.
 
-**Elegir proveedor.** Verificado en agosto de 2026:
+**Consecuencia que hay que tener presente:** las fases **E, F y G dependen del
+correo** para confirmar inscripciones, mandar pases e invitar a la encuesta.
+Se pueden construir sin él y dejar el envío desconectado, pero **no se pueden
+poner en producción** hasta resolverlo. Las fases **A, B, C y D no lo
+necesitan**: hay bastante trabajo por delante antes de que esto bloquee.
+
+**Aclaración importante para no perder tiempo:** pagar el plan de Supabase
+**no resuelve el envío de pases**. El SMTP que se configura en Supabase sirve
+solo para los correos de autenticación —confirmación y recuperación de
+contraseña—. Los correos de la aplicación (pase de asistencia, confirmación de
+voluntariado, recordatorios) salen de una función propia que llama a la API de
+un proveedor. Son dos cosas distintas y hacen falta las dos.
+
+**Opciones cuando se retome.** Límites verificados en agosto de 2026:
 
 | Proveedor | Gratis | Nota |
 |---|---|---|
-| **SMTP institucional del CNyN** | — | **Explorar primero.** Remitente propio y con autoridad; sin límites de plan. Preguntar a cómputo. |
 | Brevo | 300/día | El mejor gratuito para producción |
 | MailerSend | ~3.000/mes | Alternativa |
 | Resend | 100/día | **Se agota el primer día de registro abierto** |
+| ~~SMTP del CNyN~~ | — | Descartado: demasiada burocracia |
 
-Para un festival con cientos de pases, 100/día no alcanza. Si no hay SMTP
-institucional, Brevo es el punto de partida, y hay que estimar el pico: si se
-esperan más de 300 registros en un día, hace falta plan de pago ese mes.
+Para un festival con cientos de pases, 100/día no alcanza. Brevo es el punto de
+partida razonable; hay que estimar el pico, porque si se esperan más de 300
+registros en un día hace falta plan de pago ese mes. El costo típico ronda los
+20 USD mensuales y solo durante la temporada del festival.
 
 **Configuración**
 
@@ -632,7 +650,7 @@ Preguntar antes de construir la fase correspondiente.
 | ¿Qué datos demográficos se piden? | Fase F | Cada campo extra baja la conversión. Fijar el mínimo que de verdad se vaya a leer |
 | ¿Hay registro de entrada el día del evento? | Fase F | Define si hace falta la vista de puerta |
 | ¿La semblanza se edita en un solo lugar? | Fase C | Como está, editarla la cambia en todas las actividades de ese ponente |
-| ¿Existe SMTP institucional del CNyN? | Fase H | Cambia proveedor y posible costo |
+| ¿Qué proveedor de correo se contrata? | Fases E, F, G | Aplazado. Hay que resolverlo antes de poner en producción cualquier módulo que mande correo |
 
 ---
 
