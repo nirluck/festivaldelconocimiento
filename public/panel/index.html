@@ -23,6 +23,10 @@
   .motivo{font-size:.82rem;color:var(--tx-3);display:block;margin-top:3px}
   .barrita{width:76px;height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;margin-top:5px}
   .barrita i{display:block;height:100%;background:var(--turquesa);border-radius:99px}
+  .fila-acc{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .btn--peligro{color:var(--rojo);border-color:var(--rojo)}
+  .btn--peligro:hover{background:var(--rojo);color:#fff}
+  .confirmar{background:var(--rojo);color:#fff;border-color:var(--rojo)}
 </style>
 </head>
 <body>
@@ -43,6 +47,8 @@ import { montarCabecera } from '/assets/js/cabecera.js';
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
 let filas = [], esperado = 0;
+let vista = 'activas';        // 'activas' | 'archivadas'
+let confirmandoId = null;     // fila con el borrado permanente en confirmación
 
 (async function iniciar() {
   const yo = await exigirSesion('administrador');
@@ -52,9 +58,10 @@ let filas = [], esperado = 0;
 })();
 
 async function cargar() {
+  confirmandoId = null;
   const { data, error } = await db
     .from('vista_actividades').select('*')
-    .eq('archivada', false)
+    .eq('archivada', vista === 'archivadas')
     .order('urgencia', { ascending: true })
     .order('titulo', { ascending: true });
 
@@ -68,46 +75,58 @@ async function cargar() {
 }
 
 function pintar() {
+  const archivadas = vista === 'archivadas';
   const n = c => filas.filter(f => f.color === c).length;
 
   pagina.innerHTML = `
     <div class="titulo">
       <p class="kicker">Administración</p>
-      <h1>Tablero de actividades</h1>
+      <h1>${archivadas ? 'Actividades archivadas' : 'Tablero de actividades'}</h1>
       <p class="entrada">
-        Ordenado por urgencia. Hoy lo esperado es <strong>${esperado}%</strong> de avance
-        en cualquier actividad.
+        ${archivadas
+          ? 'Están fuera del tablero. Puedes restaurarlas o eliminarlas de forma permanente.'
+          : `Ordenado por urgencia. Hoy lo esperado es <strong>${esperado}%</strong> de avance en cualquier actividad.`}
       </p>
     </div>
 
+    ${archivadas ? '' : `
     <div class="resumen">
       <div class="dato dato--total"><b>${filas.length}</b><span>Actividades</span></div>
       <div class="dato dato--rojo"><b>${n('rojo')}</b><span>En riesgo</span></div>
       <div class="dato dato--ambar"><b>${n('ambar')}</b><span>Requieren atención</span></div>
       <div class="dato dato--verde"><b>${n('verde')}</b><span>En tiempo</span></div>
-    </div>
+    </div>`}
+
+    <div class="aviso" id="p-aviso" hidden></div>
 
     <div class="filtros">
+      <select id="f-vista">
+        <option value="activas"${!archivadas ? ' selected' : ''}>Activas</option>
+        <option value="archivadas"${archivadas ? ' selected' : ''}>Archivadas</option>
+      </select>
+      ${archivadas ? '' : `
       <select id="f-color">
         <option value="">Todos los colores</option>
         <option value="rojo">Solo en riesgo</option>
         <option value="ambar">Solo requieren atención</option>
         <option value="verde">Solo en tiempo</option>
-      </select>
+      </select>`}
       <input type="text" id="f-buscar" placeholder="Buscar actividad o responsable">
       <button class="btn btn--chico btn--linea" id="csv" type="button">Descargar CSV</button>
     </div>
 
     <div id="tabla"></div>`;
 
-  $('#f-color').addEventListener('change', tabla);
+  $('#f-vista').addEventListener('change', (e) => { vista = e.target.value; cargar(); });
+  if ($('#f-color')) $('#f-color').addEventListener('change', tabla);
   $('#f-buscar').addEventListener('input', tabla);
   $('#csv').addEventListener('click', exportar);
+  $('#tabla').addEventListener('click', accionFila);
   tabla();
 }
 
 function filtradas() {
-  const c = $('#f-color').value;
+  const c = $('#f-color') ? $('#f-color').value : '';
   const q = $('#f-buscar').value.trim().toLowerCase();
   return filas.filter(f =>
     (!c || f.color === c) &&
@@ -115,11 +134,34 @@ function filtradas() {
   );
 }
 
+/* Botones de cada fila. En el tablero: archivar (reversible). En archivadas:
+   restaurar o eliminar, y esto último en dos pasos, avisando cuántos reportes
+   se pierden en cascada. */
+function accionesCelda(f) {
+  if (vista !== 'archivadas') {
+    return `<div class="fila-acc">
+      <button class="btn btn--chico btn--linea" data-accion="archivar" data-id="${f.id}">Archivar</button>
+    </div>`;
+  }
+  if (confirmandoId === f.id) {
+    const nrep = f.envios || 0;
+    return `<div class="fila-acc">
+      <span class="motivo" style="color:var(--rojo)">Se borran ${nrep} reporte${nrep === 1 ? '' : 's'} y su seguimiento. ¿Seguro?</span>
+      <button class="btn btn--chico confirmar" data-accion="eliminar-si" data-id="${f.id}">Sí, eliminar</button>
+      <button class="btn btn--chico btn--linea" data-accion="eliminar-no" data-id="${f.id}">Cancelar</button>
+    </div>`;
+  }
+  return `<div class="fila-acc">
+    <button class="btn btn--chico btn--linea" data-accion="restaurar" data-id="${f.id}">Restaurar</button>
+    <button class="btn btn--chico btn--peligro" data-accion="eliminar" data-id="${f.id}">Eliminar</button>
+  </div>`;
+}
+
 function tabla() {
   const d = filtradas();
   if (!d.length) {
     $('#tabla').innerHTML = `<div class="vacio"><h3>Nada que mostrar</h3>
-      <p>Ninguna actividad coincide con los filtros.</p></div>`;
+      <p>${vista === 'archivadas' ? 'No hay actividades archivadas.' : 'Ninguna actividad coincide con los filtros.'}</p></div>`;
     return;
   }
 
@@ -130,6 +172,7 @@ function tabla() {
           <tr>
             <th>Estado</th><th>Actividad</th><th>Responsable</th>
             <th class="num">Avance</th><th class="num">Días</th><th>Situación</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -161,13 +204,55 @@ function tabla() {
                 ${f.problematica ? `<span class="motivo" style="color:var(--rojo)">Problemática: ${escapar(f.problematica)}</span>` : ''}
                 ${f.necesidades ? `<span class="motivo">Necesita: ${escapar(f.necesidades)}</span>` : ''}
               </td>
+              <td>${accionesCelda(f)}</td>
             </tr>`).join('')}
         </tbody>
       </table>
     </div>
     <p class="entrada" style="margin-top:14px;font-size:.86rem">
-      ${d.length} de ${filas.length} actividades.
+      ${d.length} de ${filas.length} ${vista === 'archivadas' ? 'archivadas' : 'actividades'}.
     </p>`;
+}
+
+/* -------------------------------------------------------- acciones ------- */
+async function accionFila(e) {
+  const btn = e.target.closest('[data-accion]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const accion = btn.dataset.accion;
+  const f = filas.find(x => x.id === id);
+  if (!f) return;
+
+  // El borrado permanente va en dos pasos: el primer clic muestra la
+  // confirmación con lo que se pierde; el segundo, ya en «eliminar-si», ejecuta.
+  if (accion === 'eliminar')    { confirmandoId = id; tabla(); return; }
+  if (accion === 'eliminar-no') { confirmandoId = null; tabla(); return; }
+
+  if (accion === 'archivar') {
+    if (!confirm(`¿Archivar «${f.titulo}»? Saldrá del tablero. Podrás recuperarla desde «Archivadas».`)) return;
+    await aplicar(btn, () => db.from('actividades').update({ archivada: true }).eq('id', id));
+    return;
+  }
+  if (accion === 'restaurar') {
+    await aplicar(btn, () => db.from('actividades').update({ archivada: false }).eq('id', id));
+    return;
+  }
+  if (accion === 'eliminar-si') {
+    await aplicar(btn, () => db.from('actividades').delete().eq('id', id));
+    return;
+  }
+}
+
+async function aplicar(btn, fn) {
+  btn.disabled = true;
+  const { error } = await fn();
+  if (error) {
+    const caja = $('#p-aviso');
+    if (caja) { caja.className = 'aviso aviso--mal'; caja.textContent = explicar(error); caja.hidden = false; }
+    btn.disabled = false;
+    return;
+  }
+  await cargar();   // relee y repinta: la fila cambia de conjunto
 }
 
 /* ----------------------------------------------------------- exportar --- */
@@ -183,6 +268,7 @@ function exportar() {
     ['Avances','avances'], ['Necesidades','necesidades'], ['Problemática','problematica'],
     ['Siguiente paso','siguiente'], ['Requerimientos','requerimientos'],
     ['En el programa público','publica', v => v ? 'Sí' : 'No'], ['Dirección pública','slug'],
+    ['Archivada','archivada', v => v ? 'Sí' : 'No'],
     ['Contactado','contactado'],
     ['Fecha contacto','seg_fecha'], ['Medio','seg_medio'],
     ['Notas seguimiento','seg_notas'], ['Creado','creado'], ['Actualizado','actualizado'],
