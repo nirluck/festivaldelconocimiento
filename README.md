@@ -21,17 +21,22 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 
 | Archivo | Qué hace |
 |---|---|
-| `sql/01-esquema.sql` | Tablas, ajustes y el disparador que crea el perfil al registrarse |
+| `sql/01-esquema.sql` | Tablas base y el disparador que crea el perfil al registrarse |
 | `sql/02-semaforo.sql` | Cálculo del semáforo y la vista maestra |
 | `sql/03-rls.sql` | Reglas de acceso por fila. **Sin esto los datos quedan abiertos** |
-| `sql/04-catalogos.sql` | Ejes, tipos, sedes y días |
+| `sql/04-catalogos.sql` | Ejes, tipos y sedes |
 | `sql/06-cambios.sql` | Roles nuevos, hora y requerimientos, sin aprobación |
+| `sql/07-nucleo.sql` | Ediciones, fecha real, slug y resumen. Retira `dias` y `ajustes` |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.
 
-El último devuelve un conteo: deberías ver 4 ejes, 14 tipos, 14 sedes,
-10 días y 6 ajustes.
+**03 y 06 no se vuelven a ejecutar** una vez aplicado 07: describen el esquema
+anterior y lo harían retroceder. Los dos traen un candado que lo impide y lo
+explica.
+
+Al terminar, corre `sql/00-verificar.sql`: todos los renglones deberían decir
+BIEN, salvo el de cuentas de administración mientras no exista ninguna.
 
 ### 2 · Confirmación de correo
 
@@ -116,8 +121,9 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 ## Cómo se decide el color del semáforo
 
 Se compara el avance reportado contra el que debería llevarse hoy, según una
-rampa que va de `cal_inicio` a `cal_lista` (tabla `ajustes`). A esa brecha se
-suman los días de silencio y si hay problemática abierta.
+rampa que va de `cal_inicio` a `cal_lista`, dos columnas de la **edición
+activa**. A esa brecha se suman los días de silencio y si hay problemática
+abierta.
 
 Se evalúa **en cascada**: la primera condición que se cumple decide, y por eso
 las pruebas de riesgo van antes que las de atención. Lo que declara el
@@ -130,10 +136,21 @@ mismos umbrales y mensajes. A diferencia de aquel, aquí la lógica se escribe
 Para ajustar los umbrales no hace falta tocar código:
 
 ```sql
-update public.ajustes set valor = '2026-08-13' where clave = 'cal_inicio';
-update public.ajustes set valor = '2026-09-17' where clave = 'cal_lista';
-update public.ajustes set valor = '14'         where clave = 'dias_ambar';
-update public.ajustes set valor = '25'         where clave = 'dias_rojo';
+update public.ediciones
+   set cal_inicio = '2026-08-13',
+       cal_lista  = '2026-09-17',
+       dias_ambar = 14,
+       dias_rojo  = 25
+ where activa;
+```
+
+Las fechas del propio festival viven en la misma fila, y de ahí sale el rango
+que acota el campo de fecha del formulario de registro:
+
+```sql
+update public.ediciones
+   set fecha_inicio = '2026-10-17', fecha_fin = '2026-10-24'
+ where activa;
 ```
 
 ---

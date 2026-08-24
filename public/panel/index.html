@@ -37,7 +37,7 @@
 
 <script type="module">
 import { db, exigirSesion, explicar,
-         fecha, fechaHora, escapar } from '/assets/js/app.js';
+         fecha, fechaDia, fechaHora, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 
 const $ = s => document.querySelector(s);
@@ -56,7 +56,7 @@ async function cargar() {
     .from('vista_actividades').select('*')
     .eq('archivada', false)
     .order('urgencia', { ascending: true })
-    .order('actividad', { ascending: true });
+    .order('titulo', { ascending: true });
 
   if (error) {
     pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(error))}</div>`;
@@ -111,7 +111,7 @@ function filtradas() {
   const q = $('#f-buscar').value.trim().toLowerCase();
   return filas.filter(f =>
     (!c || f.color === c) &&
-    (!q || (f.actividad + ' ' + f.responsable + ' ' + f.correo).toLowerCase().includes(q))
+    (!q || (f.titulo + ' ' + f.responsable + ' ' + f.correo).toLowerCase().includes(q))
   );
 }
 
@@ -140,10 +140,10 @@ function tabla() {
                 <span class="chip chip--${f.color}">${escapar(f.etiqueta)}</span>
               </td>
               <td>
-                <strong>${escapar(f.actividad)}</strong>
+                <strong>${escapar(f.titulo)}</strong>
                 <span class="motivo">
                   <span class="eje">${escapar(f.eje || '—')}</span>
-                  ${escapar(f.tipo || '')}${f.dia ? ' · ' + escapar(f.dia) : ''}${f.hora ? ' · ' + escapar(f.hora.slice(0,5)) + ' h' : ''}
+                  ${escapar(f.tipo || '')}${f.fecha ? ' · ' + escapar(fechaDia(f.fecha)) : ''}${f.hora_inicio ? ' · ' + escapar(hora(f.hora_inicio)) + ' h' : ''}
                   ${f.sede ? '· ' + escapar(f.sede) : ''}
                 </span>
               </td>
@@ -174,20 +174,25 @@ function tabla() {
 function exportar() {
   const cols = [
     ['Color','color'], ['Etiqueta','etiqueta'], ['Motivo','motivo'],
-    ['Actividad','actividad'], ['Responsable','responsable'], ['Correo','correo'],
+    ['Edición','anio'],
+    ['Actividad','titulo'], ['Responsable','responsable'], ['Correo','correo'],
     ['Teléfono','telefono'], ['Eje','eje'], ['Tipo','tipo'], ['Sede','sede'],
-    ['Día','dia'], ['Hora','hora'], ['Hora fin','hora_fin'],
+    ['Fecha','fecha'], ['Hora','hora_inicio'], ['Hora fin','hora_fin'],
     ['Avance %','avance'], ['Esperado %','esperado'],
     ['Días sin reportar','dias_sin'], ['Reportes','envios'], ['Alerta declarada','alerta'],
     ['Avances','avances'], ['Necesidades','necesidades'], ['Problemática','problematica'],
     ['Siguiente paso','siguiente'], ['Requerimientos','requerimientos'],
+    ['En el programa público','publica', v => v ? 'Sí' : 'No'], ['Dirección pública','slug'],
     ['Contactado','contactado'],
     ['Fecha contacto','seg_fecha'], ['Medio','seg_medio'],
     ['Notas seguimiento','seg_notas'], ['Creado','creado'], ['Actualizado','actualizado'],
   ];
+  // Tercer elemento opcional: cómo se escribe el valor. Sin él, el booleano
+  // «publica» saldría como «true» en una hoja de cálculo en español.
   const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const valor = (f, c) => (c[2] ? c[2](f[c[1]]) : f[c[1]]);
   const filasCsv = [cols.map(c => esc(c[0])).join(',')]
-    .concat(filtradas().map(f => cols.map(c => esc(f[c[1]])).join(',')));
+    .concat(filtradas().map(f => cols.map(c => esc(valor(f, c))).join(',')));
 
   // BOM para que Excel abra los acentos correctamente
   const blob = new Blob(['﻿' + filasCsv.join('\r\n')], { type: 'text/csv;charset=utf-8;' });

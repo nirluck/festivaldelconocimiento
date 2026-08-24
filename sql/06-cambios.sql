@@ -13,6 +13,24 @@
 
 
 -- =============================================================================
+--  CANDADO · este archivo describe el esquema anterior a 07
+--
+--  Su sección 5 reconstruye «vista_actividades» con «actividad», «dia» y
+--  «estado», que 07 renombró o eliminó. Volver a ejecutarlo sobre una base ya
+--  migrada rompería la vista que usan el tablero y la exportación.
+--
+--  En una base nueva «ediciones» todavía no existe y este candado no estorba.
+-- =============================================================================
+do $$
+begin
+  if to_regclass('public.ediciones') is not null then
+    raise exception
+      'Esta base ya pasó por 07-nucleo.sql. Volver a ejecutar 06-cambios.sql reconstruiría la vista vieja: todo lo que hace este archivo ya está aplicado.';
+  end if;
+end $$;
+
+
+-- =============================================================================
 --  0 · SE LEVANTAN LOS CANDADOS
 --
 --  Los dos disparadores vigilan justo lo que esta migración va a cambiar, y

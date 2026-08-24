@@ -23,7 +23,8 @@
 
 <script type="module">
 import { db, exigirSesion, catalogos, llenar,
-         aviso, limpiarAviso, explicar, fecha, fechaHora, escapar } from '/assets/js/app.js';
+         aviso, limpiarAviso, explicar, fecha, fechaDia, fechaHora, hora,
+         escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { ALERTAS } from '/assets/js/config.js';
 
@@ -55,7 +56,11 @@ async function completarPendiente() {
   if (!guardada) return;
   try {
     const act = JSON.parse(guardada);
-    await db.from('actividades').insert({ ...act, responsable_id: yo.id });
+    // Los guardados antes de 07-nucleo.sql traen «actividad» y «dia», columnas
+    // que ya no existen: insertarlos fallaría. Se descartan sin ruido.
+    if (act && !('actividad' in act) && !('dia' in act)) {
+      await db.from('actividades').insert({ ...act, responsable_id: yo.id });
+    }
   } catch (e) { /* si falla, no bloqueamos la página */ }
   localStorage.removeItem('fdc_actividad_pendiente');
 }
@@ -110,14 +115,14 @@ function tarjeta(a) {
   return `
     <article class="act">
       <div class="act__top">
-        <h3>${escapar(a.actividad)}</h3>
+        <h3>${escapar(a.titulo)}</h3>
         <span class="chip chip--${a.color}">${escapar(a.etiqueta)}</span>
       </div>
       <div class="act__meta">
         <span class="eje">${escapar(a.eje || 'Sin eje')}</span>
         <span>${escapar(a.tipo || '')}</span>
-        ${a.dia ? `<span>· ${escapar(a.dia)}</span>` : ''}
-        ${a.hora ? `<span>· ${escapar(a.hora.slice(0,5))} h</span>` : ''}
+        ${a.fecha ? `<span>· ${escapar(fechaDia(a.fecha))}</span>` : ''}
+        ${a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : ''}
       </div>
       <div>
         <div class="act__barra"><i style="width:${a.avance}%"></i></div>
@@ -147,10 +152,10 @@ async function verDetalle(id) {
   pagina.innerHTML = `
     <div class="titulo">
       <p class="kicker"><a href="/mi-actividad/">← Mis actividades</a></p>
-      <h1>${escapar(a.actividad)}</h1>
+      <h1>${escapar(a.titulo)}</h1>
       <p class="entrada">
         <span class="eje">${escapar(a.eje || '')}</span>
-        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.dia ? ' · ' + escapar(a.dia) : ''}${a.hora ? ' · ' + escapar(a.hora.slice(0,5)) + ' h' : ''}
+        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.fecha ? ' · ' + escapar(fechaDia(a.fecha, true)) : ''}${a.hora_inicio ? ' · ' + escapar(hora(a.hora_inicio)) + ' h' : ''}
       </p>
     </div>
 

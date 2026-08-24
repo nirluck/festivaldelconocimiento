@@ -8,6 +8,27 @@
 -- =============================================================================
 
 
+-- =============================================================================
+--  CANDADO · este archivo describe el esquema anterior a 06 y a 07
+--
+--  Volver a ejecutarlo sobre una base ya migrada no fallaría solo por «dias» y
+--  «ajustes», que 07 elimina. Haría algo peor: reinstalar es_coordinacion(),
+--  las políticas del rol viejo y un proteger_estado() que lee la columna
+--  «estado», eliminada en 07. El esquema retrocedería en silencio y el error
+--  aparecería mucho después, lejos de su causa.
+--
+--  En una base nueva «ediciones» todavía no existe, así que este candado no
+--  estorba al orden documentado: 01, 02, 03, 04, 06, 07.
+-- =============================================================================
+do $$
+begin
+  if to_regclass('public.ediciones') is not null then
+    raise exception
+      'Esta base ya pasó por 07-nucleo.sql. Volver a ejecutar 03-rls.sql la haría retroceder: aplica 06 y 07, que ya traen las reglas de acceso al día.';
+  end if;
+end $$;
+
+
 -- -----------------------------------------------------------------------------
 --  ¿Quien pregunta es de coordinación?
 --

@@ -5,7 +5,7 @@
 > Léelo antes de escribir código: varias decisiones costaron discusión y no
 > conviene volver a abrirlas sin motivo.
 
-Última actualización: **18 de agosto de 2026**
+Última actualización: **22 de agosto de 2026**
 
 ---
 
@@ -38,9 +38,12 @@ Sitio público y sistema interno del Festival del Conocimiento
 ### Tablas que existen hoy
 
 ```
-perfiles · actividades · reportes · seguimiento
-ajustes · ejes · tipos · sedes · dias
+perfiles · ediciones · actividades · reportes · seguimiento
+ejes · tipos · sedes
 ```
+
+`ajustes` y `dias` desaparecieron en la fase A: la primera la absorbió
+`ediciones`, la segunda la sustituyó `actividades.fecha`.
 
 ### Archivos SQL aplicados, en orden
 
@@ -51,7 +54,14 @@ ajustes · ejes · tipos · sedes · dias
 | `sql/03-rls.sql` | Reglas de acceso por fila |
 | `sql/04-catalogos.sql` | Ejes, tipos, sedes y días |
 | `sql/06-cambios.sql` | Roles renombrados, hora y requerimientos, sin aprobación |
+| `sql/07-nucleo.sql` | **Fase A.** Ediciones, fecha real, slug y resumen |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
+
+**03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
+volver a aplicarlos lo haría retroceder en silencio: 03 reinstala
+`es_coordinacion()` y un `proteger_estado()` que lee la columna `estado`, que ya
+no existe; 06 reconstruye la vista vieja. Los dos llevan un candado al principio
+que se detiene y lo explica.
 
 `sql/05-coordinador.local.sql` lleva contraseña y está en `.gitignore`.
 
@@ -334,45 +344,72 @@ repiten los patrones.
 5. **`format('%I_leer', t)` es un error sutil.** `%I` cita el identificador y el
    sufijo queda fuera de las comillas. Lo correcto: `format('%I', t || '_leer')`.
 
+6. **Una vista bloquea el `drop column` de lo que nombra.** `vista_actividades`
+   mencionaba `a.dia`, `a.estado` y `ajuste_int()`, así que la fase A se habría
+   detenido a la mitad con «other objects depend on it». Hay que **borrar la
+   vista al principio** de la migración y reconstruirla al final, no dejar el
+   `drop view` junto al `create view`. Los renombres sí pasan —una vista sigue a
+   la columna que cambia de nombre—, pero las eliminaciones no.
+
+7. **Un `update` masivo de migración dispara `marcar_actualizado()`.** Llenar
+   una columna nueva en todas las filas pone `actualizado = now()` en todas, y
+   el semáforo lee ese dato: la migración falsearía el historial justo antes de
+   calcular el color. `alter table … disable trigger user` levanta los
+   disparadores propios y deja intactos los internos de las llaves foráneas.
+
+8. **Los archivos SQL viejos no siempre deben poder re-ejecutarse.** La
+   convención de idempotencia vale dentro de una misma versión del esquema.
+   Entre versiones es al revés: volver a correr 03 o 06 después de 07
+   retrocedería el esquema en silencio, y el error aparecería mucho después,
+   lejos de su causa. Vale más un candado que se detenga y lo explique.
+
 ### Supabase
 
-6. **El cliente JS no lanza excepción en error de red:** devuelve
+9. **El cliente JS no lanza excepción en error de red:** devuelve
    `{ data: null, error }`. Un `try/catch` alrededor de `.select()` nunca se
    dispara y la interfaz se queda en blanco sin explicar nada. Hay que revisar
    `.error` explícitamente.
 
-7. **La confirmación de correo debe quedar DESACTIVADA**
+10. **La confirmación de correo debe quedar DESACTIVADA**
    (Authentication ▸ Sign In / Providers ▸ Email ▸ *Confirm email*). Con ella
    activa, `signUp()` no devuelve sesión, la actividad no se puede guardar, y
    cada intento manda un correo que consume la cuota.
 
-8. **El servicio de correo incluido es de desarrollo.** Está fuertemente
+11. **El servicio de correo incluido es de desarrollo.** Está fuertemente
    limitado: en la demostración, el segundo registro en pocos minutos falló con
    «demasiados intentos». No sirve para producción.
 
 ### Frontend
 
-9. **Cuidado con la especificidad del reset.** `.fdc p` es (0,1,1) y le gana a
+12. **Cuidado con la especificidad del reset.** `.fdc p` es (0,1,1) y le gana a
    `.fdc-hero__lede` (0,1,0), llevándose por delante colores y tipografías. Se
    usa `.fdc :where(p)`, que queda en (0,1,0): vence a los selectores de
    etiqueta del tema pero nunca a los componentes.
 
-10. **`flex-wrap` en una barra de altura variable la hace crecer sin control.**
+13. **`flex-wrap` en una barra de altura variable la hace crecer sin control.**
     La cabecera lleva altura fija y sin `flex-wrap`: antes de que el contenido
     no quepa, entra el menú plegable.
 
-11. **`--cab-alto` va en `:root`, no en `.cab`.** Las secciones ancladas no son
+14. **`--cab-alto` va en `:root`, no en `.cab`.** Las secciones ancladas no son
     descendientes de la cabecera, así que la variable no les llegaría. Se mide
     en vivo con `ResizeObserver`.
 
-12. **El panel de vista previa no renderiza:** no dispara `scroll` ni
+15. **El panel de vista previa no renderiza:** no dispara `scroll` ni
     `requestAnimationFrame`, y las transiciones no avanzan. Varios «bugs» eran
     eso. Para verificar, disparar los eventos a mano y leer con la transición
     desactivada.
 
 ### Empaquetado
 
-13. **`Compress-Archive` de Windows escribe rutas con barra invertida**, lo que
+16. **`new Date('2026-10-17')` retrocede un día en Ensenada.** Una fecha sin
+    hora se interpreta como medianoche **UTC**, y al imprimirla en un huso
+    negativo sale el día anterior: el festival entero corrido. Se comprobó en el
+    navegador con la zona real, `America/Tijuana`. Para `actividades.fecha` hay
+    que construir la fecha con sus tres componentes —`new Date(a, m-1, d)`— que
+    es lo que hace `fechaDia()` en `app.js`. `fecha()` y `fechaHora()` siguen
+    sirviendo para los `timestamptz`, que sí traen huso.
+
+17. **`Compress-Archive` de Windows escribe rutas con barra invertida**, lo que
     incumple el formato ZIP y rompe la instalación en servidores Linux. Usar el
     `zipfile` de Python.
 
@@ -388,11 +425,26 @@ correo (fase H), que está aplazado por decisión del equipo.
 
 ---
 
-### Fase A · Núcleo
+### Fase A · Núcleo — **hecha** (22 de agosto de 2026)
 
 **Por qué primero:** es lo único que rompe lo existente. Hacerlo ahora, con dos
 actividades de prueba, cuesta una migración; con datos reales encima, cuesta
 riesgo.
+
+**Lo que quedó, además de lo planeado:**
+
+- `hora` se renombró a `hora_inicio`, para que la base y el modelo de la
+  sección 4 dijeran lo mismo.
+- `publica` nace en `false` y solo la administración puede encenderla: hereda el
+  papel que tenía `estado`. Lo vigila el disparador `proteger_estado`.
+- El `slug` lo genera un disparador a partir del título, y **no se regenera** al
+  editarlo: si se regenerara, cada corrección de redacción rompería una
+  dirección ya compartida. Es único dentro de la edición, no en toda la base.
+- `edicion_id` tiene por omisión `edicion_activa()`, así que el formulario no
+  necesita saber en qué año estamos.
+- Los días viejos se tradujeron por el `orden` del catálogo, no interpretando
+  «Sáb 17 oct»: el número no depende del idioma. «Varios días» y «Por definir»
+  quedaron sin fecha, que es lo que significan.
 
 **SQL** — `sql/07-nucleo.sql`
 

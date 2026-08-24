@@ -96,13 +96,15 @@
         </div>
 
         <div class="campo">
-          <label for="dia">Día</label>
-          <select id="dia" name="dia"></select>
+          <label for="fecha">Fecha</label>
+          <input type="date" id="fecha" name="fecha">
+          <span class="pista" id="pista-fecha">Dentro de los días del festival. Si aún no la defines, déjala vacía.</span>
+          <span class="error-campo" id="e-fecha" hidden></span>
         </div>
 
         <div class="campo">
-          <label for="hora">Hora de inicio</label>
-          <input type="time" id="hora" name="hora">
+          <label for="hora_inicio">Hora de inicio</label>
+          <input type="time" id="hora_inicio" name="hora_inicio">
           <span class="pista">Si aún no la defines, déjala vacía.</span>
         </div>
 
@@ -140,7 +142,8 @@
 </footer>
 
 <script type="module">
-import { db, perfil, catalogos, llenar, aviso, limpiarAviso, explicar } from '/assets/js/app.js';
+import { db, perfil, catalogos, edicionActiva, llenar,
+         aviso, limpiarAviso, explicar, fechaDia } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 
 montarCabecera();
@@ -152,6 +155,7 @@ const btn    = $('#enviar');
 const bloqueCuenta = $('#bloque-cuenta');
 
 let yaEntro = null;
+let edicion = null;
 
 /* --------------------------------------------------------- preparación -- */
 (async function iniciar() {
@@ -163,11 +167,22 @@ let yaEntro = null;
   }
 
   try {
-    const cat = await catalogos();
+    const [cat, ed] = await Promise.all([catalogos(), edicionActiva()]);
+    edicion = ed;
+
     llenar($('#eje'),  cat.ejes.map(e => e.nombre), 'Elige un eje');
     llenar($('#tipo'), cat.tipos, 'Elige un tipo');
     llenar($('#sede'), cat.sedes, 'Elige una sede');
-    llenar($('#dia'),  cat.dias,  'Elige un día');
+
+    // El campo de fecha se acota a los días del festival. El navegador no deja
+    // elegir fuera del rango con el calendario, pero sí escribiendo: la
+    // validación de abajo es la que de verdad manda.
+    const campoFecha = $('#fecha');
+    campoFecha.min = edicion.fecha_inicio;
+    campoFecha.max = edicion.fecha_fin;
+    $('#pista-fecha').textContent =
+      'Del ' + fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin) +
+      ' de ' + edicion.anio + '. Si aún no la defines, déjala vacía.';
   } catch (e) {
     aviso(cajaAviso, 'mal', explicar(e));
     document.querySelector('#enviar').disabled = true;
@@ -199,6 +214,15 @@ function validar() {
   pedir('eje',  'Elige un eje.',  !$('#eje').value);
   pedir('tipo', 'Elige un tipo.', !$('#tipo').value);
 
+  // La fecha es opcional, pero si la escriben tiene que caer dentro del
+  // festival. «min» y «max» solo guían al calendario del navegador; con
+  // novalidate no impiden enviar una fecha escrita a mano.
+  const f = $('#fecha').value;
+  pedir('fecha',
+    edicion ? 'La fecha tiene que caer dentro del festival: del ' +
+      fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin, true) + '.' : '',
+    !!f && !!edicion && (f < edicion.fecha_inicio || f > edicion.fecha_fin));
+
   if (!ok) {
     const primero = forma.querySelector('[aria-invalid="true"]');
     if (primero) primero.focus();
@@ -215,15 +239,18 @@ forma.addEventListener('submit', async (ev) => {
   btn.disabled = true;
   btn.textContent = 'Registrando…';
 
+  // «edicion_id» no va aquí: la columna tiene por omisión edicion_activa(), así
+  // que la base la resuelve sola y el formulario no tiene que saber el año.
+  // El slug tampoco: lo genera un disparador a partir del título.
   const actividad = {
-    actividad:      $('#actividad').value.trim(),
+    titulo:         $('#actividad').value.trim(),
     eje:            $('#eje').value,
     tipo:           $('#tipo').value,
     sede:           $('#sede').value || '',
-    dia:            $('#dia').value || '',
-    // Los campos de hora vacíos se mandan como null, no como cadena vacía:
-    // la columna es de tipo «time» y rechazaría ''.
-    hora:           $('#hora').value || null,
+    // Los campos de fecha y hora vacíos se mandan como null, no como cadena
+    // vacía: las columnas son «date» y «time» y rechazarían ''.
+    fecha:          $('#fecha').value || null,
+    hora_inicio:    $('#hora_inicio').value || null,
     hora_fin:       $('#hora_fin').value || null,
     descripcion:    $('#descripcion').value.trim(),
     requerimientos: $('#requerimientos').value.trim(),
