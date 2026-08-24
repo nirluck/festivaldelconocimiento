@@ -27,6 +27,7 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/04-catalogos.sql` | Ejes, tipos y sedes |
 | `sql/06-cambios.sql` | Roles nuevos, hora y requerimientos, sin aprobación |
 | `sql/07-nucleo.sql` | Ediciones, fecha real, slug y resumen. Retira `dias` y `ajustes` |
+| `sql/08-cupo.sql` | Agrega `cupo` a las actividades. Puramente aditivo |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.
@@ -113,7 +114,8 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | `/` | Landing pública | Cualquiera |
 | `/registro/` | Alta de actividad **y** creación de cuenta en un paso | Por invitación |
 | `/entrar/` | Acceso y recuperación de contraseña | Con cuenta |
-| `/mi-actividad/` | Sus actividades, historial y reporte de avances | Coordinador |
+| `/mi-actividad/` | La lista de sus actividades | Coordinador |
+| `/actividad/?id=…` | Panel de una actividad: editar sus datos y reportar avances | Coordinador dueño o administración |
 | `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
 
 ---

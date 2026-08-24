@@ -114,6 +114,21 @@
           <span class="pista">Opcional. Sirve para calcular la duración.</span>
         </div>
 
+        <div class="campo">
+          <label for="cupo">Cupo</label>
+          <input type="number" id="cupo" name="cupo" min="0" step="1"
+                 placeholder="Lugares que ofreces">
+          <span class="pista">Opcional. Déjalo vacío si aún no lo defines.</span>
+          <span class="error-campo" id="e-cupo" hidden></span>
+        </div>
+
+        <div class="campo completo">
+          <label for="resumen">Resumen</label>
+          <textarea id="resumen" name="resumen"
+                    placeholder="Una o dos frases para el programa público."></textarea>
+          <span class="pista">Lo corto que se lee en el programa. La descripción es el texto largo.</span>
+        </div>
+
         <div class="campo completo">
           <label for="descripcion">Descripción</label>
           <textarea id="descripcion" name="descripcion"
@@ -223,6 +238,9 @@ function validar() {
       fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin, true) + '.' : '',
     !!f && !!edicion && (f < edicion.fecha_inicio || f > edicion.fecha_fin));
 
+  const cupo = $('#cupo').value.trim();
+  pedir('cupo', 'El cupo tiene que ser un número entero.', !!cupo && !/^\d+$/.test(cupo));
+
   if (!ok) {
     const primero = forma.querySelector('[aria-invalid="true"]');
     if (primero) primero.focus();
@@ -242,6 +260,7 @@ forma.addEventListener('submit', async (ev) => {
   // «edicion_id» no va aquí: la columna tiene por omisión edicion_activa(), así
   // que la base la resuelve sola y el formulario no tiene que saber el año.
   // El slug tampoco: lo genera un disparador a partir del título.
+  const cupoTx = $('#cupo').value.trim();
   const actividad = {
     titulo:         $('#actividad').value.trim(),
     eje:            $('#eje').value,
@@ -252,6 +271,9 @@ forma.addEventListener('submit', async (ev) => {
     fecha:          $('#fecha').value || null,
     hora_inicio:    $('#hora_inicio').value || null,
     hora_fin:       $('#hora_fin').value || null,
+    // El cupo vacío también va como null: la columna es entera.
+    cupo:           cupoTx === '' ? null : parseInt(cupoTx, 10),
+    resumen:        $('#resumen').value.trim(),
     descripcion:    $('#descripcion').value.trim(),
     requerimientos: $('#requerimientos').value.trim(),
   };

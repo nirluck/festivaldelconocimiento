@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actividad · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+<style>
+  /* Pestañas del panel. Se apoyan en las variables del tema. */
+  .pestanas{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+            margin:26px 0 24px}
+  .pestana{appearance:none;background:none;border:0;cursor:pointer;
+           font:inherit;color:var(--tx-3);padding:10px 16px;border-radius:8px 8px 0 0;
+           border-bottom:2px solid transparent;margin-bottom:-1px}
+  .pestana:hover{color:var(--tx-1)}
+  .pestana[aria-selected="true"]{color:var(--turquesa-tx);border-bottom-color:var(--turquesa);
+           font-weight:600}
+  .meta-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+            color:var(--tx-3);font-size:.9rem;margin-top:6px}
+  .meta-act .eje{color:var(--tx-1)}
+  .check{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+  .check input{width:auto;margin-top:3px}
+</style>
+</head>
+<body>
+
+<div data-cabecera></div>
+
+<main class="hoja hoja--media" id="pagina">
+  <div class="cargando">Cargando…</div>
+</main>
+
+<footer class="pie">
+  ¿Necesitas ayuda? <a href="mailto:jperalta@ens.cnyn.unam.mx">jperalta@ens.cnyn.unam.mx</a>
+</footer>
+
+<script type="module">
+import { db, exigirSesion, explicar, fechaDia, hora, escapar } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
+import { MODULOS } from '/assets/js/modulos/registro.js';
+
+const $ = s => document.querySelector(s);
+const pagina = $('#pagina');
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+let perfil = null;
+let actividad = null;
+let activo = null;   // id del módulo abierto
+
+/* ========================================================================= */
+(async function iniciar() {
+  perfil = await exigirSesion();
+  if (!perfil) return;
+  montarCabecera(perfil);
+
+  if (!id) {
+    pagina.innerHTML = mensajeVolver('No se indicó qué actividad abrir.');
+    return;
+  }
+
+  activo = (location.hash || '').replace('#', '') || null;
+  const ok = await traer();
+  if (ok) pintar();
+})();
+
+/* --------------------------------------------------------------- datos --- */
+async function traer() {
+  // La vista respeta las reglas por fila: si la actividad no es de quien
+  // pregunta y no es administración, sencillamente no vuelve ninguna fila.
+  const { data, error } = await db
+    .from('vista_actividades').select('*').eq('id', id).maybeSingle();
+
+  if (error) {
+    pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(error))}</div>`;
+    return false;
+  }
+  if (!data) {
+    pagina.innerHTML = mensajeVolver('No encontramos esa actividad, o no es tuya.');
+    return false;
+  }
+  actividad = data;
+  return true;
+}
+
+function mensajeVolver(texto) {
+  return `<div class="aviso aviso--mal">${escapar(texto)}</div>
+    <p style="margin-top:16px"><a class="btn btn--linea" href="/mi-actividad/">← Mis actividades</a></p>`;
+}
+
+/* -------------------------------------------------------------- pintar --- */
+function pintar() {
+  const disponibles = MODULOS.filter(m => m.aplica(actividad, perfil));
+  if (!activo || !disponibles.some(m => m.id === activo)) {
+    activo = disponibles[0] ? disponibles[0].id : null;
+  }
+
+  const a = actividad;
+  const meta = [
+    a.eje ? `<span class="eje">${escapar(a.eje)}</span>` : '',
+    a.tipo ? `<span>${escapar(a.tipo)}</span>` : '',
+    a.sede ? `<span>· ${escapar(a.sede)}</span>` : '',
+    a.fecha ? `<span>· ${escapar(fechaDia(a.fecha, true))}</span>` : '',
+    a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : '',
+    (a.cupo || a.cupo === 0) ? `<span>· cupo ${a.cupo}</span>` : '',
+  ].filter(Boolean).join(' ');
+
+  // A la administración le sirve ver de quién es la actividad.
+  const deQuien = perfil.rol === 'administrador' && a.responsable
+    ? `<span>· ${escapar(a.responsable)}</span>` : '';
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker"><a href="/mi-actividad/">← Mis actividades</a></p>
+      <h1 style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        ${escapar(a.titulo)}
+        <span class="chip chip--${a.color}">${escapar(a.etiqueta)}</span>
+        ${a.publica ? '<span class="chip chip--verde">En el programa</span>' : ''}
+      </h1>
+      <p class="meta-act">${meta}${deQuien}</p>
+    </div>
+
+    <nav class="pestanas" role="tablist" aria-label="Secciones de la actividad">
+      ${disponibles.map(m => `
+        <button class="pestana" role="tab" type="button"
+                id="tab-${m.id}" data-modulo="${m.id}"
+                aria-selected="${m.id === activo ? 'true' : 'false'}">
+          ${escapar(m.nombre)}
+        </button>`).join('')}
+    </nav>
+
+    <section id="modulo" role="tabpanel" aria-labelledby="tab-${activo || ''}">
+      <div class="cargando">Cargando…</div>
+    </section>`;
+
+  pagina.querySelectorAll('.pestana').forEach(b => {
+    b.addEventListener('click', () => abrir(b.dataset.modulo));
+  });
+
+  montarActivo();
+}
+
+async function montarActivo() {
+  const m = MODULOS.find(x => x.id === activo);
+  const cont = $('#modulo');
+  if (!m) { cont.innerHTML = `<div class="vacio"><p>Esta actividad no tiene módulos disponibles.</p></div>`; return; }
+  cont.innerHTML = `<div class="cargando">Cargando…</div>`;
+  try {
+    await m.montar(cont, actividad, perfil, { recargar });
+  } catch (e) {
+    cont.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(e))}</div>`;
+  }
+}
+
+function abrir(idModulo) {
+  if (idModulo === activo) return;
+  activo = idModulo;
+  history.replaceState(null, '', '#' + idModulo);
+  pagina.querySelectorAll('.pestana').forEach(b =>
+    b.setAttribute('aria-selected', b.dataset.modulo === activo ? 'true' : 'false'));
+  $('#modulo').setAttribute('aria-labelledby', 'tab-' + activo);
+  montarActivo();
+}
+
+// La usan los módulos tras guardar: relee la actividad y repinta todo, para que
+// el título, el semáforo y los datos reflejen lo que quedó en la base.
+async function recargar() {
+  const ok = await traer();
+  if (ok) pintar();
+}
+</script>
+</body>
+</html>

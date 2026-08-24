@@ -21,12 +21,10 @@
   ¿Necesitas ayuda? <a href="mailto:jperalta@ens.cnyn.unam.mx">jperalta@ens.cnyn.unam.mx</a>
 </footer>
 
+
 <script type="module">
-import { db, exigirSesion, catalogos, llenar,
-         aviso, limpiarAviso, explicar, fecha, fechaDia, fechaHora, hora,
-         escapar } from '/assets/js/app.js';
+import { db, exigirSesion, explicar, fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
-import { ALERTAS } from '/assets/js/config.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -36,15 +34,17 @@ let yo = null;
 
 /* ========================================================================= */
 (async function iniciar() {
+  // Compatibilidad: antes el detalle vivía aquí, en /mi-actividad/?id=…
+  // Ahora es el panel /actividad/. Si llega una liga vieja, se redirige.
+  const id = params.get('id');
+  if (id) { location.replace('/actividad/?id=' + encodeURIComponent(id)); return; }
+
   yo = await exigirSesion();
   if (!yo) return;
   montarCabecera(yo);
 
   await completarPendiente();
-
-  const id = params.get('id');
-  if (id) await verDetalle(id);
-  else await verLista();
+  await verLista();
 })();
 
 /**
@@ -81,9 +81,9 @@ async function verLista() {
   if (params.get('bienvenida')) {
     nueva = `<div class="aviso aviso--ok">
       <strong>Tu actividad quedó registrada y tu cuenta ya está lista.</strong><br>
-      Esta es tu página: desde aquí reportas cómo va tu actividad las veces que
-      haga falta y consultas su estado cuando quieras. Para volver, entra con tu
-      correo y tu contraseña desde «Entrar».</div>`;
+      Esta es tu página: desde aquí abres cada actividad para completar sus datos
+      y reportar cómo va, cuando quieras. Para volver, entra con tu correo y tu
+      contraseña desde «Entrar».</div>`;
   } else if (params.get('nueva')) {
     nueva = `<div class="aviso aviso--ok">Tu actividad quedó registrada.</div>`;
   }
@@ -93,7 +93,7 @@ async function verLista() {
       <div class="titulo"><p class="kicker">Tu cuenta</p><h1>Todavía no tienes actividades</h1></div>
       <div class="vacio">
         <h3>Aquí aparecerán las actividades que registres</h3>
-        <p>Da de alta la primera y desde aquí podrás reportar cómo va.</p>
+        <p>Da de alta la primera y desde aquí podrás completarla y reportar cómo va.</p>
         <a class="btn btn--principal" href="/registro/">Registrar una actividad</a>
       </div>`;
     return;
@@ -103,7 +103,7 @@ async function verLista() {
     <div class="titulo">
       <p class="kicker">Tu cuenta</p>
       <h1>Mis actividades</h1>
-      <p class="entrada">Da clic en cualquiera para reportar cómo va.</p>
+      <p class="entrada">Da clic en cualquiera para completar sus datos y reportar cómo va.</p>
       <p style="margin-top:18px">
         <a class="btn btn--principal" href="/registro/">Registrar otra actividad</a>
       </p>
@@ -129,137 +129,9 @@ function tarjeta(a) {
       </div>
       <div class="act__pie">
         <span>${a.avance}% de avance${a.envios ? ` · ${a.envios} reporte${a.envios === 1 ? '' : 's'}` : ' · sin reportes'}</span>
-        <a class="btn btn--chico btn--linea" href="?id=${a.id}">Ver y reportar</a>
+        <a class="btn btn--chico btn--linea" href="/actividad/?id=${a.id}">Abrir</a>
       </div>
     </article>`;
-}
-
-/* ============================= DETALLE =================================== */
-async function verDetalle(id) {
-  const { data: a, error } = await db
-    .from('vista_actividades').select('*').eq('id', id).single();
-
-  if (error || !a) {
-    pagina.innerHTML = `<div class="aviso aviso--mal">No encontramos esa actividad.</div>
-      <a class="btn btn--linea" href="/mi-actividad/">Volver a mis actividades</a>`;
-    return;
-  }
-
-  const { data: historial } = await db
-    .from('reportes').select('*')
-    .eq('actividad_id', id).order('creado', { ascending: false });
-
-  pagina.innerHTML = `
-    <div class="titulo">
-      <p class="kicker"><a href="/mi-actividad/">← Mis actividades</a></p>
-      <h1>${escapar(a.titulo)}</h1>
-      <p class="entrada">
-        <span class="eje">${escapar(a.eje || '')}</span>
-        ${a.tipo ? escapar(a.tipo) : ''}${a.sede ? ' · ' + escapar(a.sede) : ''}${a.fecha ? ' · ' + escapar(fechaDia(a.fecha, true)) : ''}${a.hora_inicio ? ' · ' + escapar(hora(a.hora_inicio)) + ' h' : ''}
-      </p>
-    </div>
-
-    <div class="aviso" id="aviso" hidden></div>
-
-    <form class="tarjeta" id="forma-reporte">
-      <fieldset style="margin-bottom:0">
-        <legend>Reportar avance</legend>
-        <p class="leyenda">
-          Cuéntanos cómo va. Cada envío queda guardado, así que puedes reportar
-          las veces que haga falta.
-        </p>
-
-        <div class="campos">
-          <div class="campo">
-            <label for="avance">¿Qué tanto has avanzado?</label>
-            <div class="rango">
-              <input type="range" id="avance" min="0" max="100" step="5" value="${a.avance}">
-              <output id="salida">${a.avance}%</output>
-            </div>
-          </div>
-
-          <div class="campo">
-            <label for="avances">¿Qué has logrado desde el último reporte?</label>
-            <textarea id="avances" placeholder="Lo que ya está resuelto o confirmado."></textarea>
-          </div>
-
-          <div class="campo">
-            <label for="necesidades">¿Qué necesitas?</label>
-            <textarea id="necesidades" placeholder="Equipo, espacio, difusión, apoyo de la coordinación…"></textarea>
-          </div>
-
-          <div class="campo">
-            <label for="problematica">¿Hay alguna problemática?</label>
-            <textarea id="problematica" placeholder="Déjalo vacío si no hay nada atorado."></textarea>
-            <span class="pista">Si escribes algo aquí, la coordinación lo verá marcado para darle seguimiento.</span>
-          </div>
-
-          <div class="campo">
-            <label for="siguiente">¿Cuál es tu siguiente paso?</label>
-            <input type="text" id="siguiente" placeholder="Ej. Confirmar al ponente esta semana">
-          </div>
-
-          <div class="campo">
-            <label for="alerta">¿Está en riesgo de no realizarse?</label>
-            <select id="alerta"></select>
-          </div>
-        </div>
-
-        <div class="acciones">
-          <button type="submit" class="btn btn--principal" id="enviar">Enviar reporte</button>
-        </div>
-      </fieldset>
-    </form>
-
-    <h2 style="margin:38px 0 14px">Historial de reportes</h2>
-    ${historial && historial.length ? `
-      <div class="tabla-caja">
-        <table>
-          <thead><tr><th>Fecha</th><th class="num">Avance</th><th>Qué reportó</th></tr></thead>
-          <tbody>${historial.map(r => `
-            <tr>
-              <td>${escapar(fechaHora(r.creado))}</td>
-              <td class="num"><strong>${r.avance}%</strong></td>
-              <td>${escapar(r.avances || '—')}${r.problematica ? `<br><span style="color:var(--rojo)">Problemática: ${escapar(r.problematica)}</span>` : ''}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>` : `<div class="vacio"><p>Todavía no has enviado ningún reporte.</p></div>`}
-  `;
-
-  llenar($('#alerta'), ALERTAS);
-  $('#alerta').value = a.alerta && ALERTAS.includes(a.alerta) ? a.alerta : ALERTAS[0];
-
-  const rango = $('#avance'), salida = $('#salida');
-  rango.addEventListener('input', () => { salida.textContent = rango.value + '%'; });
-
-  $('#forma-reporte').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const btn = $('#enviar'), cajaAviso = $('#aviso');
-    limpiarAviso(cajaAviso);
-    btn.disabled = true; btn.textContent = 'Enviando…';
-
-    const { error: err } = await db.from('reportes').insert({
-      actividad_id: id,
-      avance:       parseInt(rango.value, 10),
-      avances:      $('#avances').value.trim(),
-      necesidades:  $('#necesidades').value.trim(),
-      problematica: $('#problematica').value.trim(),
-      siguiente:    $('#siguiente').value.trim(),
-      alerta:       $('#alerta').value,
-    });
-
-    if (err) {
-      aviso(cajaAviso, 'mal', explicar(err));
-      btn.disabled = false; btn.textContent = 'Enviar reporte';
-      return;
-    }
-    location.href = '?id=' + id + '&enviado=1';
-  });
-
-  if (params.get('enviado')) {
-    aviso($('#aviso'), 'ok', 'Gracias, tu reporte quedó registrado.');
-  }
 }
 </script>
 </body>

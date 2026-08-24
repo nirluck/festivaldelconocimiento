@@ -31,9 +31,12 @@ Sitio público y sistema interno del Festival del Conocimiento
 - Landing pública con carrusel, cuenta regresiva, memoria 2025 y galería
 - Registro que crea cuenta y da de alta una actividad en un paso
 - Acceso con correo y contraseña, con recuperación
-- Página del coordinador: sus actividades, historial y reporte de avances
+- Página del coordinador: la lista de sus actividades
+- **Panel de actividad `/actividad/?id=…` con módulos: Resumen (ver y editar
+  todos los datos) y Avance (el reporte y su historial).** Cierra el hueco de
+  edición que existía desde el principio
 - Tablero de administración con semáforo, filtros y exportación CSV
-- Cabecera unificada en las cinco páginas
+- Cabecera unificada en el sitio
 
 ### Tablas que existen hoy
 
@@ -55,6 +58,7 @@ ejes · tipos · sedes
 | `sql/04-catalogos.sql` | Ejes, tipos, sedes y días |
 | `sql/06-cambios.sql` | Roles renombrados, hora y requerimientos, sin aprobación |
 | `sql/07-nucleo.sql` | **Fase A.** Ediciones, fecha real, slug y resumen |
+| `sql/08-cupo.sql` | **Captura primero.** Agrega `cupo` a las actividades |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
 **03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
@@ -67,8 +71,10 @@ que se detiene y lo explica.
 
 ### Huecos conocidos
 
-- **No se puede editar una actividad** una vez creada. Ni el coordinador ni la
-  administración. Se resuelve en la fase B.
+- **Edición resuelta (fase B).** Coordinador y administración editan una
+  actividad desde el módulo Resumen del panel.
+- **Aún no se capturan ponentes, imágenes ni cupos de voluntariado.** Es la
+  siguiente tanda de captura (fase C y las mitades de captura de E y G).
 - **Nada se ha probado con volumen real.** Hay un par de actividades de prueba.
 
 ---
@@ -472,28 +478,41 @@ fecha real, que es lo que permite ordenar el programa.
 
 ---
 
-### Fase B · Panel de actividad y registro de módulos
+### Fase B · Panel de actividad y registro de módulos — **hecha** (24 de agosto de 2026)
 
 **Por qué segundo:** establece el patrón sobre el que se construye todo lo
-demás, y de paso cierra el hueco de que **hoy no se puede editar una actividad**.
+demás, y de paso cierra el hueco de que antes **no se podía editar una actividad**.
 
 **Frontend**
 
-- Nueva ruta `/actividad/?id=…` con pestañas.
-- `assets/js/modulos/registro.js` con la lista de módulos.
-- Módulo **Resumen**: ver y **editar** los datos de la actividad. Cierra el hueco.
-- Módulo **Avance**: mover aquí el reporte que hoy vive en `/mi-actividad`.
-- `/mi-actividad` se queda solo con la lista y el botón de registrar otra.
+- Ruta `/actividad/?id=…` con pestañas (`public/actividad/index.html`).
+- `assets/js/modulos/registro.js`: la lista de módulos. Agregar uno es un
+  archivo y un renglón.
+- Módulo **Resumen** (`modulos/resumen.js`): ver y **editar** los datos.
+- Módulo **Avance** (`modulos/avance.js`): el reporte, movido desde `/mi-actividad`.
+- `/mi-actividad` quedó solo con la lista; la tarjeta abre el panel. Las ligas
+  viejas `/mi-actividad/?id=…` se redirigen a `/actividad/?id=…`.
 
-**Entregable:** el patrón de módulos probado con dos módulos reales antes de
-construir los cinco que faltan.
+**Cómo edita cada quien:** el módulo Resumen manda a la base solo los campos
+editables —nunca `slug`, `edicion_id` ni `responsable_id`, así que la dirección
+pública no se regenera ni se pierde el dueño—. El interruptor `publica` solo lo
+ve y lo cambia la administración; lo respalda el disparador `proteger_estado`.
+
+**Entregable:** el patrón de módulos, probado con dos módulos reales antes de
+construir los que faltan.
 
 ---
 
-### Fase C · Ponentes y contenido
+### Fase C · Ponentes y contenido — **siguiente** (mitad de captura)
 
-**SQL** — `sql/08-ponentes.sql`: `ponentes`, `actividad_ponentes`,
-`actividad_imagenes`.
+**SQL** — `sql/09-ponentes.sql`: `ponentes`, `actividad_ponentes`,
+`actividad_imagenes`. (El número 08 lo tomó `08-cupo.sql`; las fases E–H corren
+en consecuencia: 10-voluntariado, 11-asistencia, 12-encuesta, 13-correo.)
+
+**Nota de captura primero:** capturar ponentes e imágenes NO necesita correo.
+Lo que depende de fases posteriores es *mostrarlos* en el programa público
+(fase D), no capturarlos. Por eso es el siguiente paso natural para que el
+coordinador registre la mayor cantidad de datos.
 
 **Supabase Storage:** crear el bucket `actividades` (público en lectura,
 escritura solo autenticados) para fotos de ponentes e imágenes de actividad.
@@ -539,7 +558,7 @@ por el programa real.
 
 ### Fase E · Voluntariado
 
-**SQL** — `sql/09-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
+**SQL** — `sql/10-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
 
 **Frontend**
 
@@ -564,7 +583,7 @@ por el programa real.
 
 ### Fase F · Asistencia
 
-**SQL** — `sql/10-asistencia.sql`: `asistentes`, `registros`.
+**SQL** — `sql/11-asistencia.sql`: `asistentes`, `registros`.
 
 **Frontend**
 
@@ -583,7 +602,7 @@ por el programa real.
 
 ### Fase G · Encuesta
 
-**SQL** — `sql/11-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
+**SQL** — `sql/12-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
 `respuesta_valores`.
 
 **Frontend**
@@ -647,7 +666,7 @@ registros en un día hace falta plan de pago ese mes. El costo típico ronda los
   y datos; llama al proveedor; escribe en `envios`.
 - La llave del proveedor va en los secretos de la función, **nunca en el
   frontend**.
-- `sql/12-correo.sql`: tabla `envios`.
+- `sql/13-correo.sql`: tabla `envios`.
 
 **Plantillas necesarias:** pase de asistencia, confirmación de voluntariado,
 recordatorio de actividad, invitación a la encuesta.

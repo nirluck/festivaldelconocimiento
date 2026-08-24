@@ -44,6 +44,11 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+[[headers]]
+  for = "/actividad/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
 # Rutas cómodas
 [[redirects]]
   from = "/reporte"
