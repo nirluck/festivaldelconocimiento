@@ -806,6 +806,9 @@
    por eso funcionan tal cual sobre el pie de página oscuro. */
 .fdc-lg-unam  { height: 66px; width: auto; }
 .fdc-lg-unam2 { height: 54px; width: auto; }
+/* El del 475 ya viene en blanco sobre fondo transparente. Es apaisado, así que
+   una altura algo menor lo deja del mismo peso visual que los de la UNAM. */
+.fdc-lg-475   { height: 58px; width: auto; }
 /* El del CNyN viene en escala de grises: lo convertimos a blanco puro
    para que conserve su forma sobre el fondo oscuro. */
 .fdc-lg-cnyn  { height: 62px; width: auto; filter: brightness(0) invert(1); opacity: .94; }
