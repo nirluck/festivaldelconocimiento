@@ -166,7 +166,6 @@
 
 .fdc--bleed .fdc-hero,
 .fdc--bleed .fdc-chips,
-.fdc--bleed .fdc-stats,
 .fdc--bleed .fdc-sec,
 .fdc--bleed .fdc-foot {
   width: var(--fdc-vw);
@@ -317,30 +316,99 @@
 }
 .fdc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--fdc-amarillo); flex: none; }
 
+/* Logotipo a la izquierda y fecha a su derecha, alineados por la base para que
+   las cifras se apoyen en la misma línea que el logotipo. */
+.fdc-hero__cabeza {
+  display: flex; align-items: center; justify-content: flex-start;
+  gap: clamp(12px, 2.2vw, 26px);
+  margin-bottom: 24px;
+}
 .fdc-hero__logo {
-  width: min(86%, 506px);
-  margin: 0 auto -24px;
+  width: min(52%, 400px);
+  margin: 0 0 -18px;
+  flex: none;
   filter: drop-shadow(0 8px 30px rgba(0,0,0,.45));
 }
 
+/* Logotipos institucionales bajo el logo del festival.
+   Los de la UNAM ya vienen en blanco sobre transparente; el del CNyN viene en
+   escala de grises y se fuerza a blanco puro, igual que en el pie. Van algo
+   apagados a propósito: acompañan al logotipo, no compiten con él. */
+/* Bloque «Una iniciativa de»: la misma estructura que el pie de página.
+   Allá la línea de arriba la pone el borde del bloque anterior; aquí, al ir
+   suelto sobre el hero, lleva sus dos líneas propias. */
+.fdc-hero__insti {
+  padding: 34px 0 30px; text-align: center;
+  border-top: 1px solid rgba(255,255,255,.18);
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  margin-bottom: 30px;
+}
+.fdc-hero__insti-label {
+  font-size: .74em; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(255,255,255,.62); margin-bottom: 24px;
+  text-shadow: 0 2px 10px rgba(4,18,21,.8);
+}
+.fdc-hero__insti-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(24px, 5vw, 54px); flex-wrap: wrap;
+}
+/* Sobre el pie, un logotipo blanco basta. Aquí el fondo es una foto y en los
+   tramos claros se desdibuja, así que todos llevan sombra. */
+.fdc-hero__lg {
+  width: auto; display: block;
+  filter: drop-shadow(0 3px 12px rgba(4,18,21,.85));
+}
+.fdc-hero__lg--unam  { height: 88px; }
+.fdc-hero__lg--unam2 { height: 72px; }
+.fdc-hero__lg--475   { height: 78px; }
+/* El del CNyN viene en escala de grises: se fuerza a blanco y se le suma la
+   misma sombra en un solo filter, porque el segundo sobreescribiría al primero. */
+.fdc-hero__lg--cnyn {
+  height: 82px;
+  filter: brightness(0) invert(1) drop-shadow(0 3px 12px rgba(4,18,21,.85));
+}
+.fdc-hero__lgsep {
+  width: 1px; height: 62px; background: rgba(255,255,255,.22); flex: none;
+}
+/* Cada logotipo enlaza a su institución. El enlace no debe añadir caja propia
+   ni alterar la fila: se comporta como el <img> que envuelve. */
+.fdc-hero__lglink { display: block; flex: none; line-height: 0; }
+.fdc-hero__lglink:hover .fdc-hero__lg { opacity: .82; }
+.fdc-hero__lg { transition: opacity .2s ease; }
+
+/* Tres renglones: «17 — 24», «octubre» y «2026». */
 .fdc-hero__dates {
   font-family: var(--fdc-f-disp);
-  display: flex; align-items: center; justify-content: center;
-  flex-wrap: wrap; gap: 4px 14px;
-  color: #fff; margin-bottom: 20px;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 2px;
+  color: #fff;
+  /* Va dentro de .fdc-hero__cabeza: la separación la pone el gap de la fila. */
+  margin-bottom: 0;
+  /* Centrada respecto al logotipo y bajada. Se desplaza con «top» y no con
+     margen para no descentrar la fila. */
+  position: relative; top: 63px;
 }
+/* El primer renglón sí es horizontal: los dos números con su guion.
+   Por la línea base, para que el guion no baile entre cifras tan grandes. */
+.fdc-hero__rango { display: flex; align-items: baseline; gap: 14px; }
 .fdc-hero__dates strong {
-  font-size: clamp(3.6em, 12vw, 7em);
-  font-weight: 700; line-height: .88; letter-spacing: -.04em;
+  font-size: clamp(2.3em, 7vw, 4.1em);
+  /* Punto intermedio: con .88 la caja quedaba más corta que el glifo y sobraba
+     espacio encima del «17»; con 1 la fecha se soltaba de más. */
+  font-weight: 700; line-height: .94; letter-spacing: -.04em;
+  display: block;
   text-shadow: 0 3px 26px rgba(4,18,21,.6);
 }
-.fdc-hero__dash { font-size: clamp(2em, 6vw, 3.4em); color: var(--fdc-amarillo); font-weight: 300; }
-.fdc-hero__dates em {
-  font-style: normal; text-align: left;
-  font-size: clamp(1em, 2.4vw, 1.35em); font-weight: 600;
-  letter-spacing: .04em; text-transform: uppercase; line-height: 1.15;
+.fdc-hero__dash { font-size: clamp(1.35em, 3.7vw, 2.1em); color: var(--fdc-amarillo); font-weight: 300; }
+.fdc-hero__mes {
+  font-size: clamp(1em, 2.4vw, 1.45em); font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; line-height: 1.1;
 }
-.fdc-hero__dates em span { display: block; color: var(--fdc-amarillo); font-size: 1.5em; letter-spacing: -.01em; }
+.fdc-hero__anio {
+  color: var(--fdc-amarillo);
+  font-size: clamp(1.1em, 2.4vw, 1.5em); font-weight: 700;
+  letter-spacing: -.01em; line-height: 1.05;
+}
 
 .fdc-hero__lede {
   color: rgba(255,255,255,.9);
@@ -410,26 +478,6 @@
 }
 .fdc-chips__track a:hover { background: rgba(255,255,255,.12); color: #fff; }
 
-/* =========================================================== 3. ESTADÍSTICAS */
-.fdc-stats { background: var(--fdc-bg-ice); padding: 34px 0; border-bottom: 1px solid var(--fdc-border); }
-.fdc-stats__grid {
-  max-width: var(--fdc-wrap); margin-inline: auto; padding-inline: 24px;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center;
-}
-.fdc-stats__grid li { display: flex; flex-direction: column; gap: 2px; }
-.fdc-stats__grid b {
-  font-family: var(--fdc-f-disp); font-size: clamp(1.7em, 3.6vw, 2.5em);
-  font-weight: 700; line-height: 1; color: var(--fdc-dark); letter-spacing: -.02em;
-}
-.fdc-stats__grid li:nth-child(1) b { color: var(--fdc-turquesa-tx); }
-.fdc-stats__grid li:nth-child(2) b { color: var(--fdc-magenta-tx); }
-.fdc-stats__grid li:nth-child(3) b { color: var(--fdc-naranja-tx); }
-.fdc-stats__grid li:nth-child(4) b { color: var(--fdc-verde-tx); }
-.fdc-stats__grid span {
-  font-size: .78em; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--fdc-tx-3); font-weight: 500;
-}
-
 /* ============================================================= 4. INTRO === */
 .fdc-intro {
   display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 68px);
@@ -460,10 +508,15 @@
 }
 .fdc-disc__card:hover { transform: translateY(-5px); box-shadow: var(--fdc-shadow-h); }
 /* El anillo lleva el color puro del logotipo; el título, la variante legible */
+/* El anillo lleva dentro el icono de su disciplina. «color» alimenta el
+   currentColor del SVG, así el trazo sigue al color del círculo sin repetirlo. */
 .fdc-disc__ring {
-  display: block; width: 42px; height: 42px; border-radius: 50%;
-  border: 5px solid var(--ring); margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 4px solid var(--ring); margin-bottom: 20px;
+  color: var(--ring);
 }
+.fdc-disc__ring svg { width: 26px; height: 26px; }
 .fdc-disc__card h3 {
   font-family: var(--fdc-f-disp); font-size: 1.28em; font-weight: 700;
   margin-bottom: 8px; letter-spacing: -.01em;
@@ -875,15 +928,25 @@
 @media (max-width: 720px) {
   .fdc { font-size: max(16px, 1rem); }
   .fdc-hero { min-height: auto; padding: 76px 0 96px; }
-  .fdc-hero__logo { width: min(96%, 374px); }
-  .fdc-hero__dates { gap: 2px 10px; }
-  .fdc-hero__dates em { text-align: center; width: 100%; }
+  /* En móvil no caben lado a lado: se apilan y vuelven al centro. */
+  .fdc-hero__cabeza { flex-direction: column; align-items: center; gap: 6px; }
+  .fdc-hero__logo { width: min(84%, 320px); margin: 0 auto -14px; }
+  /* Apilada bajo el logotipo, el desplazamiento sobra. */
+  .fdc-hero__dates { align-items: center; top: 0; }
+  .fdc-hero__insti { padding: 26px 0 24px; margin-bottom: 24px; }
+  .fdc-hero__insti-label { margin-bottom: 18px; }
+  .fdc-hero__insti-row { gap: 18px 24px; }
+  .fdc-hero__lg--unam  { height: 62px; }
+  .fdc-hero__lg--unam2 { height: 51px; }
+  .fdc-hero__lg--475   { height: 55px; }
+  .fdc-hero__lg--cnyn  { height: 58px; }
+  .fdc-hero__lgsep { height: 44px; }
+  .fdc-hero__rango { gap: 10px; }
   .fdc-hero__cta { flex-direction: column; }
   .fdc-hero__cta .fdc-btn { width: 100%; }
   .fdc-count__unit { min-width: 68px; padding: 11px 8px 9px; }
   .fdc-count__unit span { font-size: 1.5em; }
 
-  .fdc-stats__grid { grid-template-columns: repeat(2, 1fr); gap: 26px 16px; }
   .fdc-disc, .fdc-acts, .fdc-memo, .fdc-part, .fdc-social { grid-template-columns: 1fr; }
   .fdc-soon { grid-template-columns: 1fr; text-align: center; }
   .fdc-soon__badge { width: 130px; margin-inline: auto; }
@@ -898,6 +961,18 @@
   .fdc-lb__nav { width: 44px; height: 44px; font-size: 1.7em; }
   .fdc-lb__nav--prev { left: 6px; }
   .fdc-lb__nav--next { right: 6px; }
+}
+
+/* Por debajo de 380px los cuatro logotipos ya no caben en una línea y el
+   bloque se parte en dos. Se encogen lo justo para que siga siendo una sola
+   fila, que es como se lee el conjunto. */
+@media (max-width: 380px) {
+  .fdc-hero__insti-row { gap: 14px; }
+  .fdc-hero__lg--unam  { height: 44px; }
+  .fdc-hero__lg--unam2 { height: 36px; }
+  .fdc-hero__lg--475   { height: 39px; }
+  .fdc-hero__lg--cnyn  { height: 41px; }
+  .fdc-hero__lgsep { height: 30px; }
 }
 
 /* ================================================= 18. PREFERENCIAS DE USO */

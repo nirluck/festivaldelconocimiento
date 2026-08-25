@@ -113,10 +113,8 @@ export function montarCabecera(perfil) {
     <header class="cab${esLanding ? ' cab--flotante' : ''}" role="banner">
       <div class="cab__in">
         <a class="cab__marca" href="/" aria-label="Festival del Conocimiento, inicio">
-          <img class="cab__logo cab__logo--unam" src="/assets/img/logounam.png" alt="UNAM">
-          <img class="cab__logo cab__logo--475"  src="/assets/img/logo-unam-475.png" alt="475 años de la UNAM">
-          <img class="cab__logo cab__logo--cnyn" src="/assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM">
-          <img class="cab__logo cab__logo--fest" src="/assets/img/icono-festcon.png" alt="Festival del Conocimiento">
+          <img src="/assets/img/icono-festcon.png" alt="" width="34">
+          <b>Festival del Conocimiento</b>
         </a>
 
         <button class="cab__toggle" type="button" aria-expanded="false"

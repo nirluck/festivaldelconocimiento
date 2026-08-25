@@ -39,16 +39,18 @@ body{ margin: 0; }
 
 /* ------------------------------------------------------------------ marca -- */
 .cab__marca{
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: 11px;
   text-decoration: none; color: #fff; flex: none;
 }
-/* Fila de logos institucionales. Los de la UNAM y el 475 ya vienen en blanco;
-   el del CNyN se fuerza a blanco puro para que se lea sobre la barra oscura. */
-.cab__logo{ width: auto; display: block; }
-.cab__logo--unam{ height: 32px; }
-.cab__logo--475 { height: 30px; }
-.cab__logo--cnyn{ height: 31px; filter: brightness(0) invert(1); }
-.cab__logo--fest{ height: 34px; }
+/* La cabecera identifica al Festival; los logotipos institucionales viven en
+   el hero y en el pie. Repetirlos aquí los mostraría tres veces en la misma
+   pantalla y dejaba las páginas internas sin el nombre del sitio. */
+.cab__marca img{ width: 34px; height: auto; display: block; }
+.cab__marca b{
+  font-family: 'Space Grotesk','Inter',sans-serif;
+  font-weight: 700; font-size: .95rem; line-height: 1; letter-spacing: -.01em;
+  white-space: nowrap;
+}
 
 /* ------------------------------------------------------------------- menú -- */
 .cab__menu{
@@ -155,15 +157,6 @@ body{ margin: 0; }
 
   /* En móvil la cabecera flotante se vuelve sólida al abrir el menú */
   .cab--flotante:has(.cab__menu.is-abierto){ background: #12343B; }
-}
-
-/* En pantallas chicas se reduce la fila de logos para que quepa junto al menú */
-@media (max-width: 480px){
-  .cab__marca{ gap: 10px; }
-  .cab__logo--unam{ height: 26px; }
-  .cab__logo--475 { height: 24px; }
-  .cab__logo--cnyn{ height: 25px; }
-  .cab__logo--fest{ height: 28px; }
 }
 
 /* ---------------------------------------------------------------- anclas --- */

@@ -49,15 +49,44 @@
   </svg>
 
   <div class="fdc-hero__inner">
-    <img class="fdc-hero__logo" src="assets/img/logo.png"
-         alt="Festival del Conocimiento — ciencia, arte, tecnología y humanidades">
+    <!-- Logotipo y fecha en una sola línea: el logotipo manda a la izquierda y
+         la fecha lo acompaña a la derecha. En móvil se apilan. -->
+    <div class="fdc-hero__cabeza">
+      <img class="fdc-hero__logo" src="assets/img/logo.png"
+           alt="Festival del Conocimiento — ciencia, arte, tecnología y humanidades">
+
+      <p class="fdc-hero__dates">
+        <span class="fdc-hero__rango">
+          <strong>17</strong><span class="fdc-hero__dash">—</span><strong>24</strong>
+        </span>
+        <span class="fdc-hero__mes">octubre</span>
+        <span class="fdc-hero__anio">2026</span>
+      </p>
+    </div>
 
     <h1 class="fdc-sr">Festival del Conocimiento 2026 — Ensenada, Baja California</h1>
 
-    <p class="fdc-hero__dates">
-      <strong>17</strong><span class="fdc-hero__dash">—</span><strong>24</strong>
-      <em>de octubre <span>2026</span></em>
-    </p>
+    <!-- Quiénes lo organizan. Es la misma estructura del pie de página
+         —rótulo, fila de logotipos y líneas— para que el bloque se lea igual
+         en los dos sitios. -->
+    <div class="fdc-hero__insti">
+      <p class="fdc-hero__insti-label">Una iniciativa de</p>
+      <div class="fdc-hero__insti-row">
+        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" class="fdc-hero__lg fdc-hero__lg--unam">
+        </a>
+        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" class="fdc-hero__lg fdc-hero__lg--unam2">
+        </a>
+        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logo-unam-475.png" alt="475 años de la UNAM" class="fdc-hero__lg fdc-hero__lg--475">
+        </a>
+        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
+        <a class="fdc-hero__lglink" href="https://www.cnyn.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" class="fdc-hero__lg fdc-hero__lg--cnyn">
+        </a>
+      </div>
+    </div>
 
     <p class="fdc-hero__lede">
       Ocho días de conferencias, conciertos, talleres, teatro y caminatas
@@ -89,16 +118,6 @@
   </a>
 </header>
 
-<!-- ════════════════════════════ DATOS RÁPIDOS ════════════════════════════════ -->
-<section class="fdc-stats" aria-label="Datos del festival">
-  <ul class="fdc-stats__grid">
-    <li><b>2009</b><span>Primera edición</span></li>
-    <li><b>XI</b><span>Edición 2026</span></li>
-    <li><b>8</b><span>Días de programa</span></li>
-    <li><b>100%</b><span>Entrada libre</span></li>
-  </ul>
-</section>
-
 <!-- ═══════════════════════════════ EL FESTIVAL ═══════════════════════════════ -->
 <section class="fdc-sec fdc-sec--soft" id="fdc-festival">
   <div class="fdc-wrap">
@@ -113,47 +132,69 @@
           en Ensenada, Baja California.
         </p>
         <p>
-          Es impulsado por el <b>Centro de Nanociencias y Nanotecnología de la UNAM (CNyN-UNAM)</b>
-          y realizado en conjunto con diversas instituciones, autoridades locales, organizaciones
-          civiles y empresas. Este festival acerca el saber a toda la comunidad a través de
-          actividades abiertas y gratuitas.
-        </p>
-        <p>
-          Durante varios días, el público puede participar en conferencias, talleres, charlas de
-          divulgación, caminatas del conocimiento, conciertos, presentaciones artísticas, mesas de
-          diálogo y actividades familiares que unen ciencia y arte. Estas experiencias están diseñadas
-          para <b>fomentar la apropiación social del conocimiento</b>, fortalecer vocaciones científicas
-          y creativas, y generar encuentros significativos entre la comunidad científica, artistas,
-          estudiantes y familias.
+          Lo impulsa el <b>Centro de Nanociencias y Nanotecnología de la UNAM (CNyN-UNAM)</b>
+          junto con instituciones educativas, autoridades locales, organizaciones civiles y
+          empresas, y acerca el saber a toda la comunidad con actividades abiertas y gratuitas:
+          conferencias, talleres, charlas de divulgación, caminatas del conocimiento, conciertos,
+          presentaciones artísticas, mesas de diálogo y encuentros familiares que unen ciencia y
+          arte. Todo con un mismo propósito: <b>fomentar la apropiación social del conocimiento</b>,
+          fortalecer vocaciones científicas y creativas, y provocar encuentros entre la comunidad
+          científica, artistas, estudiantes y familias.
         </p>
       </div>
 
       <figure class="fdc-intro__fig">
-        <img src="assets/img/557969777_1329695122083509_5746870533817592789_n.jpg" loading="lazy"
-             alt="Un joven divulgador conversa con estudiantes de bachillerato durante una visita escolar del festival">
-        <figcaption>Visitas a escuelas · Festival del Conocimiento</figcaption>
+        <img src="assets/img/todo-es-la-luz-scaled-1-768x431.jpg" loading="lazy"
+             alt="Sala llena durante una charla del festival, con el público de espaldas y los ponentes al frente entre pinturas de gran formato">
       </figure>
     </div>
 
     <!-- Las cuatro disciplinas -->
     <div class="fdc-disc">
       <article class="fdc-disc__card" data-disc="ciencia">
-        <span class="fdc-disc__ring"></span>
+        <span class="fdc-disc__ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4.3"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/>
+            <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(120 12 12)"/>
+          </svg>
+        </span>
         <h3>Ciencia</h3>
         <p>Charlas de divulgación, laboratorios abiertos, astronomía, nanociencia y el placer de preguntar por qué.</p>
       </article>
       <article class="fdc-disc__card" data-disc="arte">
-        <span class="fdc-disc__ring"></span>
+        <span class="fdc-disc__ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2.8c-5.1 0-9.2 4.1-9.2 9.2s4.1 9.2 9.2 9.2c.95 0 1.7-.77 1.7-1.7 0-.44-.17-.84-.44-1.14-.28-.3-.45-.7-.45-1.14 0-.95.77-1.7 1.7-1.7h2a5.5 5.5 0 0 0 5.5-5.5c0-4.5-4.4-7.2-10-7.2z"/>
+            <circle cx="7.6" cy="12" r="1.15" fill="currentColor" stroke="none"/>
+            <circle cx="9.7" cy="7.9" r="1.15" fill="currentColor" stroke="none"/>
+            <circle cx="14.3" cy="7.4" r="1.15" fill="currentColor" stroke="none"/>
+            <circle cx="17.6" cy="10.4" r="1.15" fill="currentColor" stroke="none"/>
+          </svg>
+        </span>
         <h3>Arte</h3>
         <p>Teatro, danza contemporánea, conciertos, exposiciones e intervenciones artísticas en espacios públicos.</p>
       </article>
       <article class="fdc-disc__card" data-disc="tecnologia">
-        <span class="fdc-disc__ring"></span>
+        <span class="fdc-disc__ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7.4" y="7.4" width="9.2" height="9.2" rx="1.8"/>
+            <path d="M10.2 10.6h3.6v3.6h-3.6z"/>
+            <path d="M10 3.6v3.8M14 3.6v3.8M10 16.6v3.8M14 16.6v3.8M3.6 10h3.8M3.6 14h3.8M16.6 10h3.8M16.6 14h3.8"/>
+          </svg>
+        </span>
         <h3>Tecnología</h3>
         <p>Talleres prácticos, innovación, emprendimiento y demostraciones que se tocan, se arman y se prueban.</p>
       </article>
       <article class="fdc-disc__card" data-disc="humanidades">
-        <span class="fdc-disc__ring"></span>
+        <span class="fdc-disc__ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 6.6v13.2"/>
+            <path d="M12 6.6C10.4 5.2 8.2 4.5 5.7 4.5H2.8v13.2h2.9c2.5 0 4.7.7 6.3 2.1"/>
+            <path d="M12 6.6c1.6-1.4 3.8-2.1 6.3-2.1h2.9v13.2h-2.9c-2.5 0-4.7.7-6.3 2.1"/>
+          </svg>
+        </span>
         <h3>Humanidades</h3>
         <p>Mesas de diálogo, historia, filosofía, literatura y las conversaciones que nos ayudan a vivir juntos.</p>
       </article>
