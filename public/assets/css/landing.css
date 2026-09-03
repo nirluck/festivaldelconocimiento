@@ -852,10 +852,59 @@
 .fdc-lg-cnyn  { height: 62px; width: auto; filter: brightness(0) invert(1); opacity: .94; }
 .fdc-foot__sep { width: 1px; height: 48px; background: rgba(255,255,255,.22); }
 
-.fdc-foot__partners {
-  padding: 30px 0 0; text-align: center;
-  font-size: .89em; color: rgba(255,255,255,.55);
-  max-width: 62ch; margin-inline: auto;
+/* ------------------------------------------------------- pleca institucional
+   Banda clara metida dentro del pie oscuro. Los logotipos de aquí llegaron a
+   color y, a diferencia de los de «Una iniciativa de», no se pueden pasar a
+   blanco con brightness(0) invert(1): los que llevan ilustración dentro del
+   escudo (UABC, Gobierno de Ensenada) quedan en una silueta ilegible.
+   ------------------------------------------------------------------------- */
+.fdc-pleca {
+  margin-top: 34px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 26px clamp(16px, 3vw, 30px) 28px;
+}
+.fdc-pleca__label {
+  text-align: center; margin-bottom: 22px;
+  font-size: .72em; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(0,0,0,.46);
+}
+.fdc-pleca__row {
+  /* Once marcas en una sola fila. La altura sigue al ancho de pantalla en vez
+     de ir por saltos: con saltos siempre queda un tramo intermedio donde una
+     se cae sola al renglón de abajo. */
+  --pl: clamp(30px, 4.4vw, 56px);
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: center;
+  gap: clamp(14px, 2vw, 26px);
+}
+
+/* Con una sola altura para todos, los apaisados (CIC, CICESE, TecNM) pesan el
+   doble que los verticales, porque ocupan mucha más superficie. El factor los
+   iguala a ojo, que es como se mira una pleca, y no matemáticamente. */
+.fdc-pl { height: calc(var(--pl) * var(--f, 1)); width: auto; display: block; }
+
+.fdc-pl--unam    { --f: 1.04; }
+.fdc-pl--cic     { --f: .65;  }
+.fdc-pl--uabc    { --f: 1.08; }
+.fdc-pl--cnyn    { --f: .88;  }
+.fdc-pl--ia      { --f: 1;    }
+.fdc-pl--tecnm   { --f: .73;  }
+.fdc-pl--ite     { --f: .77;  }
+.fdc-pl--cetys   { --f: .88;  }
+.fdc-pl--cicese  { --f: .65;  }
+.fdc-pl--gob     { --f: 1.08; }
+.fdc-pl--amor    { --f: 1;    }
+.fdc-pl--riviera { --f: 1.04; }
+.fdc-pl--c475    { --f: .92;  }
+.fdc-pl--c43     { --f: 1.04; }
+
+/* Por debajo de aquí la fila ya no cabe por mucho que se encoja. Envuelve, pero
+   con las marcas a un tamaño legible en vez de dejarlas en 24px con tal de que
+   quepan en un renglón. */
+@media (max-width: 620px) {
+  .fdc-pleca__row { --pl: 38px; gap: 14px 18px; }
+  .fdc-pleca { padding: 22px 14px 24px; border-radius: 14px; }
 }
 .fdc-foot__legal {
   margin-top: 26px; padding-top: 22px;

@@ -544,40 +544,58 @@ strong{ color: var(--tinta); font-weight: 600; }
 /* ============================================================================
    PLECA Y PIE
    ========================================================================== */
+/* Banda clara dentro de la página oscura. Estos logotipos son a color y no se
+   pueden invertir a blanco: los escudos con ilustración dentro (UABC, Gobierno
+   de Ensenada) se quedan en una silueta ilegible. */
 .pleca{
   background: var(--fondo);
   border-top: 1px solid var(--borde);
-  padding: 46px 0 40px;
+  padding: 44px 0 40px;
 }
 .pleca__eti{
-  text-align: center;
+  text-align: center; margin: 0 0 22px;
   font-family: var(--display);
   font-size: .7rem; font-weight: 600;
   letter-spacing: .22em; text-transform: uppercase;
-  color: var(--tinta-3); margin: 0 0 26px;
+  color: var(--tinta-3);
 }
 .pleca__fila{
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 20px 34px;
+  /* Catorce marcas en una fila. La altura sigue al ancho de pantalla: a saltos
+     por breakpoint siempre queda un tramo donde una se cae sola al renglón de
+     abajo. El máximo es menor que en la landing porque allí son once. */
+  --pl: clamp(28px, 3.4vw, 46px);
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: center;
+  gap: clamp(12px, 1.8vw, 24px);
+  background: #fff;
+  border-radius: 18px;
+  padding: 26px clamp(16px, 3vw, 30px);
 }
-.pleca__fila img{
-  height: 52px; width: auto;
-  filter: brightness(0) invert(1);
-  opacity: .62;
-  transition: opacity .25s;
-}
-.pleca__fila img:hover{ opacity: 1; }
-.pleca__fila img.cnyn{ height: 44px; }
 
-/* Marca dónde entra cada logotipo que todavía no llega */
-.hueco{
-  display: grid; place-items: center; text-align: center;
-  min-width: 128px; height: 52px; padding: 0 12px;
-  border: 1px dashed rgba(255,255,255,.24);
-  border-radius: 8px;
-  font-size: .63rem; line-height: 1.25;
-  color: rgba(255,255,255,.38);
-  letter-spacing: .04em;
+/* Con una sola altura para todas, las apaisadas (CIC, CICESE, TecNM) pesan el
+   doble que las verticales porque ocupan mucha más superficie. El factor las
+   iguala a ojo, que es como se mira una pleca. */
+.pl{ height: calc(var(--pl) * var(--f, 1)); width: auto; display: block; }
+
+.pl--unam    { --f: 1.04; }
+.pl--cic     { --f: .65;  }
+.pl--uabc    { --f: 1.08; }
+.pl--cnyn    { --f: .88;  }
+.pl--ia      { --f: 1;    }
+.pl--tecnm   { --f: .73;  }
+.pl--ite     { --f: .77;  }
+.pl--cetys   { --f: .88;  }
+.pl--cicese  { --f: .65;  }
+.pl--gob     { --f: 1.08; }
+.pl--amor    { --f: 1;    }
+.pl--riviera { --f: 1.04; }
+.pl--c475    { --f: .92;  }
+.pl--c43     { --f: 1.04; }
+
+/* Por debajo de aquí la fila ya no cabe por mucho que encoja: envuelve, pero
+   con las marcas a un tamaño que aún se lee. */
+@media (max-width: 620px){
+  .pleca__fila{ --pl: 34px; gap: 14px 18px; padding: 22px 14px; border-radius: 14px; }
 }
 
 .pie{
