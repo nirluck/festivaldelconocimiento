@@ -60,13 +60,25 @@
   to   = "/entrar/"
   status = 301
 
-# Ruta corta para compartir la convocatoria en redes y carteles
+# Rutas cortas para compartir el laboratorio en redes y carteles
 [[redirects]]
-  from = "/laboratorio"
-  to   = "/convocatoria/arte-de-comunicar-ciencia/"
-  status = 301
+  from = "/convocatoria"
+  to   = "/laboratorio/"
+  status = 302
 
 [[redirects]]
   from = "/convocatorias"
-  to   = "/convocatoria/arte-de-comunicar-ciencia/"
+  to   = "/laboratorio/"
   status = 302
+
+# La página vivió unas horas colgando de /convocatoria/. Si alguien alcanzó a
+# copiar esa liga, que no se rompa.
+[[redirects]]
+  from = "/convocatoria/arte-de-comunicar-ciencia"
+  to   = "/laboratorio/"
+  status = 301
+
+[[redirects]]
+  from = "/convocatoria/arte-de-comunicar-ciencia/*"
+  to   = "/laboratorio/"
+  status = 301

@@ -1,0 +1,664 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ============================================================================
+   LABORATORIO ESCÉNICO · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   La página es una sala a oscuras. El fondo es el negro del teatro, la luz
+   entra en color (los mismos del logotipo, usados como geles de iluminación)
+   y una sola sección rompe a plena luz: la presentación final.
+
+   Sobre fondo oscuro los colores de marca se aclaran. Los originales
+   (#10ABC4, #E91587) están calibrados para verse sobre blanco y aquí quedan
+   por debajo del 4.5:1 que pide la AA.
+
+   Las tipografías son las del resto del sitio. La cabecera compartida ya carga
+   Space Grotesk e Inter, y cambiarlas solo en esta página rompería la marca.
+   ========================================================================== */
+
+:root{
+  /* --- la sala ---------------------------------------------------------- */
+  --noche:    #061418;
+  --fondo:    #0B252A;
+  --caja:     #123138;
+  --borde:    rgba(255,255,255,.13);
+
+  /* --- la luz (marca aclarada para fondo oscuro) ------------------------- */
+  --turquesa: #45D8EC;
+  --magenta:  #FF52A8;
+  --verde:    #B4E052;
+  --naranja:  #FFA04A;
+  --amarillo: #F6D20A;
+
+  /* --- tinta ------------------------------------------------------------ */
+  --tinta:    #FFFFFF;
+  --tinta-2:  rgba(255,255,255,.74);
+  --tinta-3:  rgba(255,255,255,.54);
+
+  --display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --texto:   'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ancho: 1180px;
+  --curva: cubic-bezier(.22, 1, .36, 1);
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+html{ scroll-behavior: smooth; }
+
+body{
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta-2);
+  font-family: var(--texto);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Grano sobre toda la página. Le quita el plano digital al negro y evita que
+   los degradados de luz se vean en bandas. */
+body::after{
+  content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+}
+
+img{ max-width: 100%; display: block; }
+
+.envoltura{ max-width: var(--ancho); margin-inline: auto; padding-inline: 24px; }
+
+::selection{ background: var(--magenta); color: #fff; }
+
+:focus-visible{ outline: 3px solid var(--amarillo); outline-offset: 3px; border-radius: 4px; }
+
+/* ============================================================================
+   TIPOGRAFÍA
+   ========================================================================== */
+h1, h2, h3{
+  font-family: var(--display);
+  color: var(--tinta);
+  letter-spacing: -.03em;
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+
+h2{ font-size: clamp(2rem, 4.4vw, 3.1rem); font-weight: 700; }
+h3{ font-size: clamp(1.45rem, 2.6vw, 2rem); font-weight: 700; }
+
+p{ margin: 0 0 1.15em; }
+p:last-child{ margin-bottom: 0; }
+
+strong{ color: var(--tinta); font-weight: 600; }
+
+/* Rótulo de sección: un punto de luz y el texto en versalitas anchas */
+.rotulo{
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--display);
+  font-size: .74rem; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--turquesa);
+  margin: 0 0 18px;
+}
+.rotulo::before{
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+/* ============================================================================
+   PORTADA · el escenario
+   ========================================================================== */
+.escena{
+  position: relative;
+  min-height: min(100svh, 900px);
+  display: grid; place-items: center;
+  padding: clamp(70px, 11vh, 130px) 0 clamp(60px, 9vh, 100px);
+  text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* --- capa 1: la fotografía, muy apagada ---------------------------------- */
+.escena__foto{
+  position: absolute; inset: -6%;
+  z-index: -3;
+  background: var(--foto) center 52% / cover no-repeat;
+  /* La foto ya es de un escenario a oscuras, así que apenas se baja. Bajarla
+     más la dejaría en negro y se perderían los cuerpos. */
+  filter: brightness(.78) saturate(1.12) contrast(1.02);
+  transform: scale(1.06);
+  animation: respirar 26s ease-in-out infinite alternate;
+}
+@keyframes respirar{
+  from{ transform: scale(1.06) translate3d(0, 0, 0); }
+  to  { transform: scale(1.15) translate3d(-1.2%, -1.6%, 0); }
+}
+
+/* --- capa 2: el cañón de luz cenital ------------------------------------- */
+.escena__canon{
+  position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(66% 52% at 50% -4%, rgba(246,210,10,.18), transparent 62%),
+    radial-gradient(46% 44% at 8% 26%,  rgba(255,82,168,.30), transparent 68%),
+    radial-gradient(56% 54% at 94% 70%, rgba(69,216,236,.34), transparent 72%);
+  animation: latir 9s ease-in-out infinite alternate;
+}
+@keyframes latir{ from{ opacity: .78; } to{ opacity: 1; } }
+
+/* --- capa 3: viñeta que hunde los bordes y sostiene el texto --------------
+   La primera elipse es angosta a propósito: oscurece solo la franja central,
+   que es donde cae la tipografía, y deja ver a los bailarines de los costados.
+   Un velo parejo sobre toda la foto la borraba. */
+.escena__velo{
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(38% 62% at 50% 48%, rgba(6,20,24,.74), transparent 78%),
+    radial-gradient(84% 68% at 50% 46%, rgba(6,20,24,.10), rgba(6,20,24,.80) 100%),
+    linear-gradient(180deg, rgba(6,20,24,.60) 0%, rgba(6,20,24,.06) 40%, rgba(11,37,42,.94) 97%);
+}
+
+/* --- los cuatro anillos del logotipo, girando muy despacio ---------------- */
+.escena__anillos{
+  position: absolute; z-index: -1;
+  top: 50%; left: 50%; translate: -50% -50%;
+  width: min(115vw, 1050px); aspect-ratio: 1;
+  fill: none; stroke-width: 1.1; opacity: .11;
+  animation: rondar 90s linear infinite;
+  pointer-events: none;
+}
+.escena__anillos circle:nth-child(1){ stroke: var(--turquesa); }
+.escena__anillos circle:nth-child(2){ stroke: var(--magenta); }
+.escena__anillos circle:nth-child(3){ stroke: var(--verde); }
+.escena__anillos circle:nth-child(4){ stroke: var(--naranja); }
+@keyframes rondar{ to{ rotate: 360deg; } }
+
+.escena__in{ position: relative; width: 100%; }
+
+/* --- migaja -------------------------------------------------------------- */
+.migaja{
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--display);
+  font-size: .76rem; font-weight: 600;
+  letter-spacing: .19em; text-transform: uppercase;
+  color: rgba(255,255,255,.82); text-decoration: none;
+  padding: 9px 20px 9px 16px; border-radius: 100px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(6,20,24,.42);
+  backdrop-filter: blur(6px);
+  transition: border-color .2s var(--curva), color .2s, background .2s;
+}
+.migaja::before{
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px var(--verde);
+  animation: parpadeo 2.6s ease-in-out infinite;
+}
+@keyframes parpadeo{ 50%{ opacity: .35; } }
+.migaja:hover{ border-color: var(--verde); color: #fff; background: rgba(6,20,24,.7); }
+
+/* --- el título ----------------------------------------------------------- */
+.titulo{
+  margin: clamp(26px, 4.5vh, 44px) 0 0;
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: .92;
+  text-shadow: 0 4px 40px rgba(6,20,24,.8);
+}
+.titulo span{ display: block; }
+
+.titulo .l1{
+  font-weight: 400; font-style: italic;
+  font-size: clamp(1.9rem, 5.6vw, 3.3rem);
+  letter-spacing: -.02em;
+  color: var(--magenta);
+  margin-bottom: .06em;
+}
+.titulo .l2{
+  font-size: clamp(2.7rem, 8.6vw, 5.4rem);
+  color: var(--tinta);
+}
+.titulo .l3{
+  font-size: clamp(3.4rem, 12.2vw, 7.6rem);
+  color: var(--turquesa);
+  letter-spacing: -.055em;
+}
+
+.bajada{
+  margin: clamp(22px, 3.4vh, 34px) auto 0;
+  max-width: 30ch;
+  font-family: var(--display);
+  font-size: clamp(1.02rem, 1.9vw, 1.3rem);
+  font-weight: 500; line-height: 1.35;
+  color: var(--tinta);
+  text-shadow: 0 2px 18px rgba(6,20,24,.9);
+}
+.quien{
+  margin: 12px 0 0;
+  font-size: .95rem; color: rgba(255,255,255,.72);
+  text-shadow: 0 2px 16px rgba(6,20,24,.9);
+}
+.quien b{ color: var(--amarillo); font-weight: 600; }
+
+.lede{
+  margin: clamp(20px, 3vh, 30px) auto 0;
+  max-width: 54ch;
+  font-size: 1.03rem; line-height: 1.6;
+  color: var(--tinta-2);
+  text-shadow: 0 2px 16px rgba(6,20,24,.9);
+}
+
+/* --- sellos -------------------------------------------------------------- */
+.sellos{
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 9px;
+  margin: clamp(24px, 3.6vh, 34px) 0 0;
+}
+.sello{
+  font-family: var(--display);
+  font-size: .78rem; font-weight: 600;
+  letter-spacing: .05em;
+  padding: 8px 16px; border-radius: 100px;
+  border: 1px solid var(--borde);
+  background: rgba(255,255,255,.06);
+  color: var(--tinta);
+}
+.sello--libre{
+  background: var(--verde); border-color: var(--verde); color: #12280A;
+  box-shadow: 0 0 26px rgba(180,224,82,.34);
+}
+
+/* --- acciones ------------------------------------------------------------ */
+.acciones{
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 13px;
+  margin: clamp(26px, 4vh, 38px) 0 0;
+}
+
+.btn{
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: var(--display);
+  font-size: 1rem; font-weight: 600; line-height: 1;
+  padding: 17px 32px; border-radius: 100px;
+  text-decoration: none; border: 0; cursor: pointer;
+  transition: transform .22s var(--curva), box-shadow .22s var(--curva), background .2s;
+}
+.btn--cta{
+  background: var(--magenta); color: #22040F;
+  box-shadow: 0 10px 34px rgba(255,82,168,.36);
+}
+.btn--cta:hover{ transform: translateY(-3px); box-shadow: 0 16px 44px rgba(255,82,168,.5); }
+
+/* Destello que cruza el botón al pasar el ratón */
+.btn--cta::after{
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.55) 50%, transparent 62%);
+  translate: -110% 0;
+  transition: translate .6s var(--curva);
+}
+.btn--cta:hover::after{ translate: 110% 0; }
+
+.btn--linea{
+  background: rgba(255,255,255,.05); color: var(--tinta);
+  border: 1.5px solid rgba(255,255,255,.34);
+  backdrop-filter: blur(6px);
+}
+.btn--linea:hover{
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.62);
+  transform: translateY(-3px);
+}
+
+/* --- flecha de bajada ---------------------------------------------------- */
+.abajo{
+  position: absolute; bottom: 22px; left: 50%; translate: -50% 0;
+  width: 26px; height: 42px; border-radius: 100px;
+  border: 1.5px solid rgba(255,255,255,.26);
+  display: grid; justify-items: center; padding-top: 8px;
+}
+.abajo i{
+  width: 3px; height: 8px; border-radius: 3px; background: rgba(255,255,255,.7);
+  animation: caer 1.9s ease-in-out infinite;
+}
+@keyframes caer{
+  0%, 100%{ transform: translateY(0);    opacity: 1; }
+  60%     { transform: translateY(14px); opacity: 0; }
+}
+
+/* ============================================================================
+   MARQUESINA · las seis herramientas, en banda continua
+   ========================================================================== */
+.marquesina{
+  border-block: 1px solid var(--borde);
+  background: var(--noche);
+  padding: 20px 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+}
+.marquesina__pista{
+  display: flex; width: max-content;
+  animation: correr 34s linear infinite;
+}
+.marquesina:hover .marquesina__pista{ animation-play-state: paused; }
+@keyframes correr{ to{ transform: translateX(-50%); } }
+
+.marquesina__grupo{ display: flex; align-items: center; }
+.marquesina__grupo span{
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 3.6vw, 2.5rem);
+  font-weight: 700; letter-spacing: -.03em;
+  padding-inline: 26px; white-space: nowrap;
+}
+.marquesina__grupo span::after{
+  content: '·'; margin-left: 52px; opacity: .3; color: #fff;
+}
+.marquesina__grupo span:nth-child(6n+1){ color: var(--turquesa); }
+.marquesina__grupo span:nth-child(6n+2){ color: var(--magenta); }
+.marquesina__grupo span:nth-child(6n+3){ color: var(--verde); }
+.marquesina__grupo span:nth-child(6n+4){ color: var(--naranja); }
+.marquesina__grupo span:nth-child(6n+5){ color: var(--amarillo); }
+.marquesina__grupo span:nth-child(6n+6){ color: var(--tinta); }
+
+/* ============================================================================
+   SECCIONES
+   ========================================================================== */
+/* Dos secciones oscuras seguidas suman su relleno y dejaban un hueco de 260px
+   sin nada que lo justifique, porque no hay cambio de fondo entre ellas. */
+.seccion{ padding: clamp(64px, 8vw, 100px) 0; position: relative; }
+
+/* La cabecera es pegajosa: sin esto, «Ver los detalles» dejaba el titular
+   escondido debajo. --cab-alto lo publica cabecera.js con el alto medido. */
+#detalles{ scroll-margin-top: calc(var(--cab-alto, 64px) + 8px); }
+
+/* Un halo de luz de fondo para que el negro no quede plano */
+.seccion--halo::before{
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(60% 48% at 22% 8%, rgba(69,216,236,.11), transparent 70%);
+}
+.seccion > *{ position: relative; z-index: 1; }
+
+/* --- qué es: texto + foto en panel inclinado ----------------------------- */
+.duo{
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: clamp(38px, 6vw, 76px);
+  align-items: center;
+}
+
+.panel{
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  rotate: -1.6deg;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 34px 80px rgba(6,20,24,.62);
+  transition: rotate .5s var(--curva), box-shadow .5s var(--curva);
+}
+.panel:hover{ rotate: 0deg; box-shadow: 0 40px 96px rgba(69,216,236,.24); }
+.panel img{
+  /* height:auto anula el atributo height del HTML. Ese atributo se queda por el
+     salto de maquetación durante la carga, pero como pista de presentación fija
+     la altura en píxeles y dejaba fuera de juego al aspect-ratio. */
+  width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover;
+  filter: saturate(.9) contrast(1.05);
+}
+.panel::after{
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(200deg, rgba(255,82,168,.24), transparent 46%, rgba(69,216,236,.2));
+  mix-blend-mode: soft-light;
+}
+/* El resplandor que lo despega del fondo */
+.panel__brillo{
+  position: absolute; inset: -14%; z-index: -1;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255,82,168,.3), transparent 70%);
+  filter: blur(52px);
+}
+
+/* --- datos --------------------------------------------------------------- */
+/* Tres columnas fijas y no auto-fit: son seis datos, y con auto-fit entraban
+   cinco arriba y uno suelto abajo. 3x2 cierra el bloque. */
+.datos{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 46px 0 0;
+}
+.dato{
+  position: relative; overflow: hidden;
+  padding: 26px 24px 24px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, var(--caja), var(--fondo));
+  border: 1px solid var(--borde);
+  transition: transform .3s var(--curva), border-color .3s;
+}
+/* La barrita de color que se estira al pasar el ratón */
+.dato::before{
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--tono, var(--turquesa));
+  scale: 0 1; transform-origin: left;
+  transition: scale .42s var(--curva);
+}
+.dato:hover{ transform: translateY(-5px); border-color: rgba(255,255,255,.26); }
+.dato:hover::before{ scale: 1 1; }
+
+.dato dt{
+  font-family: var(--display);
+  font-size: .71rem; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--tono, var(--turquesa));
+  margin: 0 0 9px;
+}
+.dato dd{
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.32rem; font-weight: 700; line-height: 1.2;
+  color: var(--tinta);
+}
+.dato dd small{
+  display: block; margin-top: 7px;
+  font-family: var(--texto);
+  font-size: .84rem; font-weight: 400; line-height: 1.45;
+  color: var(--tinta-3);
+  letter-spacing: 0;
+}
+.dato--libre{
+  background: linear-gradient(160deg, rgba(180,224,82,.16), var(--fondo));
+  border-color: rgba(180,224,82,.4);
+}
+
+/* ============================================================================
+   REMATE · aquí se encienden las luces de sala
+   ========================================================================== */
+.remate{
+  position: relative;
+  background: var(--amarillo);
+  color: #10241A;
+  overflow: hidden;
+}
+.remate__foto{
+  position: absolute; inset: 0;
+  background: var(--foto) center 55% / cover no-repeat;
+  /* Queda como textura de fondo, no como fotografía: al 30% las cabezas del
+     público se leían por encima del texto. */
+  mix-blend-mode: multiply;
+  opacity: .17;
+  filter: grayscale(1) contrast(1.15) blur(1.5px);
+}
+.remate__in{
+  position: relative;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(30px, 5vw, 64px); align-items: center;
+  padding-block: clamp(64px, 9vw, 100px);
+}
+.remate h3{
+  color: #0B1F16; max-width: 16ch;
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  margin-bottom: 18px;
+}
+.remate p{ color: rgba(11,31,22,.84); max-width: 46ch; }
+.remate .eti{
+  display: inline-block;
+  font-family: var(--display);
+  font-size: .74rem; font-weight: 700;
+  letter-spacing: .2em; text-transform: uppercase;
+  background: #0B1F16; color: var(--amarillo);
+  padding: 7px 15px; border-radius: 100px;
+  margin: 0 0 18px;
+}
+
+.cuando{
+  display: flex; flex-direction: column; gap: 3px;
+  padding-left: clamp(20px, 3vw, 34px);
+  border-left: 4px solid rgba(11,31,22,.42);
+}
+.cuando b{
+  font-family: var(--display);
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem); font-weight: 700;
+  letter-spacing: -.02em; color: #0B1F16; line-height: 1.15;
+}
+.cuando span{ font-size: .95rem; color: rgba(11,31,22,.8); }
+
+/* ============================================================================
+   INSCRIPCIÓN
+   ========================================================================== */
+.cierre{
+  position: relative; text-align: center; overflow: hidden;
+  padding: clamp(84px, 12vw, 140px) 0;
+  background: var(--noche);
+}
+.cierre::before{
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(46% 62% at 50% 108%, rgba(255,82,168,.3), transparent 72%),
+    radial-gradient(38% 50% at 50% -14%, rgba(69,216,236,.2), transparent 72%);
+}
+.cierre > *{ position: relative; }
+.cierre p{ margin-inline: auto; max-width: 50ch; }
+.cierre .rotulo{ color: var(--magenta); }
+.cierre .btn{ margin-top: 30px; font-size: 1.06rem; padding: 19px 40px; }
+
+.nota{ margin-top: 26px; font-size: .9rem; color: var(--tinta-3); }
+.nota a{ color: var(--turquesa); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* ============================================================================
+   PLECA Y PIE
+   ========================================================================== */
+.pleca{
+  background: var(--fondo);
+  border-top: 1px solid var(--borde);
+  padding: 46px 0 40px;
+}
+.pleca__eti{
+  text-align: center;
+  font-family: var(--display);
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--tinta-3); margin: 0 0 26px;
+}
+.pleca__fila{
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 20px 34px;
+}
+.pleca__fila img{
+  height: 52px; width: auto;
+  filter: brightness(0) invert(1);
+  opacity: .62;
+  transition: opacity .25s;
+}
+.pleca__fila img:hover{ opacity: 1; }
+.pleca__fila img.cnyn{ height: 44px; }
+
+/* Marca dónde entra cada logotipo que todavía no llega */
+.hueco{
+  display: grid; place-items: center; text-align: center;
+  min-width: 128px; height: 52px; padding: 0 12px;
+  border: 1px dashed rgba(255,255,255,.24);
+  border-radius: 8px;
+  font-size: .63rem; line-height: 1.25;
+  color: rgba(255,255,255,.38);
+  letter-spacing: .04em;
+}
+
+.pie{
+  background: var(--noche);
+  border-top: 1px solid var(--borde);
+  padding: 30px 0;
+  text-align: center;
+  font-size: .86rem; color: var(--tinta-3);
+  line-height: 1.8;
+}
+.pie a{ color: var(--turquesa); text-decoration: none; }
+.pie a:hover{ text-decoration: underline; }
+
+/* ============================================================================
+   MOVIMIENTO
+   ----------------------------------------------------------------------------
+   Entrada escalonada en la portada (sin JS, con animation-delay) y aparición
+   al hacer scroll en el resto (una clase que pone el IntersectionObserver).
+   ========================================================================== */
+@keyframes subir{
+  from{ opacity: 0; transform: translateY(26px); }
+  to  { opacity: 1; transform: none; }
+}
+
+.entra{
+  opacity: 0;
+  animation: subir .82s var(--curva) forwards;
+  animation-delay: var(--t, 0s);
+}
+
+/* Al aparecer en pantalla */
+.revela{
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .75s var(--curva), transform .75s var(--curva);
+  transition-delay: var(--t, 0s);
+}
+.revela.visible{ opacity: 1; transform: none; }
+
+/* Si el observador no llegara a correr (JS bloqueado, navegador sin soporte),
+   el contenido no puede quedarse invisible para siempre. */
+.sin-observador .revela{ opacity: 1; transform: none; }
+
+/* ============================================================================
+   PANTALLAS ESTRECHAS
+   ========================================================================== */
+@media (max-width: 900px){
+  .datos{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duo{ grid-template-columns: 1fr; gap: 40px; }
+  .panel{ rotate: 0deg; }
+  .remate__in{ grid-template-columns: 1fr; }
+  .cuando{
+    border-left: 0; padding-left: 0;
+    border-top: 4px solid rgba(11,31,22,.42); padding-top: 20px;
+  }
+}
+
+@media (max-width: 560px){
+  body{ font-size: 16px; }
+  /* La píldora completa partía en dos líneas y dejaba el punto suelto a media
+     altura. En móvil se queda solo con «Convocatoria abierta». */
+  .solo-ancho{ display: none; }
+  .datos{ grid-template-columns: 1fr; }
+  .acciones .btn{ width: 100%; }
+  .escena{ min-height: auto; }
+  .abajo{ display: none; }
+}
+
+/* ============================================================================
+   MOVIMIENTO REDUCIDO
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+  .escena__foto, .escena__canon, .escena__anillos,
+  .marquesina__pista, .abajo i, .migaja::before{
+    animation: none !important;
+  }
+  .escena__foto{ transform: scale(1.06); }
+  .marquesina__pista{ transform: none; }
+  .entra{ opacity: 1; animation: none; }
+  .revela{ opacity: 1; transform: none; transition: none; }
+  .btn, .dato, .panel{ transition: none; }
+  .btn:hover, .dato:hover{ transform: none; }
+  .panel:hover{ rotate: -1.6deg; }
+}
