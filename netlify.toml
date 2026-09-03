@@ -59,3 +59,14 @@
   from = "/login"
   to   = "/entrar/"
   status = 301
+
+# Ruta corta para compartir la convocatoria en redes y carteles
+[[redirects]]
+  from = "/laboratorio"
+  to   = "/convocatoria/arte-de-comunicar-ciencia/"
+  status = 301
+
+[[redirects]]
+  from = "/convocatorias"
+  to   = "/convocatoria/arte-de-comunicar-ciencia/"
+  status = 302
