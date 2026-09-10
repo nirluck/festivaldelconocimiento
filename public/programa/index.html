@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programa 2026 · Festival del Conocimiento</title>
+<meta name="description" content="Programa completo del Festival del Conocimiento 2026 en Ensenada: ocho días de ciencia, arte, tecnología y humanidades, del 17 al 24 de octubre.">
+<link rel="canonical" href="https://festivaldelconocimiento.org/programa/">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Programa 2026 · Festival del Conocimiento">
+<meta property="og:description" content="Ocho días de ciencia, arte, tecnología y humanidades en Ensenada. Del 17 al 24 de octubre de 2026.">
+<meta property="og:url"         content="https://festivaldelconocimiento.org/programa/">
+<meta property="og:image"       content="https://festivaldelconocimiento.org/assets/img/festival-del-conocimiento.jpg">
+<meta name="twitter:card"       content="summary_large_image">
+
+<link rel="stylesheet" href="/assets/css/programa.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+</head>
+<body>
+
+<!-- ============================================================================
+     Una sola página para dos pantallas: la cartelera (/programa/) y la ficha de
+     cada actividad (/programa/<slug>/). No es pereza, es lo que permite Netlify
+     sin paso de compilación: la regla de netlify.toml reescribe todo /programa/*
+     a este archivo y el JS decide qué pintar leyendo location.pathname.
+     Ver la nota de «Programa público» en PLAN.md.
+============================================================================= -->
+
+<div data-cabecera></div>
+
+<main id="pagina">
+  <div class="pg-cargando">Cargando el programa…</div>
+</main>
+
+<noscript>
+  <div class="pg-wrap" style="padding:60px 24px;text-align:center">
+    <h1 style="font-family:'Space Grotesk',sans-serif">Programa 2026</h1>
+    <p>El programa del Festival del Conocimiento necesita JavaScript para
+       cargarse. Actívalo y vuelve a cargar la página, o escríbenos y te lo
+       enviamos por correo.</p>
+    <p><a href="/">Volver al sitio del festival</a></p>
+  </div>
+</noscript>
+
+<footer class="pg-pie">
+  Festival del Conocimiento · Ensenada, Baja California ·
+  <a href="/">Sitio del festival</a>
+</footer>
+
+<script type="module" src="/assets/js/programa.js"></script>
+</body>
+</html>

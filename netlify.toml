@@ -49,6 +49,32 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# =============================================================================
+#  PROGRAMA PÚBLICO
+#
+#  En un sitio estático no hay un archivo por actividad, así que /programa/
+#  y /programa/<slug>/ se sirven con la MISMA página y el JS decide qué pintar
+#  leyendo location.pathname.
+#
+#  status = 200 es una reescritura, no un redireccionamiento: la dirección que
+#  ve la persona sigue siendo /programa/taller-de-microscopia/, que es la que
+#  se comparte y la que se imprime en un cartel.
+#
+#  Ojo al agregar archivos bajo /programa/: esta regla los tapa. Si algún día
+#  hace falta, por ejemplo, /programa/programa.pdf, hay que excluirlo con una
+#  regla anterior.
+# =============================================================================
+[[redirects]]
+  from = "/programa/*"
+  to   = "/programa/index.html"
+  status = 200
+
+# Ruta corta para carteles y redes sociales.
+[[redirects]]
+  from = "/cartelera"
+  to   = "/programa/"
+  status = 301
+
 # Rutas cómodas
 [[redirects]]
   from = "/reporte"

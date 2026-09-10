@@ -643,6 +643,63 @@
 .fdc-soon__foot { margin-top: 22px; font-size: .9em; color: var(--fdc-tx-3); }
 .fdc-soon__foot a { color: var(--fdc-magenta-tx); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
+/* --------------------------------------------------------------------------
+   ADELANTO DEL PROGRAMA
+
+   Sustituye al bloque «Próximamente» en cuanto haya actividades publicadas,
+   y solo entonces: lo cambia programa-portada.js. Mientras no haya nada,
+   «Próximamente» es la verdad y se queda.
+
+   Tres actividades y un botón. La cartelera completa vive en /programa/: esto
+   es el anzuelo, no el programa.
+-------------------------------------------------------------------------- */
+.fdc-prog { margin-top: 34px; }
+
+.fdc-prog__lista { display: grid; gap: 12px; }
+@media (min-width: 900px) { .fdc-prog__lista { grid-template-columns: repeat(3, 1fr); } }
+
+.fdc-prog__item {
+  display: flex; flex-direction: column; gap: 9px;
+  padding: 20px 22px;
+  background: var(--fdc-bg); border: 1px solid var(--fdc-border);
+  border-left: 5px solid var(--fdc-eje, var(--fdc-turquesa));
+  border-radius: var(--fdc-r-s);
+  text-decoration: none; color: inherit;
+  box-shadow: var(--fdc-shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.fdc-prog__item:hover { transform: translateY(-3px); box-shadow: var(--fdc-shadow-h); }
+
+.fdc-prog__cuando {
+  font-family: var(--fdc-f-disp); font-size: .78em; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+  /* Variante oscura del color del eje: la calcula el script, porque el color
+     puro del logotipo no pasa AA como texto sobre fondo claro. */
+  color: var(--fdc-eje-tx, var(--fdc-turquesa-tx));
+  font-variant-numeric: tabular-nums;
+}
+.fdc-prog__item h4 {
+  font-family: var(--fdc-f-disp); font-size: 1.06em; font-weight: 700;
+  line-height: 1.28; letter-spacing: -.015em; color: var(--fdc-tx);
+  text-wrap: pretty;
+}
+.fdc-prog__donde {
+  font-size: .88em; color: var(--fdc-tx-3); margin-top: auto;
+  display: flex; align-items: center; gap: 7px;
+}
+.fdc-prog__donde svg {
+  width: 14px; height: 14px; flex: 0 0 auto;
+  stroke: currentColor; fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .8;
+}
+
+.fdc-prog__pie {
+  display: flex; flex-wrap: wrap; gap: 14px 20px;
+  align-items: center; margin-top: 26px;
+}
+.fdc-prog__cuenta { font-size: .92em; color: var(--fdc-tx-3); }
+.fdc-prog__cuenta b { color: var(--fdc-tx); font-weight: 700; }
+
 /* ============================================================== 7. VIDEO === */
 .fdc-video {
   position: relative; margin-top: 40px;

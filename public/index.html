@@ -106,7 +106,7 @@
     </div>
 
     <div class="fdc-hero__cta">
-      <a class="fdc-btn fdc-btn--magenta" href="#fdc-programa">Programa 2026</a>
+      <a class="fdc-btn fdc-btn--magenta" href="/programa/">Programa 2026</a>
       <a class="fdc-btn fdc-btn--ghost" href="#fdc-festival">Conoce el festival</a>
     </div>
 
@@ -241,7 +241,7 @@
     <p class="fdc-note">
       La planeación de la edición 2026 avanza con la participación del CNyN-UNAM, el Instituto
       Tecnológico de Ensenada del TecNM y las demás instituciones aliadas.
-      <b>El programa completo y las sedes se anunciarán próximamente.</b>
+      <b id="fdc-nota-programa">El programa completo y las sedes se anunciarán próximamente.</b>
     </p>
   </div>
 </section>
@@ -252,6 +252,11 @@
     <p class="fdc-kicker">Programa</p>
     <h2 class="fdc-h2">Programa 2026</h2>
 
+    <!-- El contenido de esta caja lo sustituye assets/js/programa-portada.js
+         por las tres próximas actividades, y SOLO si hay algo publicado. Lo que
+         está escrito aquí es el respaldo: mientras el programa esté vacío, o si
+         falla la red, «Próximamente» es exactamente la verdad. -->
+    <div id="fdc-programa-caja">
     <div class="fdc-soon">
       <div class="fdc-soon__badge">
         <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
@@ -278,6 +283,7 @@
         </p>
       </div>
     </div>
+    </div><!-- /#fdc-programa-caja -->
   </div>
 </section>
 
@@ -369,7 +375,7 @@
     <h2 class="fdc-h2">El festival ocupa la ciudad</h2>
     <p class="fdc-lead fdc-lead--center">
       No hay un solo recinto: el festival se reparte por los espacios culturales, académicos y
-      públicos de Ensenada. Estas han sido algunas de sus sedes.
+      públicos de Ensenada. Estos son algunos de ellos.
     </p>
 
     <ul class="fdc-sedes">
@@ -383,11 +389,14 @@
       <li>CONALEP Ensenada</li>
       <li>Centro histórico y Ventana al Mar</li>
       <li>Bodegas de Santo Tomás</li>
+      <li>Teatro Universitario Benito Juárez</li>
+      <li>Parque Ejido El Porvenir</li>
     </ul>
 
     <p class="fdc-note fdc-note--light">
-      <b>Las sedes de la edición 2026 se confirmarán junto con el programa.</b>
-      El listado anterior corresponde a recintos que han albergado ediciones previas.
+      <b id="fdc-nota-sedes">Las sedes de la edición 2026 se confirmarán junto con el programa.</b>
+      El listado anterior reúne recintos que han albergado ediciones anteriores y espacios
+      que se suman este año.
     </p>
   </div>
 </section>
@@ -576,5 +585,8 @@
   import { montarCabecera } from '/assets/js/cabecera.js';
   montarCabecera();
 </script>
+<!-- Adelanto del programa. Va aparte y como módulo porque lee la base de datos;
+     landing.js no toca la red. Si falla, la sección queda como está escrita. -->
+<script type="module" src="/assets/js/programa-portada.js"></script>
 </body>
 </html>

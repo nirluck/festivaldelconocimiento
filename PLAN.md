@@ -5,7 +5,7 @@
 > Léelo antes de escribir código: varias decisiones costaron discusión y no
 > conviene volver a abrirlas sin motivo.
 
-Última actualización: **22 de agosto de 2026**
+Última actualización: **10 de septiembre de 2026**
 
 ---
 
@@ -36,6 +36,10 @@ Sitio público y sistema interno del Festival del Conocimiento
   todos los datos) y Avance (el reporte y su historial).** Cierra el hueco de
   edición que existía desde el principio
 - Tablero de administración con semáforo, filtros y exportación CSV
+- **Programa público `/programa/`**: cartelera por día, filtrable, con ficha
+  por actividad en `/programa/<slug>/`. La landing muestra las tres próximas
+- **`/panel/programa/`**: la administración arma el programa arrastrando de la
+  bandeja a los ocho días. Publicar exige día, hora y sede, y avisa de empalmes
 - Cabecera unificada en el sitio
 
 ### Tablas que existen hoy
@@ -59,6 +63,7 @@ ejes · tipos · sedes
 | `sql/06-cambios.sql` | Roles renombrados, hora y requerimientos, sin aprobación |
 | `sql/07-nucleo.sql` | **Fase A.** Ediciones, fecha real, slug y resumen |
 | `sql/08-cupo.sql` | **Captura primero.** Agrega `cupo` a las actividades |
+| `sql/09-programa.sql` | **Fase D.** Abre el programa a quien no tiene cuenta |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
 **03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
@@ -74,7 +79,14 @@ que se detiene y lo explica.
 - **Edición resuelta (fase B).** Coordinador y administración editan una
   actividad desde el módulo Resumen del panel.
 - **Aún no se capturan ponentes, imágenes ni cupos de voluntariado.** Es la
-  siguiente tanda de captura (fase C y las mitades de captura de E y G).
+  siguiente tanda de captura (fase C y las mitades de captura de E y G). La
+  cartelera ya existe pero sin fotos ni nombres de quien imparte: el hueco está
+  previsto en el diseño.
+- **Las vistas previas al compartir una actividad son genéricas.** Sin paso de
+  compilación, `/programa/<slug>/` es la misma página para todas y las redes no
+  ejecutan JavaScript. Explicado en la fase D.
+- **Las sedes no tienen dirección.** La columna existe desde
+  `09-programa.sql` pero está vacía; llenarla mejora la ficha de cada actividad.
 - **Nada se ha probado con volumen real.** Hay un par de actividades de prueba.
 
 ---
@@ -503,11 +515,12 @@ construir los que faltan.
 
 ---
 
-### Fase C · Ponentes y contenido — **siguiente** (mitad de captura)
+### Fase C · Ponentes y contenido — **la siguiente** (mitad de captura)
 
-**SQL** — `sql/09-ponentes.sql`: `ponentes`, `actividad_ponentes`,
-`actividad_imagenes`. (El número 08 lo tomó `08-cupo.sql`; las fases E–H corren
-en consecuencia: 10-voluntariado, 11-asistencia, 12-encuesta, 13-correo.)
+**SQL** — `sql/10-ponentes.sql`: `ponentes`, `actividad_ponentes`,
+`actividad_imagenes`. (El 08 lo tomó `08-cupo.sql` y el 09 el programa público,
+que se adelantó; las fases E–H corren en consecuencia: 11-voluntariado,
+12-asistencia, 13-encuesta, 14-correo.)
 
 **Nota de captura primero:** capturar ponentes e imágenes NO necesita correo.
 Lo que depende de fases posteriores es *mostrarlos* en el programa público
@@ -531,16 +544,65 @@ fusionar.
 
 ---
 
-### Fase D · Programa público
+### Fase D · Programa público — **hecha** (10 de septiembre de 2026)
 
-**Frontend**
+Se adelantó a la fase C por decisión del equipo: se quería la cartelera antes
+que los ponentes. La consecuencia está asumida —las tarjetas no llevan foto ni
+nombre de quien imparte— y el diseño deja el hueco para que la fase C entre sin
+rehacer nada.
 
-- `/programa/` con las actividades donde `publica = true`, ordenadas por fecha
-  y hora, filtrables por día y por eje.
-- `/programa/<slug>/` para cada actividad, con ponentes, galería y descripción.
+**SQL** — `sql/09-programa.sql`
 
-**Netlify:** para que las direcciones con slug funcionen en un sitio estático,
-en `netlify.toml`:
+- `sedes` gana `direccion` y `capacidad`, que el modelo de la sección 4 ya
+  documentaba y 01-esquema nunca creó. Nacen vacías; llenarlas mejora la ficha
+  de cada actividad, que es donde se muestra la dirección.
+- `actividades` gana `publicada_en`, que llena el disparador
+  `sellar_publicacion` y **nadie puede escribir a mano**: si se pudiera, el
+  «Nuevo» de la cartelera se podría falsear. Al despublicar se borra, así que
+  volver a publicar cuenta como novedad otra vez, que es lo que de verdad pasó.
+- Política `actividades_ver_publicas` para `anon` **y `authenticated`**: sin la
+  segunda, un coordinador que abriera /programa/ vería solo sus actividades y
+  creería que el programa está casi vacío.
+- **Permisos por columna para `anon`.** Es la pieza importante y está explicada
+  más abajo.
+- `vista_programa`, con `security_invoker = true`, es la única lectura del sitio
+  sin sesión.
+- Índice parcial `actividades_programa (edicion_id, fecha, hora_inicio)`.
+
+**Frontend público**
+
+- `/programa/` · cartelera en **agenda por día**: los ocho días como pastillas
+  fijas, y dentro de cada uno las actividades en orden de hora, con carril de
+  horas teñido del color del eje, lomo de color, resumen, sede y cupo. Filtros
+  por eje, sede y tipo. En celular los filtros se pliegan tras un botón
+  —desplegados dentro de una barra pegajosa se comían 350 px de 812— y el
+  selector de días se queda siempre visible.
+- Abre en el día de hoy si el festival está ocurriendo; si no, en «Todo».
+- `/programa/<slug>/` · ficha con los datos en una tarjeta lateral pegajosa,
+  descripción, botones para compartir y «ese mismo día».
+- Hoja de impresión: un festival se imprime y se pega en la pared.
+- La landing sustituye «Próximamente» por las tres próximas actividades
+  (`assets/js/programa-portada.js`), **sin cargar supabase-js**: es un `fetch`
+  contra la API REST. Si falla, o si todavía no hay nada publicado, el HTML de
+  «Próximamente» se queda tal cual, que es exactamente la verdad.
+
+**Frontend de administración**
+
+- `/panel/programa/` · bandeja de lo no publicado y los ocho días en columnas.
+- **Publicar exige día, hora y sede.** Un renglón sin sede en una cartelera no
+  le sirve a nadie, así que el interruptor suelto no basta: se abre un diálogo
+  donde la administración confirma las tres cosas, con la fecha que propuso el
+  coordinador a la vista cuando no coincide con la que se va a publicar.
+- **Los empalmes se avisan, no se bloquean:** una sede puede tener dos salas.
+  Sin hora de término se supone una hora, que es lo que dura una charla; como
+  es una suposición y no un dato, no puede impedir nada.
+- Arrastrar es un acelerador de escritorio, no el mecanismo: todo se puede
+  hacer con el botón «Programar», que funciona con el dedo. Mover algo ya
+  publicado de un día a otro escribe directo —es reversible y se ve al
+  instante—; sacar algo de la bandeja siempre pasa por el diálogo, porque ahí
+  falta información que confirmar.
+
+**Netlify**
 
 ```toml
 [[redirects]]
@@ -549,16 +611,61 @@ en `netlify.toml`:
   status = 200
 ```
 
-La página lee el slug de `location.pathname`.
+La página lee el slug de `location.pathname`. **Ojo:** esta regla tapa
+cualquier archivo que se agregue bajo `/programa/`; si algún día hace falta un
+`/programa/programa.pdf`, necesita una regla anterior que lo excluya.
 
-**Entregable:** la sección «Programa · Próximamente» de la landing se sustituye
-por el programa real.
+#### Cómo se protege el programa público
+
+Hasta ahora la única política de `actividades` era `to authenticated`. Abrirla
+a `anon` con una política sola habría dejado que cualquiera pidiera
+
+```
+GET /rest/v1/actividades?select=requerimientos
+```
+
+y se llevara los requerimientos internos de cada actividad. **RLS filtra filas,
+no columnas** (trampa 4 de la sección 6). El mecanismo que sí filtra columnas
+son los permisos por columna de PostgreSQL, y el archivo usa los dos: la
+política decide QUÉ FILAS y el permiso por columna decide QUÉ CAMPOS. Así la
+vista conserva `security_invoker = true`, como manda la convención, sin que eso
+abra la tabla entera.
+
+`anon` **no** puede leer `requerimientos`, `responsable_id`, `creado` ni
+`actualizado`. La comprobación 4 al final de `09-programa.sql` lo verifica y
+dice «REVISAR: FUGA» si alguna vez deja de ser cierto.
+
+`authenticated` sí puede leer esas columnas de las actividades publicadas,
+porque 03-rls.sql le dio `grant select` a la tabla completa. Se acepta a
+propósito: el registro es por invitación, los coordinadores son parte del
+equipo y ahí no hay datos personales de terceros.
+
+#### Limitación conocida: las vistas previas al compartir
+
+Como no hay paso de compilación, `/programa/<slug>/` es la misma página
+estática para todas las actividades. Facebook y WhatsApp leen el HTML sin
+ejecutar JavaScript, así que **la vista previa de cualquier actividad muestra el
+título y la imagen genéricos del programa**, no los suyos. Para un festival que
+se difunde por redes esto importa y conviene tenerlo presente.
+
+Las dos salidas, cuando se quiera resolver: una función de Netlify que sirva las
+etiquetas `og:` según el slug, o un paso de compilación que genere un archivo
+por actividad. Las dos rompen la regla de «sin paso de compilación» de la
+sección 3, y por eso no se tomó ninguna todavía.
+
+#### Lo que le falta cuando llegue la fase C
+
+Un hueco por tarjeta para la imagen de portada y una línea de ponentes bajo el
+título. La ficha ya tiene dónde ponerlos: la columna de texto admite la galería
+y la tarjeta lateral, la lista de quién imparte.
+
+**Entregable:** la cartelera completa, pública, y armable desde el tablero.
 
 ---
 
 ### Fase E · Voluntariado
 
-**SQL** — `sql/10-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
+**SQL** — `sql/11-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
 
 **Frontend**
 
@@ -583,7 +690,7 @@ por el programa real.
 
 ### Fase F · Asistencia
 
-**SQL** — `sql/11-asistencia.sql`: `asistentes`, `registros`.
+**SQL** — `sql/12-asistencia.sql`: `asistentes`, `registros`.
 
 **Frontend**
 
@@ -602,7 +709,7 @@ por el programa real.
 
 ### Fase G · Encuesta
 
-**SQL** — `sql/12-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
+**SQL** — `sql/13-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
 `respuesta_valores`.
 
 **Frontend**
@@ -666,7 +773,7 @@ registros en un día hace falta plan de pago ese mes. El costo típico ronda los
   y datos; llama al proveedor; escribe en `envios`.
 - La llave del proveedor va en los secretos de la función, **nunca en el
   frontend**.
-- `sql/13-correo.sql`: tabla `envios`.
+- `sql/14-correo.sql`: tabla `envios`.
 
 **Plantillas necesarias:** pase de asistencia, confirmación de voluntariado,
 recordatorio de actividad, invitación a la encuesta.

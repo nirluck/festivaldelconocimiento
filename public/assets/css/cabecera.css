@@ -74,6 +74,57 @@ body{ margin: 0; }
 .cab__nav a:hover{ background: rgba(255,255,255,.13); color: #fff; }
 .cab__nav a[aria-current]{ background: rgba(255,255,255,.15); color: #fff; }
 
+/* ------------------------------------------------- desplegable de talleres */
+.cab__grupo{ position: relative; display: flex; }
+
+.cab__grupo-btn{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Space Grotesk','Inter',sans-serif;
+  font-weight: 600; font-size: .87rem; line-height: 1;
+  color: rgba(255,255,255,.78);
+  background: none; border: 0; cursor: pointer;
+  padding: 8px 13px; border-radius: 100px;
+  white-space: nowrap;
+  transition: background .16s ease, color .16s ease;
+}
+.cab__grupo-btn:hover{ background: rgba(255,255,255,.13); color: #fff; }
+.cab__grupo.is-abierto .cab__grupo-btn,
+.cab__grupo-btn[data-actual]{ background: rgba(255,255,255,.15); color: #fff; }
+
+.cab__flecha{ width: 10px; height: 6px; transition: rotate .2s ease; }
+.cab__grupo.is-abierto .cab__flecha{ rotate: 180deg; }
+
+.cab__panel{
+  /* Anclado por la derecha y no por la izquierda: el menú está alineado a la
+     derecha de la barra, así que en las páginas internas el grupo queda muy
+     cerca del borde y un panel que crece hacia la derecha se sale de pantalla. */
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 10;
+  min-width: 290px;
+  background: #0B252A;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px; padding: 8px;
+  box-shadow: 0 22px 48px rgba(0,0,0,.45);
+}
+/* El panel se muestra y se esconde con el atributo hidden, que es lo que leen
+   los lectores de pantalla. Sin esta regla, el display de arriba lo ignoraría. */
+.cab__panel[hidden]{ display: none; }
+
+.cab__panel a{
+  display: block; padding: 11px 13px; border-radius: 10px;
+  text-decoration: none; transition: background .16s ease;
+}
+.cab__panel a:hover{ background: rgba(255,255,255,.09); }
+.cab__panel a[aria-current]{ background: rgba(255,255,255,.12); }
+.cab__panel b{
+  display: block;
+  font-family: 'Space Grotesk','Inter',sans-serif;
+  font-weight: 600; font-size: .92rem; letter-spacing: -.01em; color: #fff;
+}
+.cab__panel small{
+  display: block; margin-top: 3px;
+  font-size: .76rem; line-height: 1.4; color: rgba(255,255,255,.58);
+}
+
 /* --------------------------------------------------------------- sesión --- */
 .cab__auth{ display: flex; align-items: center; gap: 10px; }
 
@@ -125,39 +176,68 @@ body{ margin: 0; }
 
 .cab :focus-visible{ outline: 3px solid #F6D20A; outline-offset: 2px; }
 
-/* ------------------------------------------------------------------ móvil -- */
-@media (max-width: 1120px){
-  .cab__toggle{ display: flex; }
+/* --------------------------------------------------------------- compacta --
+   El menú se pliega cuando no cabe, y no a un ancho fijo.
 
-  .cab__menu{
-    display: none;
-    position: absolute; left: 0; right: 0; top: 100%;
-    background: #0B252A;
-    border-bottom: 1px solid rgba(255,255,255,.1);
-    flex-direction: column; align-items: stretch; gap: 0;
-    padding: 12px 24px 22px;
-    max-height: calc(100dvh - 64px); overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0,0,0,.35);
-  }
-  .cab__menu.is-abierto{ display: flex; }
+   La barra tiene alto fijo y no lleva flex-wrap a propósito, así que si el
+   contenido no entra se rompe. Y cuánto ocupa depende del estado: con la
+   sesión cerrada pide 989px, y con sesión de administración 1269px, porque
+   entran «Tablero», el nombre y «Salir». Con el corte fijo que había en
+   1120px la barra ya se partía entre 1120 y 1173 para quien iniciaba sesión.
 
-  .cab__nav{ flex-direction: column; align-items: stretch; gap: 0; }
-  .cab__nav a{
-    padding: 13px 4px; border-radius: 0; font-size: .98rem;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-  }
-  .cab__nav a:hover{ background: none; color: #F6D20A; }
+   cabecera.js mide el ancho que hace falta y pone esta clase cuando la
+   ventana se queda corta.
+   ------------------------------------------------------------------------- */
+.cab--compacta .cab__toggle{ display: flex; }
 
-  .cab__auth{
-    flex-direction: column; align-items: stretch; gap: 10px;
-    margin-top: 18px;
-  }
-  .cab__btn{ width: 100%; padding: 14px 18px; font-size: .95rem; }
-  .cab__quien{ max-width: none; text-align: center; padding: 4px 0 6px; }
-
-  /* En móvil la cabecera flotante se vuelve sólida al abrir el menú */
-  .cab--flotante:has(.cab__menu.is-abierto){ background: #12343B; }
+.cab--compacta .cab__menu{
+  display: none;
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: #0B252A;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  flex-direction: column; align-items: stretch; gap: 0;
+  padding: 12px 24px 22px;
+  max-height: calc(100dvh - 64px); overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
 }
+.cab--compacta .cab__menu.is-abierto{ display: flex; }
+
+.cab--compacta .cab__nav{ flex-direction: column; align-items: stretch; gap: 0; }
+.cab--compacta .cab__nav a{
+  padding: 13px 4px; border-radius: 0; font-size: .98rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.cab--compacta .cab__nav a:hover{ background: none; color: #F6D20A; }
+
+/* El desplegable deja de ser flotante y pasa a ser una lista sangrada dentro
+   del propio menú. */
+.cab--compacta .cab__grupo{ flex-direction: column; }
+.cab--compacta .cab__grupo-btn{
+  justify-content: space-between; width: 100%;
+  padding: 13px 4px; border-radius: 0; font-size: .98rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.cab--compacta .cab__grupo-btn:hover,
+.cab--compacta .cab__grupo.is-abierto .cab__grupo-btn,
+.cab--compacta .cab__grupo-btn[data-actual]{ background: none; color: #F6D20A; }
+
+.cab--compacta .cab__panel{
+  position: static; right: auto; min-width: 0; z-index: auto;
+  background: none; border: 0; box-shadow: none; border-radius: 0;
+  padding: 4px 0 6px 14px;
+  margin: 10px 0 10px 4px;
+  border-left: 2px solid rgba(255,255,255,.16);
+}
+
+.cab--compacta .cab__auth{
+  flex-direction: column; align-items: stretch; gap: 10px;
+  margin-top: 18px;
+}
+.cab--compacta .cab__btn{ width: 100%; padding: 14px 18px; font-size: .95rem; }
+.cab--compacta .cab__quien{ max-width: none; text-align: center; padding: 4px 0 6px; }
+
+/* La cabecera flotante se vuelve sólida al abrir el menú */
+.cab--compacta.cab--flotante:has(.cab__menu.is-abierto){ background: #12343B; }
 
 /* ---------------------------------------------------------------- anclas --- */
 /* Para que los títulos no queden escondidos bajo la cabecera pegajosa */

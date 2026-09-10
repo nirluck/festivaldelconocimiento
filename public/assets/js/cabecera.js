@@ -17,13 +17,28 @@
 import { SUPABASE_URL } from './config.js';
 
 /* Secciones de la landing. Se muestran como anclas cuando estás en ella y como
-   enlaces de vuelta cuando estás en cualquier otra página. */
+   enlaces de vuelta cuando estás en cualquier otra página.
+
+   «Programa» es el único que no es un ancla: desde que existe /programa/, el
+   menú lleva a la cartelera completa y no a la sección de adelanto. La landing
+   conserva esa sección, con su botón, para quien baja leyendo. */
 const SECCIONES = [
   ['#fdc-festival', 'El festival'],
   ['#fdc-2026',     'Edición 2026'],
-  ['#fdc-programa', 'Programa'],
+  ['/programa/',    'Programa'],
   ['#fdc-memoria',  'Memoria 2025'],
   ['#fdc-participa','Participa'],
+];
+
+/* Talleres y laboratorios publicados.
+
+   Es una lista y no un enlace suelto porque va a crecer: cada convocatoria
+   nueva se agrega aquí y aparece en el menú de todo el sitio sin tocar nada
+   más. El tercer campo es la línea de apoyo que se ve bajo el nombre. */
+const TALLERES = [
+  ['/laboratorio-arte-de-comunicar-ciencia/',
+   'El arte de comunicar ciencia',
+   'Laboratorio escénico · Convocatoria abierta'],
 ];
 
 const esLanding = location.pathname === '/' || location.pathname.endsWith('/index.html');
@@ -79,17 +94,53 @@ export function montarCabecera(perfil) {
     enlaces = SECCIONES.map(([h, t]) => [h, t]);
   } else {
     // Fuera de la landing, las anclas apuntan de vuelta al sitio público.
-    enlaces = [['/', 'El festival']];
+    enlaces = [['/', 'El festival'], ['/programa/', 'Programa']];
     if (quien) {
       enlaces.push(['/mi-actividad/', 'Mis actividades']);
-      if (quien.rol === 'administrador') enlaces.push(['/panel/', 'Tablero']);
+      if (quien.rol === 'administrador') {
+        enlaces.push(['/panel/', 'Tablero']);
+        // «Armar programa» y no «Programa»: el público ya tiene uno con ese
+        // nombre tres enlaces antes, y son cosas distintas.
+        enlaces.push(['/panel/programa/', 'Armar programa']);
+      }
     }
   }
 
-  const navHtml = enlaces.map(([h, t]) => {
-    const actual = !h.startsWith('#') && ruta.startsWith(h) && h !== '/';
+  const piezas = enlaces.map(([h, t]) => {
+    // «/panel/» se compara exacto: con startsWith, estando en /panel/programa/
+    // saldrían dos enlaces marcados como la página actual.
+    const actual = !h.startsWith('#') && h !== '/' &&
+      (h === '/panel/' ? ruta === h : ruta.startsWith(h));
     return `<a href="${esc(h)}"${actual ? ' aria-current="page"' : ''}>${esc(t)}</a>`;
-  }).join('');
+  });
+
+  /* --------------------------------- talleres ---------------------------- */
+  const enUnTaller = TALLERES.some(([h]) => ruta.startsWith(h));
+
+  const tallerHtml = `
+    <div class="cab__grupo" data-grupo>
+      <button class="cab__grupo-btn" type="button"
+              aria-expanded="false" aria-controls="cab-talleres"
+              ${enUnTaller ? 'data-actual' : ''}>
+        Talleres
+        <svg class="cab__flecha" viewBox="0 0 10 6" aria-hidden="true" focusable="false">
+          <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="cab__panel" id="cab-talleres" hidden>
+        ${TALLERES.map(([h, t, pie]) => `
+        <a href="${esc(h)}"${ruta.startsWith(h) ? ' aria-current="page"' : ''}>
+          <b>${esc(t)}</b>
+          <small>${esc(pie)}</small>
+        </a>`).join('')}
+      </div>
+    </div>`;
+
+  /* Va junto a la programación, no al final: justo después de «Programa», que
+     en los dos casos es el tercer enlace contando desde uno. */
+  piezas.splice(esLanding ? 3 : 2, 0, tallerHtml);
+  const navHtml = piezas.join('');
 
   /* --------------------------------- zona de sesión ---------------------- */
   let authHtml;
@@ -130,9 +181,69 @@ export function montarCabecera(perfil) {
     </header>`);
 
   hueco.replaceWith(cab);
+  // Va antes de pintar nada: se monta en modo ancho y, si no cabe, se pliega
+  // en la misma tarea, así no se alcanza a ver la barra rota.
+  ajustarPlegado(cab);
   medirAlto(cab);
   conectar(cab);
   return cab;
+}
+
+/**
+ * Pliega el menú cuando la barra deja de caber.
+ *
+ * No sirve un punto de corte fijo en CSS porque el ancho que hace falta
+ * depende del estado: con la sesión cerrada son 989px, y con sesión de
+ * administración 1269px, porque entran «Tablero», el nombre y «Salir». El
+ * corte fijo que había en 1120px dejaba la barra partida entre 1120 y 1173
+ * justo para quien había iniciado sesión.
+ */
+function ajustarPlegado(cab) {
+  const caja  = cab.querySelector('.cab__in');
+  const marca = cab.querySelector('.cab__marca');
+  const menu  = cab.querySelector('.cab__menu');
+  if (!caja || !marca || !menu) return;
+
+  let necesita = 0;
+
+  // El ancho útil se saca restando el relleno y no del de la ventana: el
+  // contenedor está limitado a 1240px, y si box-sizing cambia entre páginas
+  // el borde exterior deja de ser comparable.
+  function disponible() {
+    const est = getComputedStyle(caja);
+    return caja.clientWidth
+      - (parseFloat(est.paddingLeft) || 0)
+      - (parseFloat(est.paddingRight) || 0);
+  }
+
+  function medir() {
+    // Hay que medir en modo ancho: plegado, el menú es absoluto y en columna,
+    // así que su ancho ya no dice lo que ocuparía puesto en una sola fila.
+    const estaba = cab.classList.contains('cab--compacta');
+    cab.classList.remove('cab--compacta');
+
+    const hueco = parseFloat(getComputedStyle(caja).columnGap) || 18;
+    necesita = Math.ceil(marca.getBoundingClientRect().width + menu.scrollWidth + hueco);
+
+    if (estaba) cab.classList.add('cab--compacta');
+    decidir();
+  }
+
+  function decidir() {
+    cab.classList.toggle('cab--compacta', disponible() < necesita);
+  }
+
+  medir();
+
+  // Con las tipografías de respaldo el texto ocupa otra cosa; cuando llegan
+  // Space Grotesk e Inter hay que volver a medir.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(medir).catch(() => {});
+  }
+
+  // resize y no ResizeObserver: el observador vería el cambio de alto que
+  // provoca plegarse y podría realimentarse.
+  window.addEventListener('resize', decidir, { passive: true });
 }
 
 /**
@@ -167,8 +278,41 @@ function conectar(cab) {
   }
   toggle.addEventListener('click', () => abrir(!menu.classList.contains('is-abierto')));
 
+  /* ------------------------------------------------ desplegable talleres --
+     Se abre al pulsar y no al pasar el ratón: en pantalla táctil el hover no
+     existe, y abrir por hover en escritorio hace que el panel salte solo al
+     cruzar el cursor de camino a otra cosa. */
+  const grupo    = cab.querySelector('[data-grupo]');
+  const grupoBtn = grupo && grupo.querySelector('.cab__grupo-btn');
+  const panel    = grupo && grupo.querySelector('.cab__panel');
+
+  function abrirGrupo(si) {
+    if (!grupo) return;
+    panel.hidden = !si;
+    grupoBtn.setAttribute('aria-expanded', si ? 'true' : 'false');
+    grupo.classList.toggle('is-abierto', si);
+  }
+
+  if (grupo) {
+    grupoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();               // que no lo cierre el clic de fuera
+      abrirGrupo(panel.hidden);
+    });
+
+    // No se abre solo al entrar en un taller aunque el botón salga resaltado:
+    // taparía el contenido nada más cargar, y el enlace que revelaría es el de
+    // la página en la que ya estás.
+  }
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && menu.classList.contains('is-abierto')) {
+    if (e.key !== 'Escape') return;
+    // Escape cierra lo más interior primero: el desplegable antes que el menú.
+    if (grupo && !panel.hidden) {
+      abrirGrupo(false);
+      grupoBtn.focus();
+      return;
+    }
+    if (menu.classList.contains('is-abierto')) {
       abrir(false);
       toggle.focus();
     }
@@ -176,8 +320,9 @@ function conectar(cab) {
 
   // Al pulsar fuera, se cierra
   document.addEventListener('click', (e) => {
-    if (!menu.classList.contains('is-abierto')) return;
-    if (!cab.contains(e.target)) abrir(false);
+    if (cab.contains(e.target)) return;
+    if (grupo && !panel.hidden) abrirGrupo(false);
+    if (menu.classList.contains('is-abierto')) abrir(false);
   });
 
   /* --------------------------------- anclas de la landing ---------------- */

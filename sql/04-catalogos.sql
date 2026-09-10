@@ -56,30 +56,11 @@ insert into public.sedes (nombre, orden) values
   ('Centro histórico',                                      10),
   ('Ventana al Mar',                                        11),
   ('Bodegas de Santo Tomás',                                12),
+  ('Teatro Universitario Benito Juárez',                   13),
+  ('Parque Ejido El Porvenir',                              14),
   ('Otra sede',                                             98),
   ('Por definir',                                           99)
 on conflict (nombre) do update set orden = excluded.orden;
-
-
--- -----------------------------------------------------------------------------
---  DÍAS DEL FESTIVAL  ·  sábado 17 a sábado 24 de octubre de 2026
---
---  Si cambian las fechas en la tabla "ajustes", hay que regenerar esta lista.
---  Se deja como tabla y no como cálculo automático porque los nombres de los
---  días dependen del idioma del servidor, que no controlamos.
--- -----------------------------------------------------------------------------
-delete from public.dias;
-insert into public.dias (etiqueta, orden) values
-  ('Sáb 17 oct',   1),
-  ('Dom 18 oct',   2),
-  ('Lun 19 oct',   3),
-  ('Mar 20 oct',   4),
-  ('Mié 21 oct',   5),
-  ('Jue 22 oct',   6),
-  ('Vie 23 oct',   7),
-  ('Sáb 24 oct',   8),
-  ('Varios días', 90),
-  ('Por definir', 99);
 
 
 -- =============================================================================
@@ -94,10 +75,11 @@ insert into public.dias (etiqueta, orden) values
 
 -- =============================================================================
 --  COMPROBACIÓN
---  Al terminar deberías ver 4 ejes, 14 tipos, 14 sedes, 10 días y 6 ajustes.
+--  Al terminar deberías ver 4 ejes, 14 tipos y 16 sedes.
+--
+--  Ya no se cuentan «dias» ni «ajustes»: 07-nucleo.sql eliminó esas tablas.
+--  Los días los sustituyó «actividades.fecha», acotada por la edición activa.
 -- =============================================================================
 select 'ejes' as tabla, count(*) from public.ejes
 union all select 'tipos',   count(*) from public.tipos
-union all select 'sedes',   count(*) from public.sedes
-union all select 'dias',    count(*) from public.dias
-union all select 'ajustes', count(*) from public.ajustes;
+union all select 'sedes',   count(*) from public.sedes;

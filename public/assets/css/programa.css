@@ -1,0 +1,525 @@
+/* ============================================================================
+   PROGRAMA PÚBLICO · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   La cartelera (/programa/) y la página de cada actividad (/programa/<slug>/).
+
+   Por qué esta hoja no reutiliza landing.css: esa está encapsulada bajo «.fdc»
+   porque nació para incrustarse en el WordPress del CNyN y arrastra ese peso.
+   Esta página es nuestra y no convive con ningún tema ajeno, así que declara
+   sus propios tokens —los mismos valores— y queda legible.
+
+   REGLA DE COLOR, la del logotipo:
+     · Color puro del eje para la GRÁFICA: lomos, puntos, fondos, bordes.
+     · Variante oscurecida para las LETRAS: el turquesa da 2.75:1 sobre blanco
+       y no pasa AA. Nunca poner texto pequeño en color de marca puro sobre
+       fondo claro.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root{
+  /* Marca · gráfica */
+  --turquesa:#10ABC4; --magenta:#E91587; --verde:#99CA3C;
+  --naranja:#F5821F;  --amarillo:#F6D20A;
+  /* Marca · texto sobre fondo claro */
+  --turquesa-tx:#0A7285; --magenta-tx:#C90D70;
+  --verde-tx:#587A17;    --naranja-tx:#B85800;
+  /* Estructura */
+  --dark:#12343B; --darker:#0B252A;
+  --bg:#F7F9F8; --surface:#FFFFFF; --ice:#EEF7F6;
+  --tx:#12343B; --tx-2:#52676B; --tx-3:#627275;
+  --line:#DCE4E4; --line-2:#EDF2F2;
+
+  --r:16px; --r-s:10px;
+  --sombra:0 1px 2px rgba(18,52,59,.05), 0 10px 28px rgba(18,52,59,.07);
+  --sombra-h:0 4px 10px rgba(18,52,59,.08), 0 18px 44px rgba(18,52,59,.13);
+  --f-disp:'Space Grotesk','Inter',system-ui,sans-serif;
+  --f-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+
+  /* Color del eje de la actividad que se está pintando. El JS la sobrescribe
+     por tarjeta; este valor es el respaldo cuando el eje no trae color. */
+  --eje:#10ABC4;
+  --eje-tx:#0A7285;
+
+  --wrap:1180px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--tx);
+  font-family:var(--f-body); font-size:17px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,p,ul,ol,li,figure,dl,dt,dd{margin:0;padding:0}
+ul,ol{list-style:none}
+img,svg{display:block;max-width:100%}
+a{color:var(--turquesa-tx)}
+:focus-visible{outline:3px solid var(--turquesa);outline-offset:3px;border-radius:6px}
+
+.pg-wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:clamp(16px,4vw,24px)}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ============================================================================
+   CABECERA DE LA PÁGINA
+   Banda oscura, como el hero de la landing. Sobre el azul petróleo los colores
+   de marca sí funcionan como texto: ahí van puros.
+   ========================================================================== */
+.pg-hero{
+  background:var(--dark); color:#fff;
+  padding:clamp(38px,7vw,66px) 0 clamp(30px,5vw,46px);
+  position:relative; overflow:hidden;
+}
+/* Los cuatro anillos del logotipo, apenas insinuados. Decorativos: ni se leen
+   ni se anuncian. */
+.pg-hero::after{
+  content:''; position:absolute; right:-90px; top:-70px;
+  width:420px; height:420px; pointer-events:none; opacity:.14;
+  background:
+    radial-gradient(circle at 32% 30%, transparent 68px, var(--turquesa) 68px, var(--turquesa) 71px, transparent 72px),
+    radial-gradient(circle at 62% 36%, transparent 68px, var(--magenta)  68px, var(--magenta)  71px, transparent 72px),
+    radial-gradient(circle at 28% 62%, transparent 68px, var(--naranja)  68px, var(--naranja)  71px, transparent 72px),
+    radial-gradient(circle at 58% 68%, transparent 68px, var(--verde)    68px, var(--verde)    71px, transparent 72px);
+}
+/* En celular los anillos quedan justo detrás del texto y compiten con él.
+   Se encogen con «scale» y no cambiándoles el tamaño: los radios del degradado
+   están en píxeles fijos, así que achicar la caja solo los recortaría. */
+@media (max-width:699px){
+  .pg-hero::after{transform:scale(.6);transform-origin:top right;opacity:.1}
+}
+.pg-hero__in{position:relative;z-index:1}
+
+.pg-kicker{
+  font-family:var(--f-disp); font-size:.76rem; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--amarillo);
+  margin-bottom:12px;
+}
+.pg-hero h1{
+  font-family:var(--f-disp); font-weight:700;
+  font-size:clamp(2.1rem,6vw,3.4rem); line-height:1.04;
+  letter-spacing:-.03em; text-wrap:balance;
+}
+.pg-hero__lede{
+  margin-top:16px; max-width:54ch; color:rgba(255,255,255,.82);
+  font-size:clamp(1rem,2.4vw,1.12rem); text-wrap:pretty;
+}
+
+/* Cifras del festival. Separadas por una línea vertical, no por puntos: en
+   celular se apilan y los puntos quedarían huérfanos. */
+.pg-cifras{
+  display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:26px;
+}
+.pg-cifra{display:flex;flex-direction:column;gap:2px;padding-left:14px;
+  border-left:3px solid rgba(255,255,255,.22)}
+.pg-cifra b{
+  font-family:var(--f-disp); font-size:1.5rem; font-weight:700; line-height:1;
+  font-variant-numeric:tabular-nums; letter-spacing:-.02em;
+}
+.pg-cifra span{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.6)}
+
+/* ============================================================================
+   BARRA DE DÍAS Y FILTROS
+   Pegada bajo la cabecera del sitio. «--cab-alto» la mide cabecera.js en vivo:
+   cambia con el ancho de pantalla.
+   ========================================================================== */
+.pg-barra{
+  position:sticky; top:var(--cab-alto,64px); z-index:40;
+  background:rgba(247,249,248,.93);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.pg-barra__in{padding-block:12px}
+
+/* ---- los ocho días --------------------------------------------------------
+   Tira horizontal desplazable: ocho días no caben en un celular y partirlos en
+   dos renglones rompe la lectura de calendario. */
+.pg-dias{
+  display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity;
+  padding-bottom:4px; margin-bottom:2px;
+  scrollbar-width:thin;
+}
+.pg-dias::-webkit-scrollbar{height:5px}
+.pg-dias::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+
+.pg-dia-btn{
+  flex:0 0 auto; scroll-snap-align:start;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  min-width:58px; padding:8px 13px;
+  background:var(--surface); color:var(--tx-2);
+  border:1.5px solid var(--line); border-radius:12px;
+  font-family:var(--f-disp); font-weight:600; cursor:pointer;
+  transition:border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pg-dia-btn small{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tx-3);font-weight:700}
+.pg-dia-btn b{font-size:1.22rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.pg-dia-btn:hover:not(:disabled){border-color:var(--turquesa);color:var(--tx)}
+.pg-dia-btn[aria-pressed="true"]{
+  background:var(--dark); border-color:var(--dark); color:#fff;
+}
+.pg-dia-btn[aria-pressed="true"] small{color:rgba(255,255,255,.66)}
+/* Día sin nada publicado: se queda a la vista, apagado. Esconderlo haría
+   pensar que el festival dura menos. */
+.pg-dia-btn:disabled{opacity:.42;cursor:default}
+
+.pg-dia-btn--todo{min-width:auto;justify-content:center}
+.pg-dia-btn--todo b{font-size:.92rem;letter-spacing:-.01em}
+
+/* ---- filtros --------------------------------------------------------------
+   En escritorio están siempre a la vista. En celular se pliegan tras un botón:
+   desplegados dentro de una barra pegajosa ocupaban cuatro renglones —dos de
+   ejes y dos de listas—, unos 350 px de una pantalla de 812. La cartelera
+   quedaba mirando por una rendija. El selector de días sí se queda fijo: es lo
+   que se usa a cada rato.
+--------------------------------------------------------------------------- */
+.pg-filtros{
+  display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center;
+  padding-top:10px; border-top:1px dashed var(--line);
+}
+
+/* El botón solo existe en pantallas chicas. */
+.pg-abrir-filtros{display:none}
+
+@media (max-width:759px){
+  .pg-abrir-filtros{
+    display:inline-flex; align-items:center; gap:8px; margin-top:9px;
+    padding:7px 15px; border-radius:99px; cursor:pointer;
+    background:var(--surface); border:1.5px solid var(--line);
+    font-family:var(--f-disp); font-size:.85rem; font-weight:600; color:var(--tx-2);
+  }
+  .pg-abrir-filtros b{
+    background:var(--dark); color:#fff; border-radius:99px;
+    padding:1px 8px; font-size:.75rem; font-variant-numeric:tabular-nums;
+  }
+  .pg-barra:not(.pg-barra--abierta) .pg-filtros{display:none}
+  .pg-filtros{margin-top:10px}
+  /* Con los filtros desplegados la barra puede pasarse de alto; que se
+     desplace por dentro en vez de tapar la pantalla entera. */
+  .pg-barra--abierta .pg-barra__in{max-height:64vh;overflow-y:auto}
+  .pg-cuenta{margin-left:0;width:100%}
+}
+.pg-ejes{display:flex;gap:6px;flex-wrap:wrap}
+.pg-eje-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:6px 13px 6px 10px; border-radius:99px; cursor:pointer;
+  background:var(--surface); border:1.5px solid var(--line);
+  font-family:var(--f-disp); font-size:.84rem; font-weight:600; color:var(--tx-2);
+  transition:border-color .15s ease, color .15s ease, background .15s ease;
+}
+.pg-eje-btn i{width:11px;height:11px;border-radius:50%;background:var(--eje);
+  flex:0 0 auto;box-shadow:0 0 0 2px rgba(255,255,255,.9) inset}
+.pg-eje-btn:hover{color:var(--tx);border-color:var(--eje)}
+.pg-eje-btn[aria-pressed="true"]{
+  border-color:var(--eje); background:color-mix(in srgb, var(--eje) 12%, #fff);
+  color:var(--eje-tx);
+}
+/* Respaldo para navegadores sin color-mix: el borde ya distingue el estado. */
+@supports not (background:color-mix(in srgb, red 10%, white)){
+  .pg-eje-btn[aria-pressed="true"]{background:var(--ice)}
+}
+
+.pg-sel{
+  font:inherit; font-size:.86rem; color:var(--tx);
+  background:var(--surface); border:1.5px solid var(--line);
+  border-radius:99px; padding:7px 13px; cursor:pointer; max-width:100%;
+}
+.pg-sel:focus{outline:none;border-color:var(--turquesa);
+  box-shadow:0 0 0 3px rgba(16,171,196,.18)}
+
+.pg-limpiar{
+  background:none;border:0;font:inherit;font-size:.84rem;
+  color:var(--magenta-tx);cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px;padding:6px 4px;
+}
+.pg-cuenta{margin-left:auto;font-size:.82rem;color:var(--tx-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ============================================================================
+   LA CARTELERA
+   ========================================================================== */
+.pg-cuerpo{padding:clamp(26px,5vw,44px) 0 90px}
+
+.pg-dia{margin-bottom:clamp(30px,5vw,50px);scroll-margin-top:calc(var(--cab-alto,64px) + 130px)}
+.pg-dia__tit{
+  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  padding-bottom:10px; margin-bottom:18px;
+  border-bottom:2px solid var(--dark);
+}
+.pg-dia__tit h2{
+  font-family:var(--f-disp); font-weight:700;
+  font-size:clamp(1.3rem,3.4vw,1.75rem); letter-spacing:-.022em; line-height:1.1;
+  /* Sin «text-transform: capitalize»: en español convertía «Sábado 17 de
+     octubre» en «Sábado 17 De Octubre». La mayúscula inicial ya la pone el JS,
+     que es el único que sabe cuál palabra la lleva. */
+}
+.pg-dia__tit span{font-size:.82rem;color:var(--tx-3);white-space:nowrap}
+
+.pg-lista{display:grid;gap:12px}
+
+/* ---- una actividad --------------------------------------------------------
+   Rejilla de dos columnas: carril de horas y cuerpo. El lomo de color es un
+   borde izquierdo de la tarjeta, no un elemento: así nunca se desalinea con la
+   altura del contenido.
+--------------------------------------------------------------------------- */
+.pg-act{
+  display:grid; grid-template-columns:92px 1fr; align-items:stretch;
+  background:var(--surface);
+  border:1px solid var(--line); border-left:5px solid var(--eje);
+  border-radius:var(--r); box-shadow:var(--sombra);
+  text-decoration:none; color:inherit; overflow:hidden;
+  transition:box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+.pg-act:hover{
+  transform:translateY(-2px); box-shadow:var(--sombra-h);
+  border-color:var(--line);
+}
+.pg-act:focus-visible{outline:3px solid var(--eje);outline-offset:3px}
+
+/* carril de horas
+   Lleva un lavado del color del eje —un ocho por ciento— en vez de un gris
+   igual para todas: es lo que hace que la cartelera se lea de un vistazo como
+   cuatro disciplinas y no como una lista. Tan bajo que el texto encima sigue
+   estando prácticamente sobre blanco. */
+.pg-act__hora{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; padding:20px 8px;
+  background:var(--ice); border-right:1px solid var(--line-2);
+  font-family:var(--f-disp); font-variant-numeric:tabular-nums;
+}
+@supports (background:color-mix(in srgb, red 10%, white)){
+  .pg-act__hora{background:color-mix(in srgb, var(--eje) 9%, #fff)}
+}
+.pg-act__hora b{font-size:1.22rem;font-weight:700;line-height:1;letter-spacing:-.02em}
+/* El tramo entre las dos horas. En gris claro sobre el carril teñido no se
+   veía; hereda el color del eje, que ahí sí destaca. */
+.pg-act__hora i{width:2px;height:12px;background:var(--eje);opacity:.45;
+  border-radius:99px;display:block;font-style:normal}
+.pg-act__hora small{font-size:.88rem;color:var(--tx-3);font-weight:500}
+.pg-act__hora em{font-size:.72rem;font-style:normal;color:var(--tx-3);
+  letter-spacing:.08em;text-transform:uppercase;text-align:center}
+
+.pg-act__cuerpo{padding:18px 20px;display:flex;flex-direction:column;gap:9px;min-width:0}
+
+/* etiqueta: eje en color + tipo en gris. El eje va en su variante de texto,
+   que sí pasa AA sobre blanco. */
+.pg-act__eti{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  font-family:var(--f-disp); font-size:.72rem; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase;
+}
+.pg-act__eti b{color:var(--eje-tx);font-weight:700}
+.pg-act__eti span{color:var(--tx-3);font-weight:600}
+.pg-act__eti u{width:3px;height:3px;border-radius:50%;background:var(--line);
+  text-decoration:none;flex:0 0 auto}
+
+.pg-nuevo{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--amarillo); color:#4A3C00;
+  padding:2px 9px; border-radius:99px;
+  font-size:.66rem; letter-spacing:.09em;
+}
+
+.pg-act__tit{
+  font-family:var(--f-disp); font-weight:700;
+  font-size:clamp(1.08rem,2.6vw,1.26rem); line-height:1.24;
+  letter-spacing:-.018em; text-wrap:pretty; color:var(--tx);
+}
+.pg-act:hover .pg-act__tit{color:var(--eje-tx)}
+
+.pg-act__res{
+  color:var(--tx-2); font-size:.93rem; line-height:1.52;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  line-clamp:2; overflow:hidden;
+}
+
+.pg-act__meta{
+  display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center;
+  margin-top:2px; font-size:.85rem; color:var(--tx-3);
+}
+.pg-act__meta span{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.pg-act__meta svg{width:14px;height:14px;flex:0 0 auto;stroke:currentColor;
+  fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.pg-act__meta .pg-sede{color:var(--tx-2);font-weight:500}
+
+/* ---- celular: el carril de horas pasa a ser una franja superior ---------- */
+@media (max-width:599px){
+  .pg-act{grid-template-columns:1fr}
+  .pg-act__hora{
+    flex-direction:row; justify-content:flex-start; gap:8px;
+    padding:9px 16px; border-right:0; border-bottom:1px solid var(--line-2);
+  }
+  .pg-act__hora b{font-size:1.02rem}
+  .pg-act__hora i{width:12px;height:2px}
+  .pg-act__cuerpo{padding:15px 16px 17px}
+}
+
+/* ---- bloque de «sin fecha» -----------------------------------------------
+   No debería llenarse: publicar exige día, hora y sede. Existe por si queda
+   alguna fila publicada antes de esa regla, para que no desaparezca sin más.
+--------------------------------------------------------------------------- */
+.pg-dia--abierto .pg-dia__tit{border-bottom-color:var(--line)}
+.pg-dia--abierto .pg-dia__tit h2{color:var(--tx-2)}
+
+/* ---- estados -------------------------------------------------------------- */
+.pg-vacio{
+  text-align:center; padding:clamp(44px,8vw,72px) 24px;
+  background:var(--surface); border:2px dashed var(--line);
+  border-radius:var(--r); color:var(--tx-3);
+}
+.pg-vacio h2{
+  font-family:var(--f-disp); font-weight:700; font-size:1.3rem;
+  color:var(--tx); margin-bottom:10px; letter-spacing:-.02em;
+}
+.pg-vacio p{max-width:46ch;margin:0 auto 20px;text-wrap:pretty}
+.pg-vacio__anillos{
+  width:92px;height:92px;margin:0 auto 22px;opacity:.5;
+}
+.pg-vacio__anillos circle{fill:none;stroke-width:6}
+
+.pg-cargando{padding:70px 24px;text-align:center;color:var(--tx-3);font-size:.94rem}
+
+.pg-error{
+  background:#FBE3E0; border-left:4px solid #C0392B; color:#8C2418;
+  padding:16px 18px; border-radius:var(--r-s); margin:30px 0; font-size:.94rem;
+}
+
+/* ============================================================================
+   PÁGINA DE UNA ACTIVIDAD  ·  /programa/<slug>/
+   ========================================================================== */
+/* «display:flex» con ancho ajustado y no «inline-flex»: en línea, la etiqueta
+   de tipo que viene después se le pegaba al lado en vez de bajar. */
+.pg-volver{
+  display:flex; width:fit-content; align-items:center; gap:7px; margin-bottom:22px;
+  font-family:var(--f-disp); font-size:.88rem; font-weight:600;
+  color:rgba(255,255,255,.78); text-decoration:none;
+}
+.pg-volver:hover{color:#fff}
+.pg-volver svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* El hero de la actividad toma el color de su eje como acento. El fondo sigue
+   siendo el azul petróleo: cuatro heros de colores distintos romperían la
+   identidad del sitio en cuatro. */
+.pg-hero--act{padding-bottom:clamp(26px,4vw,38px)}
+.pg-hero--act::after{opacity:.1}
+.pg-hero--act .pg-kicker{color:var(--eje)}
+.pg-hero--act h1{font-size:clamp(1.8rem,5vw,2.9rem)}
+
+.pg-hero__tipo{
+  display:flex; width:fit-content; align-items:center; gap:9px; margin-bottom:14px;
+  padding:5px 15px 5px 11px; border-radius:99px;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+  font-family:var(--f-disp); font-size:.78rem; font-weight:600;
+  letter-spacing:.04em; color:#fff;
+}
+.pg-hero__tipo i{width:9px;height:9px;border-radius:50%;background:var(--eje);flex:0 0 auto}
+
+/* ---- ficha de datos ------------------------------------------------------- */
+.pg-det{padding:clamp(26px,5vw,44px) 0 90px}
+.pg-det__rejilla{display:grid;gap:clamp(22px,4vw,38px)}
+@media (min-width:900px){
+  .pg-det__rejilla{grid-template-columns:1fr 320px;align-items:start}
+}
+
+.pg-ficha{
+  background:var(--surface); border:1px solid var(--line);
+  border-top:4px solid var(--eje);
+  border-radius:var(--r); padding:22px 24px; box-shadow:var(--sombra);
+}
+@media (min-width:900px){
+  .pg-ficha{position:sticky;top:calc(var(--cab-alto,64px) + 22px)}
+}
+.pg-ficha h2{
+  font-family:var(--f-disp); font-size:.74rem; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3);
+  margin-bottom:16px;
+}
+.pg-ficha dl{display:grid;gap:15px}
+.pg-ficha dt{
+  font-size:.72rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--tx-3); font-weight:700; margin-bottom:3px;
+  font-family:var(--f-disp);
+}
+.pg-ficha dd{font-size:1rem;color:var(--tx);font-weight:500;text-wrap:pretty}
+.pg-ficha dd small{display:block;font-size:.86rem;color:var(--tx-3);
+  font-weight:400;margin-top:3px}
+.pg-ficha__fila{display:flex;gap:11px;align-items:flex-start}
+.pg-ficha__fila svg{width:17px;height:17px;margin-top:3px;flex:0 0 auto;
+  stroke:var(--eje-tx);fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+
+.pg-texto h2{
+  font-family:var(--f-disp); font-weight:700; font-size:1.22rem;
+  letter-spacing:-.02em; margin-bottom:12px;
+}
+.pg-texto__lede{
+  font-size:clamp(1.06rem,2.4vw,1.18rem); line-height:1.55; color:var(--tx);
+  padding-left:16px; border-left:3px solid var(--eje);
+  margin-bottom:26px; text-wrap:pretty;
+}
+.pg-texto p{color:var(--tx-2);margin-bottom:14px;max-width:68ch;text-wrap:pretty}
+.pg-texto p:last-child{margin-bottom:0}
+
+/* ---- compartir ------------------------------------------------------------ */
+.pg-comp{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px;
+  padding-top:22px;border-top:1px solid var(--line)}
+.pg-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--f-disp); font-weight:600; font-size:.9rem;
+  padding:11px 22px; border-radius:99px; cursor:pointer;
+  text-decoration:none; border:1.5px solid var(--dark); color:var(--dark);
+  background:none; transition:background .15s ease,color .15s ease,transform .15s ease;
+}
+.pg-btn:hover{background:var(--dark);color:#fff;transform:translateY(-1px)}
+.pg-btn--lleno{background:#D4116F;border-color:#D4116F;color:#fff}
+.pg-btn--lleno:hover{background:#B80A63;border-color:#B80A63}
+.pg-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* ---- ese mismo día -------------------------------------------------------- */
+.pg-mismo{margin-top:clamp(34px,6vw,56px)}
+.pg-mismo h2{
+  font-family:var(--f-disp); font-weight:700; font-size:1.2rem;
+  letter-spacing:-.02em; margin-bottom:16px;
+  padding-bottom:9px; border-bottom:2px solid var(--dark);
+}
+
+/* ---- pie ------------------------------------------------------------------ */
+.pg-pie{
+  border-top:1px solid var(--line); padding:28px 24px;
+  text-align:center; font-size:.84rem; color:var(--tx-3);
+}
+.pg-pie a{color:var(--tx-2)}
+
+/* ============================================================================
+   IMPRESIÓN
+   Un festival se imprime y se pega en la pared. Sin esto, la cartelera sale
+   con la barra de filtros encima y las tarjetas partidas a media hoja.
+   ========================================================================== */
+@media print{
+  .pg-barra, .pg-comp, .pg-volver, .cab, .pg-pie{display:none!important}
+  body{background:#fff;font-size:11pt}
+  .pg-hero{background:#fff;color:#000;padding:0 0 14pt;border-bottom:2pt solid #000}
+  .pg-hero::after{display:none}
+  .pg-hero h1{font-size:24pt}
+  .pg-hero__lede,.pg-cifra span{color:#333}
+  .pg-kicker{color:#000}
+  .pg-cifra{border-left-color:#999}
+  .pg-act{
+    box-shadow:none; border:1pt solid #bbb; border-left:4pt solid var(--eje);
+    break-inside:avoid; page-break-inside:avoid;
+  }
+  .pg-act__hora{background:#f3f3f3}
+  .pg-act__res{-webkit-line-clamp:none;line-clamp:none;overflow:visible}
+  .pg-dia{break-before:auto;page-break-inside:auto}
+  .pg-dia__tit{border-bottom:1.5pt solid #000}
+  .pg-cuerpo{padding:14pt 0 0}
+  .pg-ficha{position:static;box-shadow:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+}

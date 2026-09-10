@@ -28,6 +28,7 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/06-cambios.sql` | Roles nuevos, hora y requerimientos, sin aprobación |
 | `sql/07-nucleo.sql` | Ediciones, fecha real, slug y resumen. Retira `dias` y `ajustes` |
 | `sql/08-cupo.sql` | Agrega `cupo` a las actividades. Puramente aditivo |
+| `sql/09-programa.sql` | Abre el programa público: `vista_programa` y lectura sin cuenta |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.
@@ -116,7 +117,10 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | `/entrar/` | Acceso y recuperación de contraseña | Con cuenta |
 | `/mi-actividad/` | La lista de sus actividades | Coordinador |
 | `/actividad/?id=…` | Panel de una actividad: editar sus datos y reportar avances | Coordinador dueño o administración |
+| `/programa/` | Cartelera pública: los ocho días, filtrable | Cualquiera |
+| `/programa/<slug>/` | La ficha de una actividad | Cualquiera |
 | `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
+| `/panel/programa/` | Armar el programa: bandeja, los ocho días y empalmes | Administrador |
 
 ---
 
@@ -165,15 +169,26 @@ festival-web/
 ├── sql/                      Se ejecuta una vez en Supabase, en orden
 └── public/                   Lo que Netlify publica
     ├── index.html            Landing
-    ├── registro/  entrar/  mi-actividad/  panel/
+    ├── programa/             Cartelera pública y ficha de cada actividad
+    ├── registro/  entrar/  mi-actividad/  actividad/
+    ├── panel/                Tablero, y panel/programa/ para armar el programa
     └── assets/
-        ├── css/  landing.css · app.css
-        ├── js/   landing.js · app.js · config.js
+        ├── css/  landing.css · app.css · cabecera.css · programa.css
+        ├── js/   landing.js · app.js · config.js · cabecera.js
+        │         programa.js · programa-portada.js · modulos/
         └── img/  fotografías, carteles 2025 y logotipos
 ```
 
 `app.js` concentra el cliente de Supabase, la sesión, los catálogos y los
 mensajes de error. Las páginas solo describen su pantalla.
+
+`programa.js` sirve dos pantallas —la cartelera y la ficha— porque Netlify
+reescribe todo `/programa/*` al mismo archivo y no hay paso de compilación.
+Decide cuál pintar leyendo `location.pathname`.
+
+`programa-portada.js` es el adelanto de la landing y **no usa `app.js`**: la
+landing es la página más visitada y no descarga supabase-js solo para pintar
+tres renglones. Va con un `fetch` contra la API REST.
 
 ---
 
