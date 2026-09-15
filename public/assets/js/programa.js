@@ -14,6 +14,7 @@
 
 import { db, edicionActiva, explicar, escapar, hora } from '/assets/js/app.js';
 import { colorTexto, estiloEje } from '/assets/js/color.js';
+import { urlPoster, urlPosterMini } from '/assets/js/archivos.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 
 const pagina = document.getElementById('pagina');
@@ -394,8 +395,17 @@ function pintarLista() {
 function tarjeta(a) {
   const i = hora(a.hora_inicio), f = hora(a.hora_fin);
 
+  // La miniatura es decorativa (alt vacío): el título ya está escrito al lado
+  // y un lector de pantalla no gana nada oyéndolo dos veces. Si la imagen no
+  // carga, se quita junto con su columna para no dejar un hueco.
+  const poster = a.poster
+    ? `<img class="pg-act__poster" src="${urlPosterMini(a.poster)}" alt=""
+            loading="lazy" decoding="async" width="88" height="110"
+            onerror="this.parentElement.classList.remove('pg-act--poster');this.remove()">`
+    : '';
+
   return `
-  <a class="pg-act" href="/programa/${encodeURIComponent(a.slug)}/" style="${estiloEje(a.eje_color)}">
+  <a class="pg-act${a.poster ? ' pg-act--poster' : ''}" href="/programa/${encodeURIComponent(a.slug)}/" style="${estiloEje(a.eje_color)}">
     <div class="pg-act__hora">
       ${i ? `<b>${escapar(i)}</b>${f ? `<i></i><small>${escapar(f)}</small>` : ''}`
           : '<em>Hora por<br>confirmar</em>'}
@@ -413,6 +423,7 @@ function tarjeta(a) {
         ${a.cupo ? `<span>${ICO.gente}${a.cupo} lugares</span>` : ''}
       </p>
     </div>
+    ${poster}
   </a>`;
 }
 
@@ -502,7 +513,14 @@ async function pintarFicha(slug) {
         </div>
       </div>
 
-      <aside class="pg-ficha" style="${estiloEje(a.eje_color)}">
+      <aside class="pg-lado${a.poster ? ' pg-lado--poster' : ''}">
+      ${a.poster ? `
+      <a class="pg-poster" href="${urlPoster(a.poster)}" target="_blank" rel="noopener"
+         title="Ver el póster completo">
+        <img src="${urlPoster(a.poster)}" alt="Póster de «${escapar(a.titulo)}»" decoding="async"
+             onerror="this.closest('.pg-poster').remove()">
+      </a>` : ''}
+      <div class="pg-ficha" style="${estiloEje(a.eje_color)}">
         <h2>Los datos</h2>
         <dl>
           <div class="pg-ficha__fila">${ICO.calend}
@@ -531,6 +549,7 @@ async function pintarFicha(slug) {
                     : 'Libre<small>Sin registro previo</small>'}</dd></div>
           </div>
         </dl>
+      </div>
       </aside>
 
     </div>

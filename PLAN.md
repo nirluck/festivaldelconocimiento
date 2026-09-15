@@ -5,7 +5,7 @@
 > Léelo antes de escribir código: varias decisiones costaron discusión y no
 > conviene volver a abrirlas sin motivo.
 
-Última actualización: **10 de septiembre de 2026**
+Última actualización: **14 de septiembre de 2026**
 
 ---
 
@@ -64,6 +64,7 @@ ejes · tipos · sedes
 | `sql/07-nucleo.sql` | **Fase A.** Ediciones, fecha real, slug y resumen |
 | `sql/08-cupo.sql` | **Captura primero.** Agrega `cupo` a las actividades |
 | `sql/09-programa.sql` | **Fase D.** Abre el programa a quien no tiene cuenta |
+| `sql/10-poster.sql` | **Adelanto de C.** Póster de la actividad y el bucket `actividades` de Storage |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
 **03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
@@ -78,10 +79,10 @@ que se detiene y lo explica.
 
 - **Edición resuelta (fase B).** Coordinador y administración editan una
   actividad desde el módulo Resumen del panel.
-- **Aún no se capturan ponentes, imágenes ni cupos de voluntariado.** Es la
-  siguiente tanda de captura (fase C y las mitades de captura de E y G). La
-  cartelera ya existe pero sin fotos ni nombres de quien imparte: el hueco está
-  previsto en el diseño.
+- **El póster ya se captura; los ponentes y la galería todavía no.** El póster
+  se adelantó de la fase C (14 de septiembre) y sale en la cartelera, la ficha
+  y la landing. Faltan ponentes, galería y cupos de voluntariado (fase C y las
+  mitades de captura de E y G).
 - **Las vistas previas al compartir una actividad son genéricas.** Sin paso de
   compilación, `/programa/<slug>/` es la misma página para todas y las redes no
   ejecutan JavaScript. Explicado en la fase D.
@@ -167,8 +168,9 @@ ediciones         id · anio · nombre · fecha_inicio · fecha_fin
 actividades       id · edicion_id · responsable_id → perfiles
                   titulo · slug · resumen · descripcion · requerimientos
                   eje · tipo · sede
-                  fecha · hora_inicio · hora_fin · cupo
-                  publica · archivada · creado · actualizado
+                  fecha · hora_inicio · hora_fin · cupo · poster
+                  publica · archivada · publicada_en · creado · actualizado
+                  ↑ «poster» es la RUTA en Storage, no la URL. Ver fase C
 ```
 
 ### Catálogos
@@ -259,8 +261,10 @@ respuesta_valores id · respuesta_id · pregunta_id · valor
 ### Módulo · Contenido
 
 ```
-actividad_imagenes  id · actividad_id · url · pie · portada · orden
+actividad_imagenes  id · actividad_id · ruta · pie · orden
                   ↑ los archivos van a Supabase Storage; aquí la referencia
+                  ↑ SIN «portada»: la imagen destacada es actividades.poster.
+                    Tener las dos sería tener dos verdades sobre cuál es
 ```
 
 ### Módulo · Correo
@@ -517,18 +521,70 @@ construir los que faltan.
 
 ### Fase C · Ponentes y contenido — **la siguiente** (mitad de captura)
 
-**SQL** — `sql/10-ponentes.sql`: `ponentes`, `actividad_ponentes`,
-`actividad_imagenes`. (El 08 lo tomó `08-cupo.sql` y el 09 el programa público,
-que se adelantó; las fases E–H corren en consecuencia: 11-voluntariado,
-12-asistencia, 13-encuesta, 14-correo.)
+**SQL** — `sql/11-ponentes.sql`: `ponentes`, `actividad_ponentes`,
+`actividad_imagenes`. (El 09 lo tomó el programa público y el 10 el póster, que
+se adelantaron; las fases E–H corren en consecuencia: 12-voluntariado,
+13-asistencia, 14-encuesta, 15-correo.)
+
+#### Hecho por adelantado: el póster (14 de septiembre de 2026)
+
+Lo pidió el equipo antes que el resto de la fase. Cada actividad tiene **un**
+póster que funciona como imagen destacada.
+
+- **Columna `actividades.poster`**, no fila en `actividad_imagenes`: póster hay
+  uno, y la prueba de «¿puede haber más de uno?» dice columna. La galería sigue
+  siendo tabla, ya sin su bandera `portada`.
+- **Guarda la ruta, no la URL.** La URL lleva dentro el identificador del
+  proyecto de Supabase; si algún día se migra, todas las guardadas se romperían.
+  La arma `assets/js/archivos.js`.
+- **La restricción `actividades_poster_en_su_carpeta`** exige que la ruta empiece
+  por el id de la propia actividad. Sin ella, un coordinador podría escribir la
+  ruta del póster de otra actividad en la suya.
+- **Bucket `actividades`**, público en lectura, 5 MB y solo WebP o JPEG. Cuatro
+  políticas en `storage.objects` —ver, subir, cambiar, borrar— que dejan tocar
+  solo la carpeta `<id>/` de una actividad propia o, a la administración,
+  cualquiera. La regla vive en `puede_editar_actividad(texto)`, que recibe la
+  carpeta como texto para que una ruta mal formada niegue el permiso en vez de
+  reventar con un error de uuid.
+- **Se optimiza en el navegador** (`assets/js/subir-poster.js`): un póster de
+  Canva pesa 5–15 MB y el plan gratuito de Supabase no redimensiona. Se generan
+  dos archivos, `poster-<sello>.webp` (1600 px) y `poster-<sello>-mini.webp`
+  (640 px). WebP si el navegador lo sabe codificar, JPEG si no. La miniatura es
+  la misma ruta con `-mini`: una convención y no una segunda columna, para que
+  no puedan desincronizarse.
+- **El sello cambia en cada subida**, así que cada archivo es inmutable y se
+  guarda en caché un año sin que nadie vea una versión vieja.
+- **Orden de la subida:** subir las dos → escribir la ruta → borrar las
+  anteriores. Si falla la escritura se borran las recién subidas y el póster
+  anterior queda intacto; si falla el borrado final quedan huérfanos invisibles,
+  que es el fallo barato.
+
+**Dónde se sube.** Al registrar la actividad (opcional: casi nadie tiene el
+póster ese día) o después, desde el módulo **Póster** del panel. Lo sube el
+coordinador dueño o la administración. En el registro el póster se sube
+*después* de crear la actividad, porque necesita su id; si esa subida falla la
+actividad ya quedó guardada y «Mis actividades» avisa que falta.
+
+**Dónde se ve.** Miniatura en la cartelera, en la landing, en «Mis
+actividades» y en «Armar programa»; completo en la ficha de la actividad. El
+diálogo de «Programar» avisa cuando una actividad no tiene póster.
+
+**`vista_actividades` no se tocó.** Es la vista del semáforo, ciento y pico
+líneas, y reconstruirla por una columna es el riesgo de las trampas 6 y 8. Las
+pantallas que la usan piden el póster aparte con una consulta de una línea.
+
+**Lo que falta para la galería:** la tabla, su módulo y reutilizar
+`subir-poster.js` —la preparación de imágenes ya sirve tal cual—.
 
 **Nota de captura primero:** capturar ponentes e imágenes NO necesita correo.
 Lo que depende de fases posteriores es *mostrarlos* en el programa público
 (fase D), no capturarlos. Por eso es el siguiente paso natural para que el
 coordinador registre la mayor cantidad de datos.
 
-**Supabase Storage:** crear el bucket `actividades` (público en lectura,
-escritura solo autenticados) para fotos de ponentes e imágenes de actividad.
+**Supabase Storage:** el bucket `actividades` **ya existe** desde
+`10-poster.sql`. Las fotos de ponentes necesitarán su propia carpeta y sus
+políticas: las de hoy solo dejan escribir en `<id de actividad>/`, y un ponente
+no pertenece a una sola actividad.
 
 **Frontend:** módulo **Ponentes** (alta, búsqueda entre ponentes existentes para
 reutilizar semblanza, asignación con papel) y módulo **Galería**.
@@ -655,9 +711,9 @@ sección 3, y por eso no se tomó ninguna todavía.
 
 #### Lo que le falta cuando llegue la fase C
 
-Un hueco por tarjeta para la imagen de portada y una línea de ponentes bajo el
-título. La ficha ya tiene dónde ponerlos: la columna de texto admite la galería
-y la tarjeta lateral, la lista de quién imparte.
+La imagen ya llegó: el póster (ver «Hecho por adelantado» en la fase C). Falta
+una línea de ponentes bajo el título, y la galería en la columna de texto de la
+ficha.
 
 **Entregable:** la cartelera completa, pública, y armable desde el tablero.
 
@@ -665,7 +721,7 @@ y la tarjeta lateral, la lista de quién imparte.
 
 ### Fase E · Voluntariado
 
-**SQL** — `sql/11-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
+**SQL** — `sql/12-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
 
 **Frontend**
 
@@ -690,7 +746,7 @@ y la tarjeta lateral, la lista de quién imparte.
 
 ### Fase F · Asistencia
 
-**SQL** — `sql/12-asistencia.sql`: `asistentes`, `registros`.
+**SQL** — `sql/13-asistencia.sql`: `asistentes`, `registros`.
 
 **Frontend**
 
@@ -709,7 +765,7 @@ y la tarjeta lateral, la lista de quién imparte.
 
 ### Fase G · Encuesta
 
-**SQL** — `sql/13-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
+**SQL** — `sql/14-encuesta.sql`: `formularios`, `preguntas`, `respuestas`,
 `respuesta_valores`.
 
 **Frontend**
@@ -773,7 +829,7 @@ registros en un día hace falta plan de pago ese mes. El costo típico ronda los
   y datos; llama al proveedor; escribe en `envios`.
 - La llave del proveedor va en los secretos de la función, **nunca en el
   frontend**.
-- `sql/14-correo.sql`: tabla `envios`.
+- `sql/15-correo.sql`: tabla `envios`.
 
 **Plantillas necesarias:** pase de asistencia, confirmación de voluntariado,
 recordatorio de actividad, invitación a la encuesta.

@@ -25,6 +25,7 @@
 <script type="module">
 import { db, exigirSesion, explicar, fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { urlPosterMini } from '/assets/js/archivos.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -77,6 +78,17 @@ async function verLista() {
     return;
   }
 
+  // El póster no viene en la vista del semáforo (ver modulos/poster.js): se
+  // pide aparte. Si esta consulta fallara, la lista se pinta igual, solo sin
+  // miniaturas; no vale la pena bloquear la página por eso.
+  const posters = {};
+  if (data.length) {
+    const { data: ps } = await db.from('actividades')
+      .select('id, poster').in('id', data.map(a => a.id));
+    (ps || []).forEach(r => { posters[r.id] = r.poster; });
+  }
+  data.forEach(a => { a.poster = posters[a.id] || null; a._conPoster = a.id in posters; });
+
   let nueva = '';
   if (params.get('bienvenida')) {
     nueva = `<div class="aviso aviso--ok">
@@ -86,6 +98,17 @@ async function verLista() {
       contraseña desde «Entrar».</div>`;
   } else if (params.get('nueva')) {
     nueva = `<div class="aviso aviso--ok">Tu actividad quedó registrada.</div>`;
+  }
+
+  // El registro deja la actividad guardada aunque falle la subida del póster,
+  // y manda aquí con este aviso para que no se pierda de vista.
+  if (params.get('poster') === 'pendiente') {
+    const idp = params.get('id');
+    nueva += `<div class="aviso aviso--info">
+      <strong>El póster no se alcanzó a subir.</strong> Tu actividad sí quedó
+      registrada; vuelve a subir la imagen desde su página.
+      ${idp ? `<a href="/actividad/?id=${encodeURIComponent(idp)}#poster">Subir el póster →</a>` : ''}
+    </div>`;
   }
 
   if (!data.length) {
@@ -115,6 +138,9 @@ function tarjeta(a) {
   return `
     <article class="act">
       <div class="act__top">
+        ${a.poster
+          ? `<img class="act__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">`
+          : ''}
         <h3>${escapar(a.titulo)}</h3>
         <span class="chip chip--${a.color}">${escapar(a.etiqueta)}</span>
       </div>
@@ -127,6 +153,9 @@ function tarjeta(a) {
       <div>
         <div class="act__barra"><i style="width:${a.avance}%"></i></div>
       </div>
+      ${a._conPoster && !a.poster
+        ? `<a class="act__falta" href="/actividad/?id=${a.id}#poster">Falta el póster · súbelo</a>`
+        : ''}
       <div class="act__pie">
         <span>${a.avance}% de avance${a.envios ? ` · ${a.envios} reporte${a.envios === 1 ? '' : 's'}` : ' · sin reportes'}</span>
         <a class="btn btn--chico btn--linea" href="/actividad/?id=${a.id}">Abrir</a>

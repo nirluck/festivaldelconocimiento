@@ -226,6 +226,84 @@ tbody tr:hover{background:var(--ice)}
 .act__barra{height:7px;background:var(--line-2);border-radius:99px;overflow:hidden}
 .act__barra i{display:block;height:100%;background:var(--turquesa);border-radius:99px}
 .act__pie{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:.84rem;color:var(--tx-3)}
+/* Miniatura del póster antes del título. «order:-1» porque el h3 va primero en
+   el marcado (es lo que se lee) y la imagen, decorativa, va antes a la vista. */
+.act__poster{width:44px;aspect-ratio:4/5;object-fit:cover;border-radius:6px;
+  border:1px solid var(--line);flex:0 0 auto;order:-1}
+.act__top:has(.act__poster) h3{flex:1}
+/* Recordatorio para quien aún no sube el póster: sin él, la actividad sale
+   en la cartelera sin imagen. */
+.act__falta{align-self:flex-start;font-size:.82rem;font-weight:600;color:var(--naranja-tx);
+  text-decoration:none;border:1.5px dashed #E8B98C;border-radius:100px;padding:4px 12px}
+.act__falta:hover{background:#FFF0E5}
+
+/* ---------------------------------------------------------------- póster --
+   El selector de assets/js/subir-poster.js. Vive aquí y no en una hoja propia
+   porque lo usan dos páginas —registro y panel de actividad— que ya cargan
+   esta.
+
+   El marco tiene proporción 4:5, la de un póster vertical: así lo vacío ya
+   sugiere qué forma de imagen se espera, sin tener que explicarlo.
+-------------------------------------------------------------------------- */
+.poster{display:grid;gap:18px 24px;align-items:start}
+/* «.btn» y «.poster__mini» declaran display, y cualquier display le gana al
+   atributo hidden: sin esto, «Quitar póster» se veía sin haber póster. */
+.poster [hidden]{display:none!important}
+@media(min-width:640px){.poster{grid-template-columns:220px 1fr}}
+
+.poster__marco{
+  position:relative;aspect-ratio:4/5;width:100%;max-width:260px;
+  border-radius:var(--r-s);overflow:hidden;cursor:pointer;
+  background:var(--ice);border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.poster__marco img{width:100%;height:100%;object-fit:contain;background:#fff}
+.poster__marco:hover{border-color:var(--turquesa)}
+.poster__marco:focus-visible{outline:3px solid var(--turquesa);outline-offset:2px}
+
+.poster__marco--vacio{
+  flex-direction:column;gap:6px;padding:18px;text-align:center;
+  border:2px dashed #B9D0D2;color:var(--tx-3);
+}
+.poster__marco--vacio svg{width:46px;height:46px;fill:none;stroke:var(--turquesa-tx);
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px}
+.poster__marco--vacio b{font-family:var(--f-disp);font-size:.92rem;color:var(--tx)}
+.poster__marco--vacio span{font-size:.8rem}
+
+.poster__marco--soltar{border-color:var(--turquesa);border-style:solid;
+  box-shadow:0 0 0 4px rgba(16,171,196,.18);background:#E2F4F6}
+
+/* Mientras optimiza o sube: velo encima, sin tapar la imagen del todo. */
+.poster__marco--ocupado{cursor:progress}
+.poster__marco--ocupado::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.55) linear-gradient(90deg,transparent,rgba(16,171,196,.18),transparent);
+  background-size:200% 100%;animation:poster-barrido 1.1s linear infinite;
+}
+@keyframes poster-barrido{from{background-position:100% 0}to{background-position:-100% 0}}
+
+.poster__lado{display:flex;flex-direction:column;gap:14px;min-width:0}
+.poster__acciones{display:flex;gap:8px;flex-wrap:wrap}
+.poster__quitar{background:none;border:2px solid var(--line);color:var(--tx-2);padding:6px 14px}
+.poster__quitar:hover:not(:disabled){border-color:var(--rojo);color:var(--rojo)}
+
+.poster__estado{font-size:.88rem;padding:10px 13px;border-radius:var(--r-s);border-left:3px solid;line-height:1.5}
+.poster__estado small{color:inherit;opacity:.75;margin-left:4px;font-variant-numeric:tabular-nums}
+.poster__estado--info {background:var(--ice);     border-color:var(--turquesa); color:var(--tx-2)}
+.poster__estado--ok   {background:var(--verde-bg);border-color:var(--sem-verde);color:#14603C}
+.poster__estado--aviso{background:var(--ambar-bg);border-color:var(--ambar);    color:#6B4700}
+.poster__estado--mal  {background:var(--rojo-bg); border-color:var(--rojo);     color:#8C2418}
+
+.poster__pistas{font-size:.84rem;color:var(--tx-3);display:grid;gap:4px;padding-left:16px;list-style:disc}
+.poster__pistas b{color:var(--tx-2)}
+
+/* La miniatura con el mismo recorte que usa la cartelera (programa.css,
+   .pg-act__poster): 4:5 y «cover». Si la cartelera cambia su recorte, esto
+   tiene que cambiar con ella, o la vista previa mentiría. */
+.poster__mini{display:flex;align-items:center;gap:12px;font-size:.8rem;color:var(--tx-3)}
+.poster__mini img{width:66px;aspect-ratio:4/5;object-fit:cover;border-radius:7px;
+  border:1px solid var(--line);background:var(--ice)}
 
 /* ------------------------------------------------------------------ pie -- */
 .pie{

@@ -163,6 +163,16 @@ export function explicar(error) {
     return 'Demasiados intentos seguidos. Espera un minuto y vuelve a intentarlo.';
   if (m.includes('failed to fetch') || m.includes('networkerror'))
     return 'No se pudo conectar. Revisa tu conexión a internet.';
+  // Storage. Van antes que la regla de «row-level security»: una subida
+  // rechazada por la política dice lo mismo, y aquí sí se puede ser concreto.
+  if (m.includes('bucket not found'))
+    return 'Todavía no está listo el espacio para subir imágenes. Falta ejecutar sql/10-poster.sql en Supabase (ver README).';
+  if (m.includes('exceeded the maximum allowed size') || m.includes('payload too large'))
+    return 'La imagen sigue siendo demasiado grande para subirla. Expórtala a menor resolución y vuelve a intentarlo.';
+  if (m.includes('mime type') && m.includes('not supported'))
+    return 'Ese tipo de imagen no se puede subir. Guárdala como JPG o PNG y vuelve a intentarlo.';
+  if (m.includes('actividades_poster_en_su_carpeta'))
+    return 'Esa imagen pertenece a otra actividad y no se puede usar aquí.';
   if (m.includes('row-level security') || m.includes('violates'))
     return 'Tu cuenta no tiene permiso para hacer eso.';
   // Cuando falta una migración, Supabase contesta con el nombre de la tabla que

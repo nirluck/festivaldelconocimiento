@@ -20,6 +20,7 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { estiloEje } from './color.js';
+import { urlPosterMini } from './archivos.js';
 
 const CAJA    = document.getElementById('fdc-programa-caja');
 const CUANTAS = 3;
@@ -27,7 +28,7 @@ const CUANTAS = 3;
 if (CAJA) adelanto();
 
 async function adelanto() {
-  const campos = 'slug,titulo,eje,eje_color,tipo,sede,fecha,hora_inicio';
+  const campos = 'slug,titulo,poster,eje,eje_color,tipo,sede,fecha,hora_inicio';
 
   // Lo que viene: de hoy en adelante. Si el festival ya pasó no queda nada por
   // delante, y entonces se pide el principio del programa —que es lo que
@@ -95,12 +96,20 @@ function pintar(acts, total) {
           // El CSS de la landing usa el prefijo --fdc-, así que se renombran
           // las dos variables que devuelve estiloEje().
           const vars = estiloEje(a.eje_color).replace(/--eje/g, '--fdc-eje');
+          // Con póster, la tarjeta pasa a dos columnas: texto y miniatura. Es la
+          // miniatura y no la imagen grande a propósito: esta es la página más
+          // visitada y son tres imágenes que casi nadie va a ampliar.
           return `
-          <a class="fdc-prog__item" href="/programa/${encodeURIComponent(a.slug)}/"
-             style="${esc(vars)}">
-            <p class="fdc-prog__cuando">${esc(cuando(a))}</p>
-            <h4>${esc(a.titulo)}</h4>
-            ${a.sede ? `<p class="fdc-prog__donde">${pin}${esc(a.sede)}</p>` : ''}
+          <a class="fdc-prog__item${a.poster ? ' fdc-prog__item--poster' : ''}"
+             href="/programa/${encodeURIComponent(a.slug)}/" style="${esc(vars)}">
+            <div class="fdc-prog__txt">
+              <p class="fdc-prog__cuando">${esc(cuando(a))}</p>
+              <h4>${esc(a.titulo)}</h4>
+              ${a.sede ? `<p class="fdc-prog__donde">${pin}${esc(a.sede)}</p>` : ''}
+            </div>
+            ${a.poster ? `<img class="fdc-prog__poster" src="${urlPosterMini(a.poster)}" alt=""
+                 loading="lazy" decoding="async" width="78" height="98"
+                 onerror="this.parentElement.classList.remove('fdc-prog__item--poster');this.remove()">` : ''}
           </a>`;
         }).join('')}
       </div>

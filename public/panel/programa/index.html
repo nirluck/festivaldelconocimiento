@@ -81,6 +81,13 @@
   .ac__eti b{color:var(--eje-tx,var(--turquesa-tx))}
   .ac__tit{font-family:var(--f-disp);font-size:.92rem;font-weight:700;
     line-height:1.3;letter-spacing:-.01em;color:var(--tx);text-wrap:pretty}
+  /* Miniatura del póster flotando a la derecha del título: identifica la
+     tarjeta de un vistazo sin robarle una columna a la bandeja. */
+  .ac__poster{float:right;width:34px;aspect-ratio:4/5;object-fit:cover;
+    border-radius:4px;margin:0 0 4px 8px;border:1px solid var(--line)}
+  .dlg__sinposter{font-size:.84rem;color:#6B4700;background:var(--ambar-bg);
+    border-left:3px solid var(--ambar);border-radius:var(--r-s);padding:9px 12px;margin-bottom:16px}
+  .dlg__sinposter a{color:#6B4700;font-weight:600}
   .ac__meta{font-size:.78rem;color:var(--tx-3);display:flex;flex-direction:column;gap:2px}
   .ac__meta b{color:var(--tx-2);font-weight:600;font-variant-numeric:tabular-nums}
   .ac__acc{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
@@ -171,6 +178,7 @@ import { db, exigirSesion, explicar, catalogos, edicionActiva,
          fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { estiloEje } from '/assets/js/color.js';
+import { urlPosterMini } from '/assets/js/archivos.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -216,6 +224,15 @@ async function cargar() {
     return;
   }
   ACTS = data || [];
+
+  // El póster no viene en la vista del semáforo (ver modulos/poster.js). Se
+  // pide aparte; si falla, la pantalla funciona igual, solo sin miniaturas.
+  if (ACTS.length) {
+    const { data: ps } = await db.from('actividades')
+      .select('id, poster').in('id', ACTS.map(a => a.id));
+    const mapa = Object.fromEntries((ps || []).map(r => [r.id, r.poster]));
+    ACTS.forEach(a => { a.poster = mapa[a.id] || null; });
+  }
   pintar();
 }
 
@@ -418,7 +435,8 @@ function tarjeta(a, publicada) {
       <b>${escapar(a.eje || '—')}</b>
       ${a.tipo ? escapar(a.tipo) : ''}
     </p>
-    <h3 class="ac__tit">${escapar(a.titulo)}</h3>
+    <h3 class="ac__tit">${a.poster
+      ? `<img class="ac__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">` : ''}${escapar(a.titulo)}</h3>
 
     <div class="ac__meta">
       ${publicada
@@ -538,6 +556,8 @@ function dialogoHtml() {
 
       <div class="aviso dlg__aviso" id="dlg-aviso" hidden></div>
 
+      <p class="dlg__sinposter" id="dlg-sinposter" hidden></p>
+
       <div class="campos">
         <div class="campo">
           <label for="dlg-fecha">Día</label>
@@ -591,6 +611,14 @@ function abrirDialogo(a, diaSugerido) {
 
   $('#dlg-tit').textContent = yaEsta ? 'Cambiar en el programa' : 'Programar actividad';
   $('#dlg-sub').textContent = a.titulo;
+
+  // Publicar sin póster se puede, pero conviene saberlo antes: la actividad
+  // saldría en la cartelera sin imagen. La liga lleva directo al módulo.
+  const sinPoster = $('#dlg-sinposter');
+  sinPoster.hidden = Boolean(a.poster);
+  sinPoster.innerHTML = a.poster ? '' :
+    `Aún no tiene póster: saldrá en la cartelera sin imagen.
+     <a href="/actividad/?id=${a.id}#poster" target="_blank" rel="noopener">Subirlo ↗</a>`;
   $('#dlg-ok').textContent  = yaEsta ? 'Guardar cambios' : 'Publicar en el programa';
   $('#dlg-aviso').hidden = true;
 

@@ -29,6 +29,7 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/07-nucleo.sql` | Ediciones, fecha real, slug y resumen. Retira `dias` y `ajustes` |
 | `sql/08-cupo.sql` | Agrega `cupo` a las actividades. Puramente aditivo |
 | `sql/09-programa.sql` | Abre el programa público: `vista_programa` y lectura sin cuenta |
+| `sql/10-poster.sql` | Póster de la actividad: columna, bucket `actividades` y sus políticas |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.
@@ -116,7 +117,7 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | `/registro/` | Alta de actividad **y** creación de cuenta en un paso | Por invitación |
 | `/entrar/` | Acceso y recuperación de contraseña | Con cuenta |
 | `/mi-actividad/` | La lista de sus actividades | Coordinador |
-| `/actividad/?id=…` | Panel de una actividad: editar sus datos y reportar avances | Coordinador dueño o administración |
+| `/actividad/?id=…` | Panel de una actividad: editar sus datos, subir el póster y reportar avances | Coordinador dueño o administración |
 | `/programa/` | Cartelera pública: los ocho días, filtrable | Cualquiera |
 | `/programa/<slug>/` | La ficha de una actividad | Cualquiera |
 | `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
@@ -176,6 +177,7 @@ festival-web/
         ├── css/  landing.css · app.css · cabecera.css · programa.css
         ├── js/   landing.js · app.js · config.js · cabecera.js
         │         programa.js · programa-portada.js · modulos/
+        │         color.js · archivos.js · subir-poster.js
         └── img/  fotografías, carteles 2025 y logotipos
 ```
 
@@ -189,6 +191,12 @@ Decide cuál pintar leyendo `location.pathname`.
 `programa-portada.js` es el adelanto de la landing y **no usa `app.js`**: la
 landing es la página más visitada y no descarga supabase-js solo para pintar
 tres renglones. Va con un `fetch` contra la API REST.
+
+`subir-poster.js` concentra el póster: optimiza la imagen en el navegador,
+la sube, borra la anterior y pinta el selector. Lo usan el registro y el módulo
+Póster del panel. `archivos.js` arma las URLs públicas de Storage a partir de
+la ruta guardada, y como `color.js` no depende de `app.js`, para que la landing
+lo pueda usar sin cargar supabase-js.
 
 ---
 

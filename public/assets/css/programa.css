@@ -343,6 +343,22 @@ a{color:var(--turquesa-tx)}
   fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
 .pg-act__meta .pg-sede{color:var(--tx-2);font-weight:500}
 
+/* ---- póster en la tarjeta ------------------------------------------------
+   Una tercera columna con la miniatura. Proporción 4:5 y «cover», centrado:
+   es EXACTAMENTE el recorte que enseña la vista previa del selector de póster
+   (app.css, .poster__mini). Si cambia aquí, tiene que cambiar allá, o el
+   coordinador vería una cosa al subir y otra en la cartelera.
+--------------------------------------------------------------------------- */
+.pg-act--poster{grid-template-columns:92px 1fr auto}
+.pg-act__poster{
+  width:88px; height:auto; aspect-ratio:4/5; object-fit:cover;
+  align-self:center; margin:14px 16px 14px 0;
+  border-radius:9px; background:var(--ice);
+  box-shadow:0 1px 2px rgba(18,52,59,.12), 0 6px 16px rgba(18,52,59,.12);
+  transition:transform .18s ease;
+}
+.pg-act:hover .pg-act__poster{transform:rotate(-1.5deg) scale(1.03)}
+
 /* ---- celular: el carril de horas pasa a ser una franja superior ---------- */
 @media (max-width:599px){
   .pg-act{grid-template-columns:1fr}
@@ -353,6 +369,14 @@ a{color:var(--turquesa-tx)}
   .pg-act__hora b{font-size:1.02rem}
   .pg-act__hora i{width:12px;height:2px}
   .pg-act__cuerpo{padding:15px 16px 17px}
+
+  .pg-act--poster{
+    grid-template-columns:1fr auto;
+    grid-template-areas:"hora hora" "cuerpo poster";
+  }
+  .pg-act--poster .pg-act__hora{grid-area:hora}
+  .pg-act--poster .pg-act__cuerpo{grid-area:cuerpo}
+  .pg-act--poster .pg-act__poster{grid-area:poster;width:72px;margin:14px 14px 14px 0;align-self:start}
 }
 
 /* ---- bloque de «sin fecha» -----------------------------------------------
@@ -428,8 +452,31 @@ a{color:var(--turquesa-tx)}
   border-top:4px solid var(--eje);
   border-radius:var(--r); padding:22px 24px; box-shadow:var(--sombra);
 }
+/* El lado pegajoso solo SIN póster. Con póster suma más de 800 px de alto,
+   más que la pantalla de una laptop: pegado arriba, su parte de abajo —los
+   datos de horario y sede— no se alcanzaría a ver nunca. */
+.pg-lado{display:flex;flex-direction:column;gap:18px;min-width:0}
 @media (min-width:900px){
-  .pg-ficha{position:sticky;top:calc(var(--cab-alto,64px) + 22px)}
+  .pg-lado:not(.pg-lado--poster){position:sticky;top:calc(var(--cab-alto,64px) + 22px)}
+}
+
+/* ---- el póster en la ficha ------------------------------------------------
+   Completo, sin recortar: aquí sí se tiene que poder leer. Liga a la imagen
+   grande para quien quiera verla o guardarla.
+--------------------------------------------------------------------------- */
+.pg-poster{
+  display:block; border-radius:var(--r); overflow:hidden; background:#fff;
+  border:1px solid var(--line); box-shadow:var(--sombra-h);
+  transition:transform .2s ease;
+}
+.pg-poster:hover{transform:translateY(-3px)}
+.pg-poster img{width:100%;height:auto}
+
+/* En celular el lado va PRIMERO: póster y luego cuándo y dónde, antes que la
+   descripción larga. Quien abre la liga desde WhatsApp quiere saber eso. */
+@media (max-width:899px){
+  .pg-lado{order:-1}
+  .pg-poster{max-width:360px;width:100%;margin-inline:auto}
 }
 .pg-ficha h2{
   font-family:var(--f-disp); font-size:.74rem; font-weight:700;
@@ -516,7 +563,8 @@ a{color:var(--turquesa-tx)}
   .pg-dia{break-before:auto;page-break-inside:auto}
   .pg-dia__tit{border-bottom:1.5pt solid #000}
   .pg-cuerpo{padding:14pt 0 0}
-  .pg-ficha{position:static;box-shadow:none}
+  .pg-ficha,.pg-lado{position:static;box-shadow:none}
+  .pg-act__poster{box-shadow:none}
 }
 
 @media (prefers-reduced-motion:reduce){

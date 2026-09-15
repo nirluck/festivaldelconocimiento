@@ -135,6 +135,15 @@
                     placeholder="De qué trata y a qué público va dirigida."></textarea>
         </div>
 
+        <!-- El póster va con lo que se publica —resumen y descripción— y antes de
+             los requerimientos, que son internos. Opcional: casi nadie tiene el
+             póster listo el día que registra, y exigirlo frenaría el registro. -->
+        <div class="campo completo">
+          <label id="l-poster">Póster <span style="font-weight:400;color:var(--tx-3)">(opcional)</span></label>
+          <div id="poster-selector" role="group" aria-labelledby="l-poster"></div>
+          <span class="pista">¿Todavía no lo tienes? Regístrate sin él: podrás subirlo cuando quieras desde tu cuenta.</span>
+        </div>
+
         <div class="campo completo">
           <label for="requerimientos">Requerimientos</label>
           <textarea id="requerimientos" name="requerimientos"
@@ -160,6 +169,7 @@
 import { db, perfil, catalogos, edicionActiva, llenar,
          aviso, limpiarAviso, explicar, fechaDia } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { montarSelector, subirPoster } from '/assets/js/subir-poster.js';
 
 montarCabecera();
 
@@ -171,6 +181,16 @@ const bloqueCuenta = $('#bloque-cuenta');
 
 let yaEntro = null;
 let edicion = null;
+
+// Al registrar todavía no existe la actividad, y el póster necesita su id para
+// su carpeta en Storage. Así que aquí el selector solo prepara la imagen; se
+// sube después de crear la actividad, en el envío.
+const selectorPoster = montarSelector($('#poster-selector'), {
+  titulo: 'tu actividad',
+  explicar,
+  textoListo: 'Listo. Se subirá al registrar la actividad.',
+  alElegir: async () => {},
+});
 
 /* --------------------------------------------------------- preparación -- */
 (async function iniciar() {
@@ -300,9 +320,14 @@ forma.addEventListener('submit', async (ev) => {
       // damos de alta en cuanto entre, para no perderle el trabajo.
       if (!data.session) {
         localStorage.setItem('fdc_actividad_pendiente', JSON.stringify(actividad));
+        // Un archivo no cabe en localStorage, así que el póster no puede esperar
+        // a que confirme la cuenta junto con la actividad. Se dice claro.
         aviso(cajaAviso, 'info',
           'Te mandamos un correo para confirmar tu cuenta. Revisa también la carpeta de ' +
-          'spam. En cuanto la confirmes y entres, tu actividad quedará registrada.');
+          'spam. En cuanto la confirmes y entres, tu actividad quedará registrada.' +
+          (selectorPoster.preparado()
+            ? ' El póster no se pudo guardar todavía: súbelo desde tu actividad cuando entres.'
+            : ''));
         forma.hidden = true;
         return;
       }
@@ -310,13 +335,31 @@ forma.addEventListener('submit', async (ev) => {
     }
 
     /* -------- 2. Dar de alta la actividad -------- */
-    const { error: errAct } = await db
+    // «.select('id')» para recibir el id: el póster lo necesita para su carpeta.
+    const { data: nueva, error: errAct } = await db
       .from('actividades')
-      .insert({ ...actividad, responsable_id: usuarioId });
+      .insert({ ...actividad, responsable_id: usuarioId })
+      .select('id')
+      .single();
     if (errAct) throw errAct;
 
-    location.href = yaEntro ? '/mi-actividad/?nueva=1'
-                            : '/mi-actividad/?bienvenida=1';
+    /* -------- 3. Subir el póster, si eligió uno -------- */
+    // Si esto falla la actividad YA quedó registrada: no se deshace ni se
+    // repite el registro por una imagen. Se sigue adelante y su página le dice
+    // que falta subirlo.
+    let posterFallo = false;
+    const prep = selectorPoster.preparado();
+    if (prep) {
+      btn.textContent = 'Subiendo el póster…';
+      try {
+        await subirPoster(nueva.id, prep, null);
+      } catch (e) {
+        posterFallo = true;
+      }
+    }
+
+    const destino = yaEntro ? '/mi-actividad/?nueva=1' : '/mi-actividad/?bienvenida=1';
+    location.href = destino + (posterFallo ? '&poster=pendiente&id=' + encodeURIComponent(nueva.id) : '');
 
   } catch (e) {
     aviso(cajaAviso, 'mal', explicar(e));
