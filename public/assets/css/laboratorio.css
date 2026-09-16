@@ -17,9 +17,9 @@
 
 :root{
   /* --- la sala ---------------------------------------------------------- */
-  --noche:    #061418;
-  --fondo:    #0B252A;
-  --caja:     #123138;
+  --noche:    var(--marca-oscuro-3);
+  --fondo:    var(--marca-oscuro-2);
+  --caja:     var(--marca-oscuro);
   --borde:    rgba(255,255,255,.13);
 
   /* --- la luz (marca aclarada para fondo oscuro) ------------------------- */
@@ -154,9 +154,9 @@ strong{ color: var(--tinta); font-weight: 600; }
 .escena__velo{
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(38% 62% at 50% 48%, rgba(6,20,24,.74), transparent 78%),
-    radial-gradient(84% 68% at 50% 46%, rgba(6,20,24,.10), rgba(6,20,24,.80) 100%),
-    linear-gradient(180deg, rgba(6,20,24,.60) 0%, rgba(6,20,24,.06) 40%, rgba(11,37,42,.94) 97%);
+    radial-gradient(38% 62% at 50% 48%, color-mix(in srgb, var(--marca-oscuro-3) 74%, transparent), transparent 78%),
+    radial-gradient(84% 68% at 50% 46%, color-mix(in srgb, var(--marca-oscuro-3) 10%, transparent), color-mix(in srgb, var(--marca-oscuro-3) 80%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--marca-oscuro-3) 60%, transparent) 0%, color-mix(in srgb, var(--marca-oscuro-3) 6%, transparent) 40%, color-mix(in srgb, var(--marca-oscuro-2) 94%, transparent) 97%);
 }
 
 /* --- los cuatro anillos del logotipo, girando muy despacio ---------------- */
@@ -185,7 +185,7 @@ strong{ color: var(--tinta); font-weight: 600; }
   color: rgba(255,255,255,.82); text-decoration: none;
   padding: 9px 20px 9px 16px; border-radius: 100px;
   border: 1px solid rgba(255,255,255,.24);
-  background: rgba(6,20,24,.42);
+  background: color-mix(in srgb, var(--marca-oscuro-3) 42%, transparent);
   backdrop-filter: blur(6px);
   transition: border-color .2s var(--curva), color .2s, background .2s;
 }
@@ -196,7 +196,7 @@ strong{ color: var(--tinta); font-weight: 600; }
   animation: parpadeo 2.6s ease-in-out infinite;
 }
 @keyframes parpadeo{ 50%{ opacity: .35; } }
-.migaja:hover{ border-color: var(--verde); color: #fff; background: rgba(6,20,24,.7); }
+.migaja:hover{ border-color: var(--verde); color: #fff; background: color-mix(in srgb, var(--marca-oscuro-3) 70%, transparent); }
 
 /* --- el título ----------------------------------------------------------- */
 .titulo{
@@ -204,7 +204,7 @@ strong{ color: var(--tinta); font-weight: 600; }
   font-weight: 700;
   letter-spacing: -.045em;
   line-height: .92;
-  text-shadow: 0 4px 40px rgba(6,20,24,.8);
+  text-shadow: 0 4px 40px color-mix(in srgb, var(--marca-oscuro-3) 80%, transparent);
 }
 .titulo span{ display: block; }
 
@@ -232,12 +232,12 @@ strong{ color: var(--tinta); font-weight: 600; }
   font-size: clamp(1.02rem, 1.9vw, 1.3rem);
   font-weight: 500; line-height: 1.35;
   color: var(--tinta);
-  text-shadow: 0 2px 18px rgba(6,20,24,.9);
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--marca-oscuro-3) 90%, transparent);
 }
 .quien{
   margin: 12px 0 0;
   font-size: .95rem; color: rgba(255,255,255,.72);
-  text-shadow: 0 2px 16px rgba(6,20,24,.9);
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--marca-oscuro-3) 90%, transparent);
 }
 .quien b{ color: var(--amarillo); font-weight: 600; }
 
@@ -246,7 +246,7 @@ strong{ color: var(--tinta); font-weight: 600; }
   max-width: 54ch;
   font-size: 1.03rem; line-height: 1.6;
   color: var(--tinta-2);
-  text-shadow: 0 2px 16px rgba(6,20,24,.9);
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--marca-oscuro-3) 90%, transparent);
 }
 
 /* --- sellos -------------------------------------------------------------- */
@@ -392,7 +392,7 @@ strong{ color: var(--tinta); font-weight: 600; }
   overflow: hidden;
   rotate: -1.6deg;
   border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 34px 80px rgba(6,20,24,.62);
+  box-shadow: 0 34px 80px color-mix(in srgb, var(--marca-oscuro-3) 62%, transparent);
   transition: rotate .5s var(--curva), box-shadow .5s var(--curva);
 }
 .panel:hover{ rotate: 0deg; box-shadow: 0 40px 96px rgba(69,216,236,.24); }

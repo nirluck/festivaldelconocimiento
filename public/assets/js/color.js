@@ -18,9 +18,11 @@
    POR QUÉ ES UN MÓDULO APARTE Y NO ESTÁ EN app.js
    Lo necesitan la cartelera, la pantalla de armado y el adelanto de la landing,
    y ese último NO puede importar app.js: arrastraría supabase-js a la página
-   más visitada del sitio solo para pintar tres renglones. Este archivo no
-   depende de nada.
+   más visitada del sitio solo para pintar tres renglones. Este archivo solo
+   depende de marca.js, que a su vez no depende de nada.
    ========================================================================== */
+
+import { colorOscuro } from './marca.js';
 
 /* La paleta escrita a mano del proyecto ronda el 5:1 —turquesa 5.59, magenta
    5.56, verde 4.99, naranja 4.74— y no el 4.5 justo. Apuntar al mínimo dejaba
@@ -41,8 +43,8 @@ export function colorTexto(hex) {
   if (_cache.has(clave)) return _cache.get(clave);
 
   const rgb = aRgb(clave);
-  // Sin color reconocible, el azul petróleo del sitio: siempre legible.
-  const salida = rgb ? aHex(rgb.map(c => c * factor(rgb))) : '#12343B';
+  // Sin color reconocible, el oscuro de la marca: siempre legible.
+  const salida = rgb ? aHex(rgb.map(c => c * factor(rgb))) : colorOscuro();
   _cache.set(clave, salida);
   return salida;
 }

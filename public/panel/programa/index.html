@@ -6,6 +6,7 @@
 <title>Armar el programa · Festival del Conocimiento</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/marca.css">
 <link rel="stylesheet" href="/assets/css/app.css">
 <link rel="stylesheet" href="/assets/css/cabecera.css">
 <style>
@@ -116,11 +117,11 @@
   /* ---- diálogo de programación ------------------------------------------ */
   dialog.dlg{
     border:0;border-radius:var(--r);padding:0;max-width:520px;width:calc(100% - 32px);
-    box-shadow:0 24px 70px rgba(11,37,42,.32);color:var(--tx);
+    box-shadow:0 24px 70px color-mix(in srgb, var(--marca-oscuro-2) 32%, transparent);color:var(--tx);
     /* Con el modo de acceso ya no cabe en pantallas bajas: se desplaza por dentro. */
     max-height:calc(100vh - 32px);overflow-y:auto;overscroll-behavior:contain;
   }
-  dialog.dlg::backdrop{background:rgba(11,37,42,.55);backdrop-filter:blur(3px)}
+  dialog.dlg::backdrop{background:color-mix(in srgb, var(--marca-oscuro-2) 55%, transparent);backdrop-filter:blur(3px)}
   .dlg__in{padding:24px}
   .dlg__tit{font-family:var(--f-disp);font-size:1.12rem;font-weight:700;
     letter-spacing:-.015em;margin-bottom:3px}

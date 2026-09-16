@@ -15,6 +15,7 @@
    ========================================================================== */
 
 import { crearQR, dibujarQR, qrSVG } from '../qr.js';
+import { colorOscuro } from '../marca.js';
 import { diaLargo, rangoHoras } from './util.js';
 
 export function urlActividad(slug, origen) {
@@ -106,7 +107,7 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
   const ySede = yCuando + tamSede * 1.55;
   const altoCab = Math.round((act.sede ? ySede : yCuando) + (cuadrado ? 44 : 56));
 
-  ctx.fillStyle = '#12343B'; ctx.fillRect(0, 0, W, altoCab);
+  ctx.fillStyle = colorOscuro(); ctx.fillRect(0, 0, W, altoCab);
   ctx.fillStyle = eje;       ctx.fillRect(0, altoCab - 16, W, 16);
 
   ctx.fillStyle = '#F6D20A';
@@ -148,7 +149,7 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
                                       : 'Cupo limitado. Escanea el código para apartar tu lugar.', ancho, 4);
     const altoTexto = lCta.length * 56 + 18 + lSub.length * 36;
     let yt = altoCab + (disponible - altoTexto) / 2 + 44;
-    ctx.fillStyle = '#12343B';
+    ctx.fillStyle = colorOscuro();
     ctx.font = `700 50px ${F_DISP}`;
     lCta.forEach(l => { ctx.fillText(l, M, yt); yt += 56; });
     yt += 18;
@@ -165,7 +166,7 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
 
     const yBase = yq + lado + 14;
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#12343B';
+    ctx.fillStyle = colorOscuro();
     ctx.font = `700 62px ${F_DISP}`;
     ctx.fillText(cta, W / 2, yBase + 86);
     ctx.fillStyle = '#52676B';
@@ -182,7 +183,7 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
   }
 
   /* --- Pie -------------------------------------------------------------- */
-  ctx.fillStyle = '#12343B'; ctx.fillRect(0, H - altoPie, W, altoPie);
+  ctx.fillStyle = colorOscuro(); ctx.fillRect(0, H - altoPie, W, altoPie);
   ctx.fillStyle = '#FFFFFF';
   ctx.font = `600 ${cuadrado ? 24 : 28}px ${F_TXT}`;
   ctx.fillText('Ensenada, Baja California', M, H - altoPie / 2 + 10);

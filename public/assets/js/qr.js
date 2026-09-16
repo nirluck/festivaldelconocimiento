@@ -18,6 +18,11 @@
    Las pruebas están en pruebas/boletos/qr.test.mjs (node).
    ========================================================================== */
 
+// El color de los módulos es el oscuro de la marca (marca.css). marca.js no
+// depende de nada y responde también sin navegador, así que la prueba de Node
+// sigue funcionando.
+import { colorOscuro } from './marca.js';
+
 /* Nivel M: codewords de corrección por bloque y número de bloques, por versión.
    El índice 0 no se usa. */
 const ECC_POR_BLOQUE = [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26,
@@ -322,7 +327,7 @@ export function crearQR(texto) {
  *        borde: margen en módulos. La norma pide 4; menos falla en algunos lectores.
  */
 export function qrSVG(texto, op = {}) {
-  const { borde = 4, oscuro = '#12343B', claro = '#FFFFFF', titulo = '' } = op;
+  const { borde = 4, oscuro = colorOscuro(), claro = '#FFFFFF', titulo = '' } = op;
   const qr = crearQR(texto);
   const lado = qr.tam + borde * 2;
   let d = '';
@@ -348,7 +353,7 @@ export function qrSVG(texto, op = {}) {
  * Redondea el tamaño del módulo a píxeles enteros para que no salga borroso.
  */
 export function dibujarQR(ctx, qr, x, y, tam, op = {}) {
-  const { oscuro = '#12343B', claro = '#FFFFFF', borde = 4 } = op;
+  const { oscuro = colorOscuro(), claro = '#FFFFFF', borde = 4 } = op;
   const lado = qr.tam + borde * 2;
   const mod = Math.max(1, Math.floor(tam / lado));
   const real = mod * lado;

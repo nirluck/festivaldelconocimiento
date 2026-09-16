@@ -1,0 +1,43 @@
+/* ============================================================================
+   MARCA · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   EL ÚNICO LUGAR DONDE SE DECIDE EL COLOR OSCURO DEL SITIO.
+
+   Todas las hojas (app, landing, programa, boletos, laboratorio, cabecera) y
+   el JS que dibuja boletos, carteles y códigos QR leen de aquí. Para cambiar el
+   tono basta con editar --marca-oscuro: las variantes de abajo salen solas.
+
+   Hoy es carbón: el gris del logotipo (#939598) oscurecido. Sustituyó al azul
+   petróleo #12343B. Para volver a él, pon ese valor en la primera línea.
+
+   Los colores de marca tal cual no sirven para este papel: con texto blanco
+   encima, el turquesa y el naranja no llegan ni a 3:1.
+
+   SI LO CAMBIAS, cuida que siga siendo MUY oscuro. Hace cuatro trabajos:
+     · fondo con texto blanco encima     cabecera, secciones oscuras, pie
+     · color del texto de todo el sitio  sobre blanco y sobre el fondo hielo
+     · módulos del código QR             con poco contraste deja de escanear
+     · base de los grises de texto       tienen que seguir en 4.5:1 o más
+   Con #26282C: 14.8:1 con blanco encima; los grises de texto quedan en 5.9:1
+   y 5.2:1 sobre blanco, y en 5.4:1 y 4.8:1 sobre el fondo hielo.
+
+   Esta hoja va la PRIMERA en cada página, antes que las demás.
+   ========================================================================== */
+
+:root{
+  --marca-oscuro: #26282C;
+
+  /* Variantes derivadas. No se tocan: se recalculan desde el valor de arriba. */
+
+  /* Un punto más oscuro: menús desplegados, velos sobre fotos, paneles. */
+  --marca-oscuro-2: color-mix(in srgb, var(--marca-oscuro) 70%, #000);
+
+  /* Casi negro: la «noche» del laboratorio y las sombras más profundas. */
+  --marca-oscuro-3: color-mix(in srgb, var(--marca-oscuro) 35%, #000);
+
+  /* Grises de texto. Mezclados con blanco para que conserven el matiz del
+     oscuro: si el oscuro cambia, los grises lo siguen y no se quedan con el
+     tinte del color anterior. */
+  --marca-texto-2: color-mix(in srgb, var(--marca-oscuro) 72%, #fff);
+  --marca-texto-3: color-mix(in srgb, var(--marca-oscuro) 68%, #fff);
+}

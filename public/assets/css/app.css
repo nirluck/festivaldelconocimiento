@@ -15,16 +15,16 @@
   --turquesa-tx:#0A7285; --magenta-tx:#C90D70;
   --verde-tx:#587A17;    --naranja-tx:#B85800;
   /* Estructura */
-  --dark:#12343B; --darker:#0B252A;
+  --dark:var(--marca-oscuro); --darker:var(--marca-oscuro-2);
   --bg:#F7F9F8; --surface:#FFFFFF; --ice:#EEF7F6;
-  --tx:#12343B; --tx-2:#52676B; --tx-3:#627275;
+  --tx:var(--marca-oscuro); --tx-2:var(--marca-texto-2); --tx-3:var(--marca-texto-3);
   --line:#DCE4E4; --line-2:#EDF2F2;
   /* Semáforo */
   --rojo:#C0392B; --ambar:#8A5D00; --sem-verde:#1E8E5A;
   --rojo-bg:#FBE3E0; --ambar-bg:#FBF0D6; --verde-bg:#E3F3EA;
 
   --r:14px; --r-s:10px;
-  --sombra:0 1px 2px rgba(18,52,59,.05), 0 10px 28px rgba(18,52,59,.08);
+  --sombra:0 1px 2px color-mix(in srgb, var(--marca-oscuro) 5%, transparent), 0 10px 28px color-mix(in srgb, var(--marca-oscuro) 8%, transparent);
   --f-disp:'Space Grotesk','Inter',system-ui,sans-serif;
   --f-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }

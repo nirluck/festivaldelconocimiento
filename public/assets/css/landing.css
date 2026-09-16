@@ -38,8 +38,8 @@
   --fdc-naranja-tx:  #B85800;   /* 4.74:1 */
 
   /* Oscuros estructurales */
-  --fdc-dark:      #12343B;
-  --fdc-darker:    #0B252A;
+  --fdc-dark:      var(--marca-oscuro);
+  --fdc-darker:    var(--marca-oscuro-2);
 
   /* Fondos */
   --fdc-bg:        #FFFFFF;
@@ -54,19 +54,19 @@
   --fdc-t-amarillo:#FFF9D9;
 
   /* Texto */
-  --fdc-tx:        #12343B;
-  --fdc-tx-2:      #52676B;
+  --fdc-tx:        var(--marca-oscuro);
+  --fdc-tx-2:      var(--marca-texto-2);
   /* El #939598 del logo y un terciario claro no llegan a 4.5:1 en textos
      pequeños; este tono conserva la jerarquía y sí cumple AA (5.02:1). */
-  --fdc-tx-3:      #627275;
+  --fdc-tx-3:      var(--marca-texto-3);
   --fdc-border:    #DCE4E4;
 
   /* Métrica */
   --fdc-wrap:      1180px;
   --fdc-r:         18px;
   --fdc-r-s:       12px;
-  --fdc-shadow:    0 2px 6px rgba(18,52,59,.05), 0 12px 32px rgba(18,52,59,.08);
-  --fdc-shadow-h:  0 4px 10px rgba(18,52,59,.08), 0 20px 48px rgba(18,52,59,.14);
+  --fdc-shadow:    0 2px 6px color-mix(in srgb, var(--marca-oscuro) 5%, transparent), 0 12px 32px color-mix(in srgb, var(--marca-oscuro) 8%, transparent);
+  --fdc-shadow-h:  0 4px 10px color-mix(in srgb, var(--marca-oscuro) 8%, transparent), 0 20px 48px color-mix(in srgb, var(--marca-oscuro) 14%, transparent);
 
   --fdc-f-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --fdc-f-disp:    'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -208,7 +208,10 @@
 
 .fdc-lead { font-size: clamp(1.06em, 1.7vw, 1.22em); color: var(--fdc-tx-2); line-height: 1.62; }
 .fdc-lead--light { color: rgba(255,255,255,.82); max-width: 68ch; }
-.fdc-lead--center { max-width: 66ch; margin-inline: auto; text-align: center; }
+/* Descripción bajo el título de una sección. Alineada a la izquierda, igual
+   que el rótulo y el título que la preceden: centrada quedaba desfasada de
+   ellos. Conserva el ancho máximo para que los renglones no se alarguen. */
+.fdc-lead--medida { max-width: 66ch; }
 
 .fdc-sec p + p { margin-top: 1.05em; }
 .fdc-muted { color: var(--fdc-tx-3); font-size: .95em; }
@@ -246,7 +249,7 @@
 
 .fdc-btn--ghost {
   border: 2px solid rgba(255,255,255,.7); color: #fff;
-  background: rgba(11,37,42,.35); backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--marca-oscuro-2) 35%, transparent); backdrop-filter: blur(6px);
 }
 .fdc-btn--ghost:hover { background: #fff; color: var(--fdc-dark); border-color: #fff; }
 
@@ -279,13 +282,13 @@
   position: absolute; inset: 0;
   background:
     linear-gradient(180deg,
-      rgba(11,37,42,.86) 0%,
-      rgba(11,37,42,.60) 30%,
-      rgba(11,37,42,.72) 66%,
-      rgba(11,37,42,.95) 100%),
+      color-mix(in srgb, var(--marca-oscuro-2) 86%, transparent) 0%,
+      color-mix(in srgb, var(--marca-oscuro-2) 60%, transparent) 30%,
+      color-mix(in srgb, var(--marca-oscuro-2) 72%, transparent) 66%,
+      color-mix(in srgb, var(--marca-oscuro-2) 95%, transparent) 100%),
     radial-gradient(105% 80% at 50% 48%,
-      rgba(11,37,42,.28) 0%,
-      rgba(11,37,42,.82) 100%);
+      color-mix(in srgb, var(--marca-oscuro-2) 28%, transparent) 0%,
+      color-mix(in srgb, var(--marca-oscuro-2) 82%, transparent) 100%);
 }
 
 .fdc-hero__rings {
@@ -346,7 +349,7 @@
 .fdc-hero__insti-label {
   font-size: .74em; letter-spacing: .18em; text-transform: uppercase;
   color: rgba(255,255,255,.62); margin-bottom: 24px;
-  text-shadow: 0 2px 10px rgba(4,18,21,.8);
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--marca-oscuro-3) 80%, transparent);
 }
 .fdc-hero__insti-row {
   display: flex; align-items: center; justify-content: center;
@@ -356,7 +359,7 @@
    tramos claros se desdibuja, así que todos llevan sombra. */
 .fdc-hero__lg {
   width: auto; display: block;
-  filter: drop-shadow(0 3px 12px rgba(4,18,21,.85));
+  filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
 }
 .fdc-hero__lg--unam  { height: 88px; }
 .fdc-hero__lg--unam2 { height: 72px; }
@@ -365,7 +368,7 @@
    misma sombra en un solo filter, porque el segundo sobreescribiría al primero. */
 .fdc-hero__lg--cnyn {
   height: 82px;
-  filter: brightness(0) invert(1) drop-shadow(0 3px 12px rgba(4,18,21,.85));
+  filter: brightness(0) invert(1) drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
 }
 .fdc-hero__lgsep {
   width: 1px; height: 62px; background: rgba(255,255,255,.22); flex: none;
@@ -397,7 +400,7 @@
      espacio encima del «17»; con 1 la fecha se soltaba de más. */
   font-weight: 700; line-height: .94; letter-spacing: -.04em;
   display: block;
-  text-shadow: 0 3px 26px rgba(4,18,21,.6);
+  text-shadow: 0 3px 26px color-mix(in srgb, var(--marca-oscuro-3) 60%, transparent);
 }
 .fdc-hero__dash { font-size: clamp(1.35em, 3.7vw, 2.1em); color: var(--fdc-amarillo); font-weight: 300; }
 .fdc-hero__mes {
@@ -414,7 +417,7 @@
   color: rgba(255,255,255,.9);
   font-size: clamp(1em, 1.8vw, 1.16em);
   max-width: 56ch; margin: 0 auto 34px;
-  text-shadow: 0 2px 14px rgba(4,18,21,.75);
+  text-shadow: 0 2px 14px color-mix(in srgb, var(--marca-oscuro-3) 75%, transparent);
 }
 .fdc-hero__lede b { color: var(--fdc-amarillo); }
 
@@ -677,7 +680,7 @@
 .fdc-prog__poster {
   width: 84px; height: auto; aspect-ratio: 1 / 1; object-fit: cover; flex: 0 0 auto;
   border-radius: 8px; background: var(--fdc-bg-ice);
-  box-shadow: 0 1px 2px rgba(18,52,59,.12), 0 6px 14px rgba(18,52,59,.12);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--marca-oscuro) 12%, transparent), 0 6px 14px color-mix(in srgb, var(--marca-oscuro) 12%, transparent);
 }
 
 .fdc-prog__cuando {
@@ -739,7 +742,7 @@
 .fdc-video__label {
   position: absolute; left: 26px; bottom: 24px;
   font-family: var(--fdc-f-disp); font-weight: 600; font-size: 1em; color: #fff;
-  background: rgba(11,37,42,.6); padding: 8px 18px; border-radius: 100px;
+  background: color-mix(in srgb, var(--marca-oscuro-2) 60%, transparent); padding: 8px 18px; border-radius: 100px;
   backdrop-filter: blur(6px);
 }
 .fdc-video iframe { width: 100%; height: 100%; border: 0; }
@@ -793,7 +796,7 @@
 .fdc-gal button:hover img { transform: scale(1.07); }
 .fdc-gal button::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(18,52,59,.55));
+  background: linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--marca-oscuro) 55%, transparent));
   opacity: 0; transition: opacity .3s ease;
 }
 .fdc-gal button:hover::after { opacity: 1; }
@@ -1021,7 +1024,7 @@
   position: fixed; right: 22px; bottom: 22px; z-index: 9998;
   width: 48px; height: 48px; border-radius: 50%;
   background: var(--fdc-dark); color: #fff; font-size: 1.3em;
-  box-shadow: 0 8px 24px rgba(18,52,59,.35);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--marca-oscuro) 35%, transparent);
   opacity: 0; visibility: hidden;
   transition: opacity .25s ease, visibility .25s ease, transform .25s ease, background .2s ease;
 }

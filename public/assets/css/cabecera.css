@@ -14,7 +14,7 @@ body{ margin: 0; }
 
 .cab{
   position: sticky; top: 0; z-index: 900;
-  background: #12343B;
+  background: var(--marca-oscuro);
   border-bottom: 1px solid rgba(255,255,255,.09);
   transition: background .25s ease, border-color .25s ease;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -27,8 +27,17 @@ body{ margin: 0; }
   position: fixed; left: 0; right: 0;
 }
 .cab--flotante.is-solida{
-  background: #12343B;
+  background: var(--marca-oscuro);
   border-bottom-color: rgba(255,255,255,.12);
+}
+
+/* El sistema interno comparte logotipo y color con el sitio público. Una
+   franja con los cuatro colores del logotipo, bajo la barra, avisa de un
+   vistazo que se está dentro del sistema. */
+.cab--sistema{
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg,
+    #10ABC4 0 25%, #E91587 25% 50%, #F5821F 50% 75%, #99CA3C 75% 100%) 1;
 }
 
 .cab__in{
@@ -50,6 +59,24 @@ body{ margin: 0; }
   font-family: 'Space Grotesk','Inter',sans-serif;
   font-weight: 700; font-size: .95rem; line-height: 1; letter-spacing: -.01em;
   white-space: nowrap;
+}
+
+/* Etiqueta «Sistema» junto a la marca. Texto oscuro sobre amarillo: 9.9:1. */
+.cab__sistema{
+  font-family: 'Space Grotesk','Inter',sans-serif;
+  font-size: .64rem; font-weight: 700; line-height: 1;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--marca-oscuro); background: #F6D20A;
+  padding: 5px 8px 4px; border-radius: 100px;
+  white-space: nowrap;
+}
+
+/* En pantallas estrechas la etiqueta no cabe junto al nombre y al botón del
+   menú: la barra no admite dos renglones. Se oculta el nombre y quedan el
+   icono y «Sistema». El enlace conserva su aria-label, así que se sigue
+   anunciando completo. */
+@media (max-width: 440px){
+  .cab--sistema .cab__marca b{ display: none; }
 }
 
 /* ------------------------------------------------------------------- menú -- */
@@ -100,7 +127,7 @@ body{ margin: 0; }
      cerca del borde y un panel que crece hacia la derecha se sale de pantalla. */
   position: absolute; top: calc(100% + 10px); right: 0; z-index: 10;
   min-width: 290px;
-  background: #0B252A;
+  background: var(--marca-oscuro-2);
   border: 1px solid rgba(255,255,255,.14);
   border-radius: 14px; padding: 8px;
   box-shadow: 0 22px 48px rgba(0,0,0,.45);
@@ -127,6 +154,17 @@ body{ margin: 0; }
 
 /* --------------------------------------------------------------- sesión --- */
 .cab__auth{ display: flex; align-items: center; gap: 10px; }
+
+/* Enlace de poco peso: «Entrar» en el sitio público —el personal lo conoce, y
+   el público no tiene cuenta— y «Ver el sitio» dentro del sistema. */
+.cab__discreto{
+  color: rgba(255,255,255,.72); text-decoration: none;
+  font-family: 'Space Grotesk','Inter',sans-serif;
+  font-weight: 600; font-size: .84rem; line-height: 1;
+  padding: 8px 12px; border-radius: 100px;
+  white-space: nowrap; transition: background .16s ease, color .16s ease;
+}
+.cab__discreto:hover{ background: rgba(255,255,255,.13); color: #fff; }
 
 .cab__quien{
   font-size: .8rem; color: rgba(255,255,255,.62);
@@ -193,7 +231,7 @@ body{ margin: 0; }
 .cab--compacta .cab__menu{
   display: none;
   position: absolute; left: 0; right: 0; top: 100%;
-  background: #0B252A;
+  background: var(--marca-oscuro-2);
   border-bottom: 1px solid rgba(255,255,255,.1);
   flex-direction: column; align-items: stretch; gap: 0;
   padding: 12px 24px 22px;
@@ -234,10 +272,11 @@ body{ margin: 0; }
   margin-top: 18px;
 }
 .cab--compacta .cab__btn{ width: 100%; padding: 14px 18px; font-size: .95rem; }
+.cab--compacta .cab__discreto{ text-align: center; padding: 12px 4px; font-size: .92rem; }
 .cab--compacta .cab__quien{ max-width: none; text-align: center; padding: 4px 0 6px; }
 
 /* La cabecera flotante se vuelve sólida al abrir el menú */
-.cab--compacta.cab--flotante:has(.cab__menu.is-abierto){ background: #12343B; }
+.cab--compacta.cab--flotante:has(.cab__menu.is-abierto){ background: var(--marca-oscuro); }
 
 /* ---------------------------------------------------------------- anclas --- */
 /* Para que los títulos no queden escondidos bajo la cabecera pegajosa */

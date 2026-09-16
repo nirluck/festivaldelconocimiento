@@ -13,6 +13,7 @@
 
 import { qrSVG, crearQR, dibujarQR } from '../qr.js';
 import { estiloEje } from '../color.js';
+import { colorOscuro } from '../marca.js';
 import { cancelarBoleto, mensaje } from './api.js';
 import { guardarBoleto } from './almacen.js';
 import {
@@ -258,7 +259,7 @@ export async function imagenBoleto(b) {
 
   // Fondo y cabecera oscura con la franja del eje
   ctx.fillStyle = '#F7F9F8'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#12343B'; ctx.fillRect(0, 0, W, altoCab);
+  ctx.fillStyle = colorOscuro(); ctx.fillRect(0, 0, W, altoCab);
   ctx.fillStyle = eje;       ctx.fillRect(0, altoCab - 14, W, 14);
 
   ctx.fillStyle = '#F6D20A';
@@ -285,7 +286,7 @@ export async function imagenBoleto(b) {
   ctx.fillStyle = '#627275';
   ctx.font = `700 24px ${F_DISP}`;
   ctx.fillText('CÓDIGO', W / 2, y);
-  ctx.fillStyle = '#12343B';
+  ctx.fillStyle = colorOscuro();
   ctx.font = `700 76px ${F_DISP}`;
   ctx.fillText(codigoLegible(b.codigo), W / 2, y + 78);
   ctx.textAlign = 'left';
@@ -299,7 +300,7 @@ export async function imagenBoleto(b) {
     ctx.fillStyle = '#627275';
     ctx.font = `700 22px ${F_DISP}`;
     ctx.fillText(etiqueta.toUpperCase(), M, y);
-    ctx.fillStyle = '#12343B';
+    ctx.fillStyle = colorOscuro();
     ctx.font = `600 36px ${F_TXT}`;
     const ls = partirTexto(ctx, valor, ANCHO).slice(0, 2);
     ls.forEach((l, i) => ctx.fillText(l, M, y + 46 + i * 44));
@@ -323,14 +324,14 @@ export async function imagenBoleto(b) {
   ctx.font = `700 22px ${F_DISP}`;
   ctx.textAlign = 'right';
   ctx.fillText('LUGARES', W - M, y);
-  ctx.fillStyle = '#12343B';
+  ctx.fillStyle = colorOscuro();
   ctx.font = `700 48px ${F_DISP}`;
   ctx.fillText(String(b.lugares || 1), W - M, y + 52);
   ctx.textAlign = 'left';
   y = yFin;
 
   // Pie
-  ctx.fillStyle = '#12343B';
+  ctx.fillStyle = colorOscuro();
   ctx.fillRect(0, H - 96, W, 96);
   ctx.fillStyle = '#FFFFFF';
   ctx.font = `600 26px ${F_TXT}`;
