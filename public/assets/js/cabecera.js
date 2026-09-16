@@ -43,6 +43,18 @@ const TALLERES = [
 
 const esLanding = location.pathname === '/' || location.pathname.endsWith('/index.html');
 
+/* ¿Este navegador guardó boletos? Se lee directo del almacenamiento para no
+   importar el módulo de boletos en todas las páginas. Solo entonces aparece
+   «Mis boletos» en el menú: a quien no tiene ninguno no le dice nada. */
+function tieneBoletos() {
+  try {
+    const t = JSON.parse(localStorage.getItem('fdc_boletos') || '{}');
+    return Object.values(t).some(b => b && b.estado !== 'cancelado');
+  } catch (e) {
+    return false;
+  }
+}
+
 /* ---------------------------------------------------------------------------
    Sesión sin cargar Supabase.
 
@@ -92,9 +104,11 @@ export function montarCabecera(perfil) {
   let enlaces;
   if (esLanding) {
     enlaces = SECCIONES.map(([h, t]) => [h, t]);
+    if (tieneBoletos()) enlaces.push(['/mis-boletos/', 'Mis boletos']);
   } else {
     // Fuera de la landing, las anclas apuntan de vuelta al sitio público.
     enlaces = [['/', 'El festival'], ['/programa/', 'Programa']];
+    if (tieneBoletos() || ruta.startsWith('/mis-boletos/')) enlaces.push(['/mis-boletos/', 'Mis boletos']);
     if (quien) {
       enlaces.push(['/mi-actividad/', 'Mis actividades']);
       if (quien.rol === 'administrador') {

@@ -49,6 +49,23 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Boletos: cada página es de una persona, no de los buscadores.
+[[headers]]
+  for = "/boleto/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/mis-boletos/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/b/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
 # =============================================================================
 #  PROGRAMA PÚBLICO
 #
@@ -68,6 +85,23 @@
   from = "/programa/*"
   to   = "/programa/index.html"
   status = 200
+
+# =============================================================================
+#  BOLETOS
+#
+#  /b/<slug> es la página a la que apuntan los QR de cada actividad. Igual que
+#  el programa: una sola página para todas, que lee el slug de la dirección.
+#  Es corta a propósito, porque va impresa en carteles.
+# =============================================================================
+[[redirects]]
+  from = "/b/*"
+  to   = "/b/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/boletos"
+  to   = "/mis-boletos/"
+  status = 301
 
 # Ruta corta para carteles y redes sociales.
 [[redirects]]

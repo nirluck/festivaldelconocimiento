@@ -28,7 +28,7 @@ const CUANTAS = 3;
 if (CAJA) adelanto();
 
 async function adelanto() {
-  const campos = 'slug,titulo,poster,eje,eje_color,tipo,sede,fecha,hora_inicio';
+  const campos = 'slug,titulo,poster,eje,eje_color,tipo,sede,fecha,hora_inicio,acceso,estado_boletos,disponibles';
 
   // Lo que viene: de hoy en adelante. Si el festival ya pasó no queda nada por
   // delante, y entonces se pide el principio del programa —que es lo que
@@ -103,7 +103,7 @@ function pintar(acts, total) {
           <a class="fdc-prog__item${a.poster ? ' fdc-prog__item--poster' : ''}"
              href="/programa/${encodeURIComponent(a.slug)}/" style="${esc(vars)}">
             <div class="fdc-prog__txt">
-              <p class="fdc-prog__cuando">${esc(cuando(a))}</p>
+              <p class="fdc-prog__cuando">${esc(cuando(a) + boleto(a))}</p>
               <h4>${esc(a.titulo)}</h4>
               ${a.sede ? `<p class="fdc-prog__donde">${pin}${esc(a.sede)}</p>` : ''}
             </div>
@@ -122,6 +122,19 @@ function pintar(acts, total) {
         </p>
       </div>
     </div>`;
+}
+
+/** « · Quedan 3 lugares», o nada si la actividad es de entrada libre. */
+function boleto(a) {
+  if (a.acceso === 'registro') return a.estado_boletos === 'cerrado' ? '' : ' · Confirma asistencia';
+  if (a.acceso !== 'boleto') return '';
+  switch (a.estado_boletos) {
+    case 'pocos':   return a.disponibles === 1 ? ' · Queda 1 lugar' : ` · Quedan ${a.disponibles} lugares`;
+    case 'agotado': return ' · Agotado';
+    case 'pronto':  return ' · Boletos muy pronto';
+    case 'cerrado': return '';
+    default:        return ' · Boleto gratuito';
+  }
 }
 
 /** «Sáb 18 · 10:00» */

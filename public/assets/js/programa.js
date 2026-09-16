@@ -16,6 +16,8 @@ import { db, edicionActiva, explicar, escapar, hora } from '/assets/js/app.js';
 import { colorTexto, estiloEje } from '/assets/js/color.js';
 import { urlPoster, urlPosterMini } from '/assets/js/archivos.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { boletoDeActividad } from '/assets/js/boletos/almacen.js';
+import { fechaHoraTexto } from '/assets/js/boletos/util.js';
 
 const pagina = document.getElementById('pagina');
 
@@ -102,6 +104,8 @@ const ICO = {
   flecha: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
   liga:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>',
   etiq:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.5l-7 7a2 2 0 0 1-2.8 0l-7.2-7.2V3.5h9.8l7.2 7.2a2 2 0 0 1 0 2.8z"/><circle cx="8" cy="8" r="1.4"/></svg>',
+  boleto: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5V6h17v2.5a2.5 2.5 0 0 0 0 5V16h-17v-2.5a2.5 2.5 0 0 0 0-5z"/><path d="M14 6v10" stroke-dasharray="1.6 2"/></svg>',
+  palomita: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
 };
 
 const ANILLOS = `
@@ -199,7 +203,8 @@ function cabeceraCartelera(ed) {
       <h1>${escapar(ed.nombre || 'Programa ' + ed.anio)}</h1>
       <p class="pg-hero__lede">
         Ocho días de ciencia, arte, tecnología y humanidades en Ensenada.
-        Todas las actividades son de entrada libre salvo donde se indique cupo.
+        Todas las actividades son gratuitas; las que tienen cupo piden boleto,
+        que puedes conseguir aquí mismo.
       </p>
       <div class="pg-cifras">
         <div class="pg-cifra"><b>${ACTS.length}</b><span>Actividades</span></div>
@@ -420,11 +425,176 @@ function tarjeta(a) {
       ${a.resumen ? `<p class="pg-act__res">${escapar(a.resumen)}</p>` : ''}
       <p class="pg-act__meta">
         ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(a.sede)}</span>` : ''}
-        ${a.cupo ? `<span>${ICO.gente}${a.cupo} lugares</span>` : ''}
+        ${etiquetaBoleto(a)}
       </p>
     </div>
     ${poster}
   </a>`;
+}
+
+/* ============================================================================
+   BOLETOS EN EL PROGRAMA
+   El público nunca ve el cupo: trae el sobrecupo incluido (decisión del 16 de
+   septiembre) y ya no es la capacidad de la sala. Ve si hay lugar.
+   ========================================================================== */
+function etiquetaBoleto(a) {
+  if (!a.acceso || a.acceso === 'libre') return '';
+  const mio = boletoDeActividad(a.slug);
+  if (mio) {
+    return `<span class="pg-bol pg-bol--tuyo">${ICO.palomita}${mio.estado === 'espera' ? 'En lista de espera' : 'Tienes boleto'}</span>`;
+  }
+  const e = a.estado_boletos;
+  if (a.acceso === 'registro') {
+    return e === 'cerrado' ? '' : `<span class="pg-bol">${ICO.boleto}Confirma asistencia</span>`;
+  }
+  switch (e) {
+    case 'pocos':
+      return `<span class="pg-bol pg-bol--pocos">${ICO.boleto}${a.disponibles === 1 ? 'Queda 1 lugar' : `Quedan ${a.disponibles} lugares`}</span>`;
+    case 'agotado':
+      return `<span class="pg-bol pg-bol--agotado">${ICO.boleto}Agotado · lista de espera</span>`;
+    case 'pronto':
+      return `<span class="pg-bol pg-bol--apagado">${ICO.boleto}Boletos muy pronto</span>`;
+    case 'cerrado':
+      return `<span class="pg-bol pg-bol--apagado">${ICO.boleto}Boletos cerrados</span>`;
+    default:
+      return `<span class="pg-bol">${ICO.boleto}Boleto gratuito</span>`;
+  }
+}
+
+function entradaFicha(a) {
+  if (a.acceso === 'boleto')   return 'Con boleto gratuito<small>Cupo limitado</small>';
+  if (a.acceso === 'registro') return 'Libre<small>Con confirmación de asistencia</small>';
+  return 'Libre<small>Sin registro previo</small>';
+}
+
+/** El recuadro «Consigue tu boleto» de la ficha. */
+function bloqueBoleto(a) {
+  if (!a.acceso || a.acceso === 'libre') return '';
+  const mio = boletoDeActividad(a.slug);
+  const e = a.estado_boletos;
+  const registro = a.acceso === 'registro';
+
+  let texto, boton = '';
+  if (mio) {
+    texto = mio.estado === 'espera'
+      ? 'Estás en la lista de espera desde este teléfono.'
+      : `Ya tienes boleto en este teléfono, a nombre de <b>${escapar(mio.nombre)}</b>.`;
+    boton = `<a class="pg-btn pg-btn--lleno" href="/boleto/#${escapar(mio.token)}">Ver mi boleto</a>
+             <button class="pg-btn" type="button" data-abrir-boleto data-forzar>Pedir otro para otra persona</button>`;
+  } else if (e === 'pronto') {
+    const f = fechaHoraTexto(a.boletos_desde);
+    texto = `Esta actividad tiene cupo. Los boletos se abren el <b>${escapar(f)}</b>.`;
+  } else if (e === 'cerrado') {
+    texto = 'El registro cerró. Si sobran lugares, en la entrada se ocupan por orden de llegada.';
+  } else if (registro) {
+    texto = 'La entrada es libre. <b>Confirma tu asistencia</b> para que sepamos cuánta gente esperar.';
+    boton = '<button class="pg-btn pg-btn--lleno" type="button" data-abrir-boleto>Confirmar asistencia</button>';
+  } else if (e === 'agotado') {
+    texto = '<b>Se terminaron los lugares.</b> Anótate en la lista de espera: si alguien cancela o sobran lugares en la entrada, pasas primero.';
+    boton = '<button class="pg-btn pg-btn--lleno" type="button" data-abrir-boleto>Anotarme en la lista de espera</button>';
+  } else {
+    texto = `Esta actividad tiene cupo y pide boleto gratuito. <b>${a.disponibles === 1 ? 'Queda 1 lugar' : `Quedan ${a.disponibles} lugares`}.</b>`;
+    boton = '<button class="pg-btn pg-btn--lleno" type="button" data-abrir-boleto>Consigue tu boleto</button>';
+  }
+
+  return `
+    <section class="pg-boleto" id="bloque-boleto" style="${estiloEje(a.eje_color)}">
+      <h2>${registro ? 'Confirma tu asistencia' : 'Boleto gratuito'}</h2>
+      <p>${texto}</p>
+      ${boton}
+    </section>`;
+}
+
+/** De dónde llegó la persona a la ficha, para el campo «origen» del boleto. */
+function origenFicha() {
+  const o = new URLSearchParams(location.search).get('o');
+  if (['cartel', 'programa', 'ficha', 'portada', 'redes', 'otro'].includes(o)) return o;
+  try {
+    const r = new URL(document.referrer);
+    if (r.origin === location.origin) {
+      if (r.pathname === '/' || r.pathname === '/index.html') return 'portada';
+      if (r.pathname === '/programa/') return 'programa';
+    }
+  } catch (e) { /* sin referrer */ }
+  return 'ficha';
+}
+
+function conectarBloque(a, origen) {
+  document.querySelectorAll('[data-abrir-boleto]').forEach(b =>
+    b.addEventListener('click', () => abrirDialogo(a, origen, b.hasAttribute('data-forzar'))));
+}
+
+async function abrirDialogo(a, origen, forzar) {
+  let d = document.getElementById('dlg-boleto');
+  if (!d) {
+    d = document.createElement('dialog');
+    d.id = 'dlg-boleto';
+    d.className = 'bd';
+    d.setAttribute('aria-labelledby', 'dlg-boleto-tit');
+    document.body.appendChild(d);
+    // Un clic en el fondo oscuro cierra, como en cualquier ventana emergente.
+    d.addEventListener('click', (ev) => { if (ev.target === d) cerrarDialogo(); });
+    // Respaldo para la tecla Escape, que cierra sin pasar por cerrarDialogo().
+    d.addEventListener('close', () => refrescarBloque(d.dataset.id, d.dataset.origen));
+  }
+  d.dataset.id = a.id;
+  d.dataset.origen = origen;
+  d.setAttribute('style', estiloEje(a.eje_color));
+  d.innerHTML = `
+    <div class="bd__marco">
+      <div class="bd__cab">
+        <div>
+          <p>${a.acceso === 'registro' ? 'Confirma tu asistencia' : 'Consigue tu boleto'}</p>
+          <h2 id="dlg-boleto-tit">${escapar(a.titulo)}</h2>
+        </div>
+        <button class="bd__cerrar" type="button" aria-label="Cerrar" data-cerrar>×</button>
+      </div>
+      <div class="bd__cuerpo" id="dlg-boleto-cuerpo"><p class="bf-cargando">Preparando el formulario…</p></div>
+    </div>`;
+  d.querySelector('[data-cerrar]').addEventListener('click', cerrarDialogo);
+  d.showModal();
+
+  try {
+    // Se carga al abrir: la cartelera no paga el formulario ni el QR si nadie
+    // pide boleto.
+    const { montarFormulario } = await import('/assets/js/boletos/formulario.js');
+    // Al emitir se actualiza el recuadro de atrás de una vez, sin esperar a
+    // que se cierre el diálogo.
+    await montarFormulario(document.getElementById('dlg-boleto-cuerpo'), a,
+      { origen, forzar, alEmitir: () => refrescarBloque(a.id, origen) });
+  } catch (e) {
+    document.getElementById('dlg-boleto-cuerpo').innerHTML =
+      '<p class="pg-error">No se pudo cargar el formulario. Revisa tu conexión y vuelve a intentarlo.</p>';
+  }
+}
+
+/**
+ * Cierra el diálogo y actualiza el recuadro. No se confía solo en el evento
+ * «close»: el panel de vista previa del editor no lo dispara (igual que no
+ * avanza animaciones, trampa 15), y un recuadro desactualizado ofrecería un
+ * boleto que la persona ya tiene.
+ */
+function cerrarDialogo() {
+  const d = document.getElementById('dlg-boleto');
+  if (!d || !d.open) return;
+  d.close();
+  refrescarBloque(d.dataset.id, d.dataset.origen);
+}
+
+/** La disponibilidad pudo cambiar, y quizá ya hay boleto. */
+let _refrescando = null;
+async function refrescarBloque(id, origen) {
+  // Cerrar justo después de emitir pediría dos veces lo mismo.
+  if (_refrescando === id) return;
+  _refrescando = id;
+  setTimeout(() => { _refrescando = null; }, 400);
+  const { data } = await db.from('vista_programa').select('*').eq('id', id).maybeSingle();
+  const viejo = document.getElementById('bloque-boleto');
+  if (!data || !viejo) return;
+  const t = document.createElement('template');
+  t.innerHTML = bloqueBoleto(data).trim();
+  if (t.content.firstElementChild) viejo.replaceWith(t.content.firstElementChild);
+  conectarBloque(data, origen);
 }
 
 /* ------------------------------------------- todavía no hay nada publicado */
@@ -514,6 +684,7 @@ async function pintarFicha(slug) {
       </div>
 
       <aside class="pg-lado${a.poster ? ' pg-lado--poster' : ''}">
+      ${bloqueBoleto(a)}
       ${a.poster ? `
       <a class="pg-poster" href="${urlPoster(a.poster)}" target="_blank" rel="noopener"
          title="Ver el póster completo">
@@ -544,9 +715,7 @@ async function pintarFicha(slug) {
           </div>` : ''}
           <div class="pg-ficha__fila">${ICO.gente}
             <div><dt>Entrada</dt>
-              <dd>${a.cupo
-                    ? `Cupo limitado<small>${a.cupo} lugares</small>`
-                    : 'Libre<small>Sin registro previo</small>'}</dd></div>
+              <dd>${entradaFicha(a)}</dd></div>
           </div>
         </dl>
       </div>
@@ -562,6 +731,14 @@ async function pintarFicha(slug) {
 
   document.querySelectorAll('.pg-btn[data-copiar]').forEach(b =>
     b.addEventListener('click', copiarLiga));
+
+  const origen = origenFicha();
+  conectarBloque(a, origen);
+  // /programa/<slug>/#boleto abre el formulario directo: sirve para compartir
+  // «consigue tu boleto» en redes sin mandar a la gente a buscar el botón.
+  if (location.hash === '#boleto' && document.querySelector('[data-abrir-boleto]')) {
+    abrirDialogo(a, origen === 'ficha' ? 'redes' : origen, false);
+  }
 
   if (a.fecha) await pintarMismoDia(a);
 }
