@@ -1,0 +1,96 @@
+/* ============================================================================
+   PÁGINAS LEGALES · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   El aviso de privacidad y lo que venga después. Se apoya en programa.css,
+   que ya declara los tokens, la banda oscura (.pg-hero) y el pie (.pg-pie):
+   aquí solo va la tipografía de lectura larga.
+   ========================================================================== */
+
+.lg-borrador{
+  background:#FFF6D1; border-bottom:1px solid #EAD27A; color:#5C4A00;
+  padding:12px 0; font-size:.92rem;
+}
+.lg-borrador b{font-weight:700}
+
+.lg-cuerpo{
+  display:grid; gap:clamp(28px,5vw,56px);
+  grid-template-columns:minmax(0,1fr);
+  padding-block:clamp(32px,6vw,64px);
+}
+@media (min-width:960px){
+  .lg-cuerpo{grid-template-columns:240px minmax(0,1fr)}
+}
+
+/* Índice. Pegajoso en escritorio; en celular es una lista al principio. */
+.lg-indice{align-self:start}
+@media (min-width:960px){
+  .lg-indice{position:sticky; top:calc(var(--cab-alto, 64px) + 20px)}
+}
+.lg-indice h2{
+  font-family:var(--f-disp); font-size:.76rem; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--tx-3);
+  margin-bottom:10px;
+}
+.lg-indice ol{counter-reset:ix; display:grid; gap:2px}
+.lg-indice li{counter-increment:ix}
+.lg-indice a{
+  display:flex; gap:10px; padding:6px 8px; border-radius:8px;
+  color:var(--tx-2); text-decoration:none; font-size:.9rem; line-height:1.35;
+}
+.lg-indice a::before{
+  content:counter(ix); min-width:1.4em; color:var(--tx-3);
+  font-variant-numeric:tabular-nums;
+}
+.lg-indice a:hover{background:var(--ice); color:var(--tx)}
+
+/* El texto. Ancho de lectura cómodo, aunque la columna sea más ancha. */
+.lg-texto{max-width:72ch}
+.lg-texto section{scroll-margin-top:calc(var(--cab-alto, 64px) + 16px)}
+.lg-texto section + section{margin-top:clamp(32px,5vw,44px)}
+.lg-texto h2{
+  font-family:var(--f-disp); font-weight:700; letter-spacing:-.02em;
+  font-size:clamp(1.3rem,3vw,1.6rem); line-height:1.2; margin-bottom:14px;
+  text-wrap:balance;
+}
+.lg-texto h3{
+  font-family:var(--f-disp); font-weight:600; font-size:1.05rem;
+  margin:22px 0 8px;
+}
+.lg-texto p + p, .lg-texto p + ul, .lg-texto ul + p, .lg-texto table + p{margin-top:12px}
+.lg-texto ul{display:grid; gap:6px; margin-top:10px}
+.lg-texto ul li{position:relative; padding-left:22px}
+.lg-texto ul li::before{
+  content:''; position:absolute; left:4px; top:.62em;
+  width:7px; height:7px; border-radius:50%; background:var(--turquesa);
+}
+.lg-texto strong{font-weight:600}
+.lg-texto code{font-size:.9em; background:var(--ice); padding:1px 5px; border-radius:5px}
+
+/* Resumen de arriba: lo que casi todos quieren saber. */
+.lg-resumen{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--sombra); padding:clamp(20px,4vw,28px);
+}
+.lg-resumen h2{font-size:1.2rem}
+.lg-resumen ul li::before{background:var(--amarillo)}
+
+/* Tablas: en celular se desplazan dentro de su caja, nunca la página. */
+.lg-tabla{overflow-x:auto; margin-top:12px; border:1px solid var(--line); border-radius:var(--r-s)}
+.lg-tabla table{border-collapse:collapse; width:100%; min-width:520px; font-size:.93rem}
+.lg-tabla th, .lg-tabla td{padding:10px 14px; text-align:left; vertical-align:top}
+.lg-tabla th{background:var(--ice); font-weight:600; color:var(--tx)}
+.lg-tabla tr + tr td{border-top:1px solid var(--line-2)}
+
+/* Dato pendiente de confirmar: visible a propósito mientras sea borrador. */
+.lg-pendiente{
+  background:#FFF6D1; border-bottom:2px dotted #C9A400;
+  padding:0 3px; border-radius:3px;
+}
+
+.lg-fecha{margin-top:40px; color:var(--tx-3); font-size:.9rem}
+
+@media print{
+  .lg-borrador, .lg-indice{display:none!important}
+  .lg-cuerpo{display:block; padding:0}
+  .lg-resumen{box-shadow:none}
+}

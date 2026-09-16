@@ -18,3 +18,4 @@ desktop.ini
 
 # Archivos con contraseñas: nunca al repositorio
 *.local.sql
+pruebas/**/.ultima-salida.txt
