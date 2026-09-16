@@ -13,6 +13,7 @@
 
 import { db, catalogos, edicionActiva, llenar,
          aviso, limpiarAviso, explicar, escapar } from '/assets/js/app.js';
+import * as campoAcceso from '/assets/js/campos-acceso.js';
 
 const $ = (sel, raiz) => (raiz || document).querySelector(sel);
 
@@ -95,12 +96,8 @@ export default {
               <input type="time" id="r-hora_fin" value="${v((actividad.hora_fin||'').slice(0,5))}">
             </div>
 
-            <div class="campo">
-              <label for="r-cupo">Cupo</label>
-              <input type="number" id="r-cupo" min="0" step="1"
-                     value="${actividad.cupo ?? ''}" placeholder="Lugares que ofreces">
-              <span class="pista">Déjalo vacío si aún no lo defines.</span>
-              <span class="error-campo" id="r-e-cupo" hidden></span>
+            <div class="campo completo">
+              ${campoAcceso.html('r', actividad, { lugares: true, ventana: true })}
             </div>
 
             <div class="campo completo">
@@ -141,6 +138,8 @@ export default {
     if (actividad.tipo) $('#r-tipo', contenedor).value = actividad.tipo;
     if (actividad.sede) $('#r-sede', contenedor).value = actividad.sede;
 
+    campoAcceso.conectar(contenedor, 'r');
+
     const forma = $('#r-forma', contenedor);
     const caja  = $('#r-aviso', contenedor);
 
@@ -160,7 +159,6 @@ export default {
       const eje    = $('#r-eje', contenedor).value;
       const tipo   = $('#r-tipo', contenedor).value;
       const fecha  = $('#r-fecha', contenedor).value;
-      const cupoTx = $('#r-cupo', contenedor).value.trim();
 
       if (!titulo) { marca('titulo', 'Ponle nombre a la actividad.'); ok = false; } else marca('titulo', '');
       if (!eje)    { marca('eje', 'Elige un eje.');   ok = false; } else marca('eje', '');
@@ -168,9 +166,8 @@ export default {
       if (fecha && (fecha < edicion.fecha_inicio || fecha > edicion.fecha_fin)) {
         marca('fecha', 'La fecha tiene que caer dentro del festival.'); ok = false;
       } else marca('fecha', '');
-      if (cupoTx && !/^\d+$/.test(cupoTx)) {
-        marca('cupo', 'El cupo tiene que ser un número entero.'); ok = false;
-      } else marca('cupo', '');
+      const acceso = campoAcceso.leer(contenedor, 'r');
+      if (acceso.error) ok = false;
       if (!ok) return;
 
       const btn = $('#r-guardar', contenedor);
@@ -189,7 +186,7 @@ export default {
         fecha:          fecha || null,
         hora_inicio:    $('#r-hora_inicio', contenedor).value || null,
         hora_fin:       $('#r-hora_fin', contenedor).value || null,
-        cupo:           cupoTx === '' ? null : parseInt(cupoTx, 10),
+        ...acceso.cambios,
       };
       if (esAdmin) cambios.publica = $('#r-publica', contenedor).checked;
 

@@ -108,7 +108,7 @@ function pintar(acts, total) {
               ${a.sede ? `<p class="fdc-prog__donde">${pin}${esc(a.sede)}</p>` : ''}
             </div>
             ${a.poster ? `<img class="fdc-prog__poster" src="${urlPosterMini(a.poster)}" alt=""
-                 loading="lazy" decoding="async" width="78" height="98"
+                 loading="lazy" decoding="async" width="84" height="84"
                  onerror="this.parentElement.classList.remove('fdc-prog__item--poster');this.remove()">` : ''}
           </a>`;
         }).join('')}

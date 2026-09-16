@@ -116,6 +116,7 @@ export function montarCabecera(perfil) {
         // «Armar programa» y no «Programa»: el público ya tiene uno con ese
         // nombre tres enlaces antes, y son cosas distintas.
         enlaces.push(['/panel/programa/', 'Armar programa']);
+        enlaces.push(['/panel/boletos/', 'Boletos']);
       }
     }
   }

@@ -19,31 +19,47 @@
                                lo usa, que decide si subir ya o esperar.
 
    POR QUÉ SE OPTIMIZA AQUÍ Y NO EN EL SERVIDOR
-   Un póster exportado de Canva o Illustrator pesa entre 5 y 15 MB, y el plan
-   gratuito de Supabase no redimensiona imágenes. Sin esto, la cartelera
-   cargaría cuarenta imágenes de 10 MB por datos móviles.
+   Aun con el tope de 4 MB, un póster exportado de Canva en PNG llega pegado a
+   ese límite, y el plan gratuito de Supabase no redimensiona imágenes. Sin
+   esto, la cartelera cargaría cuarenta imágenes de 4 MB por datos móviles;
+   con esto, cuarenta miniaturas de unos 60 KB.
+
+   EL PÓSTER ES CUADRADO
+   Decisión del equipo (16 de septiembre de 2026). Se exige aquí, al elegir la
+   imagen: Storage no sabe de medidas, así que la base no lo puede vigilar.
    ========================================================================== */
 
 import { db } from './app.js';
 import { BUCKET, urlPoster, urlPosterMini, rutaMini } from './archivos.js';
 
-/* Tamaños: el lado largo, en píxeles.
+/* Tamaños del lado, en píxeles. El póster es CUADRADO (decisión del equipo,
+   16 de septiembre de 2026), así que los dos lados miden lo mismo.
    · 1600 alcanza para la página de la actividad en una pantalla retina.
-   · 640 para la miniatura: en la cartelera se ve a 88 px de ancho, y así
-     sigue nítida incluso a densidad 3x. */
+   · 640 para la miniatura: en la cartelera se ve a 120 px, y así sigue nítida
+     incluso a densidad 3x. */
 const LADO_GRANDE = 1600;
 const LADO_MINI   = 640;
 const CALIDAD     = 0.86;
 
-/* Lo que se acepta ELEGIR. Lo que se SUBE siempre es WebP o JPEG, porque se
-   vuelve a codificar; este límite solo evita que el navegador intente abrir
-   un archivo de 200 MB y se congele. */
+/* Lo que se acepta ELEGIR: 4 MB, por decisión del equipo. Lo que se SUBE
+   siempre es WebP o JPEG vuelto a codificar y pesa bastante menos; el bucket
+   repite el mismo tope del lado del servidor (sql/10-poster.sql). */
 const MB = 1024 * 1024;
-export const MAXIMO_ORIGINAL = 25 * MB;
+export const MAXIMO_ORIGINAL = 4 * MB;
 
-/* Por debajo de esto se avisa que puede verse borrosa. No se impide: un
-   póster pequeño es mejor que ninguno. */
-const LADO_MINIMO_RECOMENDADO = 900;
+/* Cuánto puede alejarse del cuadrado y aun así aceptarse.
+   Los pósters reales llegan «casi» cuadrados: el primero que se subió al sitio
+   medía 1538 × 1600, un 4 % fuera. Exigir igualdad exacta rechazaría justo
+   esos. Hasta un 5 % se recorta al centro —en ese caso, 31 px por lado, que
+   no se notan—; más allá ya es otra forma y el recorte se comería el
+   contenido, así que se rechaza y se explica cómo exportarlo. */
+const TOLERANCIA_CUADRADO = 0.05;
+
+/* El tamaño que se recomienda: el de una publicación de Instagram, que es
+   como casi todos los hacen en Canva. Por debajo se avisa que puede verse
+   borrosa, pero no se impide: un póster pequeño es mejor que ninguno. */
+const LADO_RECOMENDADO = 1080;
+const LADO_MINIMO_SIN_AVISO = 1000;
 
 /** Error con un mensaje ya pensado para la persona, no para el programador. */
 export class ErrorPoster extends Error {}
@@ -68,9 +84,12 @@ export async function prepararPoster(archivo) {
     throw new ErrorPoster('Ese archivo no es una imagen. Sube el póster como JPG, PNG o WebP.');
   }
   if (archivo.size > MAXIMO_ORIGINAL) {
+    // Con un decimal: con el tope en 4 MB, un archivo de 4.3 MB redondeado
+    // diría «pesa 4 MB y el máximo es 4 MB».
     throw new ErrorPoster(
-      `La imagen pesa ${(archivo.size / MB).toFixed(0)} MB y el máximo es ${MAXIMO_ORIGINAL / MB} MB. ` +
-      'Expórtala de nuevo a menor resolución: para pantalla, 2000 px de alto sobran.');
+      `La imagen pesa ${(archivo.size / MB).toFixed(1)} MB y el máximo es ${MAXIMO_ORIGINAL / MB} MB. ` +
+      `Expórtala de nuevo en ${LADO_RECOMENDADO} × ${LADO_RECOMENDADO} px, o como JPG en lugar de PNG: ` +
+      'así pesa bastante menos.');
   }
 
   const { fuente, liberar: liberarFuente } = await decodificar(archivo);
@@ -79,7 +98,25 @@ export async function prepararPoster(archivo) {
     const ancho = fuente.width, alto = fuente.height;
     if (!ancho || !alto) throw new ErrorPoster('No pudimos leer las medidas de la imagen. Prueba con otro archivo.');
 
-    const grande = reducir(fuente, LADO_GRANDE);
+    // ¿Es cuadrado? Se compara el lado largo contra el corto, así da igual si
+    // la imagen se pasa a lo ancho o a lo alto.
+    const exceso = Math.max(ancho, alto) / Math.min(ancho, alto) - 1;
+    if (exceso > TOLERANCIA_CUADRADO) {
+      const forma = ancho > alto ? 'horizontal' : 'vertical';
+      throw new ErrorPoster(
+        `El póster tiene que ser cuadrado y esta imagen es ${forma} (${ancho} × ${alto} px). ` +
+        `Expórtala en ${LADO_RECOMENDADO} × ${LADO_RECOMENDADO} px: en Canva es el formato ` +
+        '«Publicación de Instagram (cuadrada)».');
+    }
+
+    // Casi cuadrada: se recorta al centro hasta el cuadrado exacto.
+    const lado = Math.min(ancho, alto);
+    const recorte = {
+      sx: Math.floor((ancho - lado) / 2), sy: Math.floor((alto - lado) / 2),
+      sw: lado, sh: lado,
+    };
+
+    const grande = reducir(fuente, LADO_GRANDE, recorte);
     // La miniatura sale de la grande, no del original: es mucho menos trabajo
     // y el resultado es indistinguible.
     const mini = reducir(grande, LADO_MINI);
@@ -88,18 +125,21 @@ export async function prepararPoster(archivo) {
     const m = await codificar(mini, g.tipo);
 
     const avisos = [];
-    const largo = Math.max(ancho, alto);
-    if (largo < LADO_MINIMO_RECOMENDADO) {
-      avisos.push(`La imagen es pequeña (${ancho} × ${alto} px): puede verse borrosa en la página de la actividad.`);
+    if (ancho !== alto) {
+      const quitado = Math.abs(ancho - alto);
+      avisos.push(`Era casi cuadrada (${ancho} × ${alto} px): se recortaron ${quitado} px ` +
+        `${ancho > alto ? 'de los costados' : 'entre arriba y abajo'} para dejarla exacta. ` +
+        'Revisa que no se haya perdido nada.');
     }
-    if (ancho > alto * 1.1) {
-      avisos.push('Es horizontal. En la cartelera la miniatura se recorta al centro: revisa abajo cómo queda.');
+    if (lado < LADO_MINIMO_SIN_AVISO) {
+      avisos.push(`La imagen es pequeña (${lado} × ${lado} px): puede verse borrosa en la página de la actividad. ` +
+        `Lo recomendable es ${LADO_RECOMENDADO} × ${LADO_RECOMENDADO} px.`);
     }
 
     const urlVista = URL.createObjectURL(g.blob);
     return {
       grande: g.blob, mini: m.blob, ext: g.ext, tipo: g.tipo,
-      ancho, alto, avisos, urlVista,
+      ancho, alto, lado: grande.width, avisos, urlVista,
       liberar: () => URL.revokeObjectURL(urlVista),
     };
   } finally {
@@ -150,8 +190,14 @@ async function decodificar(archivo) {
  * El fondo se pinta de blanco: un PNG con transparencia codificado como JPEG
  * saldría con fondo negro.
  */
-function reducir(fuente, ladoMax) {
-  const w0 = fuente.width, h0 = fuente.height;
+function reducir(fuente, ladoMax, recorte) {
+  // «recorte» ({sx, sy, sw, sh}) es la parte del original que se usa. Se
+  // aplica en el PRIMER dibujo y no en un lienzo aparte a tamaño completo:
+  // recortar una foto de 6000 px en su propio lienzo costaría 140 MB de
+  // memoria, y en un iPhone eso ya no se dibuja.
+  let rect = recorte || null;
+  const w0 = rect ? rect.sw : fuente.width;
+  const h0 = rect ? rect.sh : fuente.height;
   const escala = Math.min(1, ladoMax / Math.max(w0, h0));
   const W = Math.max(1, Math.round(w0 * escala));
   const H = Math.max(1, Math.round(h0 * escala));
@@ -159,12 +205,13 @@ function reducir(fuente, ladoMax) {
   let actual = fuente, cw = w0, ch = h0;
   while (cw / 2 >= W && ch / 2 >= H) {
     cw = Math.round(cw / 2); ch = Math.round(ch / 2);
-    actual = dibujar(actual, cw, ch);
+    actual = dibujar(actual, cw, ch, rect);
+    rect = null;                     // de aquí en adelante ya es lo recortado
   }
-  return dibujar(actual, W, H);
+  return dibujar(actual, W, H, rect);
 }
 
-function dibujar(origen, w, h) {
+function dibujar(origen, w, h, rect) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const x = c.getContext('2d');
@@ -172,7 +219,8 @@ function dibujar(origen, w, h) {
   x.fillRect(0, 0, w, h);
   x.imageSmoothingEnabled = true;
   x.imageSmoothingQuality = 'high';
-  x.drawImage(origen, 0, 0, w, h);
+  if (rect) x.drawImage(origen, rect.sx, rect.sy, rect.sw, rect.sh, 0, 0, w, h);
+  else      x.drawImage(origen, 0, 0, w, h);
   return c;
 }
 
@@ -298,8 +346,8 @@ export function montarSelector(caja, op) {
         </div>
 
         <ul class="poster__pistas" id="${id}-pistas">
-          <li><b>Vertical</b> se ve mejor: tamaño carta o proporción 4:5.</li>
-          <li>JPG, PNG o WebP, hasta ${MAXIMO_ORIGINAL / MB} MB. Se optimiza al subir.</li>
+          <li><b>Cuadrado</b>, de ${LADO_RECOMENDADO} × ${LADO_RECOMENDADO} px: en Canva, «Publicación de Instagram».</li>
+          <li>JPG, PNG o WebP, <b>hasta ${MAXIMO_ORIGINAL / MB} MB</b>. Se optimiza al subir.</li>
           <li>Que el título se lea en pequeño: en la cartelera sale como miniatura.</li>
         </ul>
 
@@ -383,7 +431,7 @@ export function montarSelector(caja, op) {
       const kb = Math.round(prep.grande.size / 1024);
       const listo = op.textoListo || 'Póster guardado.';
       decir(prep.avisos.length ? 'aviso' : 'ok',
-        `${escaparTexto(listo)} <small>${prep.ancho} × ${prep.alto} px → ${kb} KB</small>` +
+        `${escaparTexto(listo)} <small>${prep.lado} × ${prep.lado} px · ${kb} KB</small>` +
         prep.avisos.map(a => `<br>${escaparTexto(a)}`).join(''));
     } catch (e) {
       // Falló la subida: se vuelve a lo que había antes, para no mostrar como

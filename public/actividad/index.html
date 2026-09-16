@@ -82,7 +82,12 @@ async function traer() {
     pagina.innerHTML = mensajeVolver('No encontramos esa actividad, o no es tuya.');
     return false;
   }
-  actividad = data;
+  // «vista_actividades» es la del semáforo y no trae los datos de acceso ni el
+  // póster (ver la nota de modulos/poster.js). Se piden aparte y se suman.
+  const { data: extra } = await db.from('actividades')
+    .select('acceso, lugares_max, boletos_desde, boletos_hasta, publicada_en, poster')
+    .eq('id', id).maybeSingle();
+  actividad = { ...data, ...(extra || {}) };
   return true;
 }
 
@@ -105,7 +110,9 @@ function pintar() {
     a.sede ? `<span>· ${escapar(a.sede)}</span>` : '',
     a.fecha ? `<span>· ${escapar(fechaDia(a.fecha, true))}</span>` : '',
     a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : '',
-    (a.cupo || a.cupo === 0) ? `<span>· cupo ${a.cupo}</span>` : '',
+    a.acceso === 'boleto' ? `<span>· con boleto, ${a.cupo} boletos</span>`
+      : a.acceso === 'registro' ? '<span>· confirmar asistencia</span>'
+      : '<span>· entrada libre</span>',
   ].filter(Boolean).join(' ');
 
   // A la administración le sirve ver de quién es la actividad.

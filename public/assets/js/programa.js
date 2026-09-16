@@ -405,7 +405,7 @@ function tarjeta(a) {
   // carga, se quita junto con su columna para no dejar un hueco.
   const poster = a.poster
     ? `<img class="pg-act__poster" src="${urlPosterMini(a.poster)}" alt=""
-            loading="lazy" decoding="async" width="88" height="110"
+            loading="lazy" decoding="async" width="120" height="120"
             onerror="this.parentElement.classList.remove('pg-act--poster');this.remove()">`
     : '';
 

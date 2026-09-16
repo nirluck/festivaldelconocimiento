@@ -21,5 +21,6 @@
 import resumen from './resumen.js';
 import poster  from './poster.js';
 import avance  from './avance.js';
+import boletos from './boletos.js';
 
-export const MODULOS = [resumen, poster, avance];
+export const MODULOS = [resumen, boletos, poster, avance];

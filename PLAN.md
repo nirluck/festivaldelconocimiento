@@ -42,9 +42,11 @@ Sitio público y sistema interno del Festival del Conocimiento
   bandeja a los ocho días. Publicar exige día, hora y sede, y avisa de empalmes
 - Cabecera unificada en el sitio
 - **Base de boletos (F1)** aplicada en Supabase el 16 de septiembre de 2026
-- **Conseguir boleto (F2)** escrito y probado contra la base de prueba; **por
-  publicar**: `/b/<slug>`, `/boleto/`, `/mis-boletos/` y el recuadro en la
-  ficha del programa
+- **Conseguir boleto (F2)** en producción desde el 16 de septiembre de 2026:
+  `/b/<slug>`, `/boleto/`, `/mis-boletos/` y el recuadro en la ficha del
+  programa
+- **Panel de boletos (F3)** escrito y probado; por publicar: módulo Boletos,
+  tablero `/panel/boletos/` y modo de acceso en registro, Resumen y «Programar»
 
 ### Tablas que existen hoy
 
@@ -583,16 +585,23 @@ póster que funciona como imagen destacada.
 - **La restricción `actividades_poster_en_su_carpeta`** exige que la ruta empiece
   por el id de la propia actividad. Sin ella, un coordinador podría escribir la
   ruta del póster de otra actividad en la suya.
-- **Bucket `actividades`**, público en lectura, 5 MB y solo WebP o JPEG. Cuatro
+- **Bucket `actividades`**, público en lectura, 4 MB y solo WebP o JPEG. Cuatro
   políticas en `storage.objects` —ver, subir, cambiar, borrar— que dejan tocar
   solo la carpeta `<id>/` de una actividad propia o, a la administración,
   cualquiera. La regla vive en `puede_editar_actividad(texto)`, que recibe la
   carpeta como texto para que una ruta mal formada niegue el permiso en vez de
   reventar con un error de uuid.
-- **Se optimiza en el navegador** (`assets/js/subir-poster.js`): un póster de
-  Canva pesa 5–15 MB y el plan gratuito de Supabase no redimensiona. Se generan
-  dos archivos, `poster-<sello>.webp` (1600 px) y `poster-<sello>-mini.webp`
-  (640 px). WebP si el navegador lo sabe codificar, JPEG si no. La miniatura es
+- **Cuadrado y de 4 MB como máximo** (decisión del equipo, 16 de septiembre).
+  El sitio rechaza lo que pase de 4 MB y lo que se aleje más de un 5 % del
+  cuadrado, con instrucciones para exportarlo en 1080 × 1080. Lo que queda
+  dentro de ese 5 % se recorta al centro: el primer póster real medía
+  1538 × 1600, y exigir igualdad exacta lo habría rechazado. La forma la
+  vigila solo el sitio: Storage no conoce medidas. El tope de peso lo repite
+  el bucket.
+- **Se optimiza en el navegador** (`assets/js/subir-poster.js`): un PNG de
+  Canva llega pegado a los 4 MB y el plan gratuito de Supabase no redimensiona.
+  Se generan dos archivos cuadrados, `poster-<sello>.webp` (hasta 1600 px) y
+  `poster-<sello>-mini.webp` (640 px). WebP si el navegador lo sabe codificar, JPEG si no. La miniatura es
   la misma ruta con `-mini`: una convención y no una segunda columna, para que
   no puedan desincronizarse.
 - **El sello cambia en cada subida**, así que cada archivo es inmutable y se
@@ -608,8 +617,9 @@ coordinador dueño o la administración. En el registro el póster se sube
 *después* de crear la actividad, porque necesita su id; si esa subida falla la
 actividad ya quedó guardada y «Mis actividades» avisa que falta.
 
-**Dónde se ve.** Miniatura en la cartelera, en la landing, en «Mis
-actividades» y en «Armar programa»; completo en la ficha de la actividad. El
+**Dónde se ve.** Miniatura cuadrada en la cartelera (120 px), en la landing,
+en «Mis actividades» y en «Armar programa»; completo en la ficha, en una
+columna lateral de 360 px. El
 diálogo de «Programar» avisa cuando una actividad no tiene póster.
 
 **`vista_actividades` no se tocó.** Es la vista del semáforo, ciento y pico
@@ -1110,7 +1120,7 @@ Las pruebas encontraron dos defectos antes de producción, ya corregidos
   simultáneas contra una actividad de cupo 10 y confirme que salen exactamente
   10 boletos activos.
 
-#### F2 · Conseguir boleto — **hecha** (16 de septiembre de 2026), por publicar
+#### F2 · Conseguir boleto — **hecha** (publicada el 16 de septiembre de 2026)
 
 **Lo que quedó:**
 
@@ -1203,7 +1213,51 @@ boleto tiene que mostrarse igual.
 solo archivo) en `assets/js/vendor/`, dibujado en `<canvas>`. La misma
 biblioteca sirve para la fase G.
 
-#### F3 · Panel
+#### F3 · Panel — **hecha** (16 de septiembre de 2026)
+
+**Lo que quedó:**
+
+| Archivo | Qué es |
+|---|---|
+| `assets/js/campos-acceso.js` | Modo de acceso, cupo, lugares por boleto y ventana. Lo usan el registro, Resumen y «Programar» |
+| `assets/js/modulos/boletos.js` | El módulo del panel de actividad |
+| `assets/js/boletos/cartel.js` | Cartel para imprimir (1200 × 1600), imagen para redes (1080 × 1080) y QR suelto en PNG y SVG |
+| `panel/boletos/index.html` | Tablero de aforo de la administración |
+
+- **Modo de acceso en tres lugares.** El coordinador lo propone al registrar y
+  lo ajusta en Resumen; la administración lo confirma en «Programar», que ahora
+  exige cupo cuando el modo es boleto y muestra la capacidad de la sede como
+  referencia. Junto al cupo se explica que ya incluye el sobrecupo.
+- **La ventana de boletos se captura en hora de Ensenada** y se convierte a
+  instante con la zona `America/Tijuana`, no con la del navegador: quien
+  programa desde otra ciudad no mueve la apertura.
+- **El panel de actividad suma a la actividad** `acceso`, `lugares_max`, la
+  ventana y `publicada_en`, leídos de `actividades`: la vista del semáforo no
+  los trae y sigue sin tocarse.
+- **Módulo Boletos** (solo si el modo no es libre): ocupación con la capacidad
+  de la sala, piezas con QR por origen (cartel, redes, otro), lista con
+  búsqueda por nombre, correo o código, CSV con fechas ordenables y BOM para
+  Excel, cancelar en dos pasos o en bloque, admitir de la lista de espera,
+  emitir a mano o para grupos —con la liga, el QR y la imagen del boleto a la
+  vista, porque no hay correo—, claves de puerta con liga, QR y revocación, y
+  el perfil del público en listas de barras.
+- **Tablero `/panel/boletos/`**: cifras generales, filtros (modo, solo con
+  espera, búsqueda), cuatro órdenes, totales y CSV. Enlazado en el menú de la
+  administración.
+- **Las claves de puerta apuntan a `/puerta/#<clave>`**, que construye F4.
+
+**Cómo se probó.** El servidor de prueba ahora simula también el inicio de
+sesión (cualquier cuenta de la base, contraseña «prueba») y las escrituras
+`POST`, `PATCH` y `DELETE`, con los roles de verdad. Se recorrió como
+coordinadora y como administración: grupo que no cabe y que sí, lista de
+espera, admitir sin lugar y con lugar, cancelar uno y en bloque, búsqueda, CSV,
+claves de puerta, carteles con el peor caso (título de cuatro renglones y slug
+larguísimo), cambio de modo en Resumen, ventana inválida, publicación con
+boleto desde «Programar», registro con boleto y el tablero con sus filtros.
+Un coordinador ajeno no ve la actividad, no lee boletos, no crea claves, no
+emite y no puede cambiar el cupo.
+
+**El diseño original de esta etapa, como referencia:**
 
 - **Módulo Boletos** (`modulos/boletos.js`), visible cuando `acceso <> 'libre'`:
   - Barra de aforo: emitidos, en espera, lugares libres.
@@ -1223,7 +1277,7 @@ biblioteca sirve para la fase G.
 - El formulario de registro y el módulo Resumen ganan el modo de acceso
   **propuesto** por el coordinador.
 
-#### F4 · Puerta — `/puerta/`
+#### F4 · Puerta — `/puerta/` — **la siguiente**
 
 El día del evento, en una sede con mala señal, con fila.
 

@@ -32,12 +32,13 @@
 --  (assets/js/archivos.js).
 --
 --  CÓMO SE NOMBRAN LOS ARCHIVOS
---    <id de la actividad>/poster-<sello>.webp        la grande, 1600 px
+--    <id de la actividad>/poster-<sello>.webp        la grande, hasta 1600 px
 --    <id de la actividad>/poster-<sello>-mini.webp   la miniatura, 640 px
---  El navegador genera las dos antes de subir (modulos/poster.js): el plan
+--  Las dos son CUADRADAS: es la forma del póster (16 de septiembre de 2026).
+--  El navegador genera las dos antes de subir (subir-poster.js): el plan
 --  gratuito de Supabase no redimensiona imágenes, y un póster exportado de
---  Canva pesa entre 5 y 15 MB. Cuarenta de esos en la cartelera, por datos
---  móviles, no se cargarían nunca.
+--  Canva en PNG llega a los 4 MB que se permiten. Cuarenta de esos en la
+--  cartelera, por datos móviles, no se cargarían nunca.
 --
 --  El sello cambia en cada subida. Así cada archivo es inmutable y se puede
 --  guardar en caché un año sin que un póster corregido siga mostrando la
@@ -87,13 +88,17 @@ end $$;
 --  hace falta una política de lectura para «anon».
 --
 --  Límites, como segunda barrera detrás del navegador:
---    · 5 MB por archivo. Lo que genera el sitio ronda los 300 KB; esto solo
---      detiene a quien intente subir por fuera de la página.
+--    · 4 MB por archivo, el mismo tope que pone el sitio al elegir la imagen
+--      (decisión del equipo, 16 de septiembre de 2026; antes eran 5). Lo que
+--      genera el sitio ronda los 300 KB; esto solo detiene a quien intente
+--      subir por fuera de la página.
+--    · Que el póster sea CUADRADO no se puede exigir aquí: Storage no conoce
+--      las medidas de la imagen. Lo exige el sitio (subir-poster.js).
 --    · Solo WebP y JPEG, que es lo único que produce el sitio. El JPEG es el
 --      respaldo para navegadores que no saben codificar WebP.
 -- =============================================================================
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('actividades', 'actividades', true, 5242880, array['image/webp', 'image/jpeg'])
+values ('actividades', 'actividades', true, 4194304, array['image/webp', 'image/jpeg'])
 on conflict (id) do update
   set public             = excluded.public,
       file_size_limit    = excluded.file_size_limit,

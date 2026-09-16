@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boletos · Tablero · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+<style>
+  .resumen{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:26px}
+  @media(min-width:760px){.resumen{grid-template-columns:repeat(4,1fr)}}
+  .dato{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+        padding:18px 20px;box-shadow:var(--sombra)}
+  .dato b{display:block;font-family:var(--f-disp);font-size:2rem;line-height:1;
+          font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .dato span{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-3)}
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .filtros select,.filtros input{width:auto;min-width:170px}
+  .filtros .check{display:flex;gap:8px;align-items:center;font-size:.9rem}
+  .filtros .check input{min-width:0}
+  .ocup{display:grid;gap:4px;min-width:130px}
+  .ocup b{font-variant-numeric:tabular-nums;color:var(--tx)}
+  .ocup small{color:var(--tx-3);font-weight:400}
+  .ocup__barra{height:7px;background:var(--line-2);border-radius:99px;overflow:hidden}
+  .ocup__barra i{display:block;height:100%;background:var(--turquesa-tx);border-radius:99px}
+  .ocup--llena .ocup__barra i{background:var(--rojo)}
+  .sub{display:block;font-size:.8rem;color:var(--tx-3);margin-top:2px}
+  tfoot td{font-weight:600;color:var(--tx);background:var(--ice)}
+</style>
+</head>
+<body>
+
+<!-- ============================================================================
+     TABLERO DE BOLETOS · solo administración
+     Todas las actividades que piden boleto o confirmación, con su ocupación.
+     Sirve para decidir: qué se agotó, dónde hay lista de espera (¿abrir otra
+     función?), qué no se está moviendo (¿difundirla más?).
+     Lee de «vista_aforo» (sql/11-boletos.sql).
+============================================================================= -->
+
+<div data-cabecera></div>
+
+<main class="hoja" id="pagina">
+  <div class="cargando">Cargando los boletos…</div>
+</main>
+
+<footer class="pie">Festival del Conocimiento · Administración</footer>
+
+<script type="module">
+import { db, exigirSesion, explicar, edicionActiva, escapar, fechaDia, hora } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
+
+const $ = s => document.querySelector(s);
+const pagina = $('#pagina');
+
+let FILAS = [];
+const filtro = { texto: '', modo: '', espera: false, orden: 'ocupacion' };
+
+(async function iniciar() {
+  const yo = await exigirSesion('administrador');
+  if (!yo) return;
+  montarCabecera(yo);
+
+  let ed;
+  try { ed = await edicionActiva(); }
+  catch (e) { pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(e))}</div>`; return; }
+
+  const { data, error } = await db.from('vista_aforo').select('*')
+    .eq('edicion_id', ed.id).eq('archivada', false);
+  if (error) { pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(error))}</div>`; return; }
+  FILAS = data || [];
+  pintar();
+})();
+
+/* ------------------------------------------------------------ estado --- */
+function estadoRegistro(a) {
+  if (!a.publica) return ['No publicada', 'gris'];
+  const ahora = new Date();
+  if (a.boletos_desde && new Date(a.boletos_desde) > ahora) return ['Abre pronto', 'gris'];
+  if (a.boletos_hasta && new Date(a.boletos_hasta) <= ahora) return ['Cerrado', 'gris'];
+  if (a.acceso === 'boleto' && a.emitidos >= a.cupo) return ['Agotado', 'rojo'];
+  if (a.acceso === 'boleto' && a.cupo - a.emitidos <= Math.max(3, Math.ceil(a.cupo * .1))) return ['Pocos lugares', 'ambar'];
+  return ['Abierto', 'verde'];
+}
+
+function filtradas() {
+  const t = filtro.texto.trim().toLowerCase();
+  const f = FILAS.filter(a =>
+    (!filtro.modo || a.acceso === filtro.modo) &&
+    (!filtro.espera || a.en_espera > 0) &&
+    (!t || (a.titulo || '').toLowerCase().includes(t) || (a.sede || '').toLowerCase().includes(t)));
+  const cmp = {
+    ocupacion: (x, y) => (y.ocupacion_pct ?? -1) - (x.ocupacion_pct ?? -1) || y.en_espera - x.en_espera,
+    espera:    (x, y) => y.en_espera - x.en_espera || (y.ocupacion_pct ?? -1) - (x.ocupacion_pct ?? -1),
+    fecha:     (x, y) => String(x.fecha || '9').localeCompare(String(y.fecha || '9'))
+                      || String(x.hora_inicio || '').localeCompare(String(y.hora_inicio || '')),
+    menos:     (x, y) => (x.ocupacion_pct ?? 999) - (y.ocupacion_pct ?? 999),
+  }[filtro.orden];
+  return f.sort(cmp);
+}
+
+/* ------------------------------------------------------------ pintar --- */
+function pintar() {
+  const conBoleto = FILAS.filter(a => a.acceso === 'boleto');
+  const lugares = conBoleto.reduce((s, a) => s + a.cupo, 0);
+  const emitidos = FILAS.reduce((s, a) => s + a.emitidos, 0);
+  const espera = FILAS.reduce((s, a) => s + a.en_espera, 0);
+  const agotadas = conBoleto.filter(a => a.emitidos >= a.cupo).length;
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker">Administración</p>
+      <h1>Boletos</h1>
+      <p class="entrada">Las actividades que piden boleto o confirmación de asistencia.
+        Las agotadas y las que tienen lista de espera son candidatas a otra función;
+        las que casi no se mueven, a más difusión.</p>
+    </div>
+
+    ${FILAS.length ? `
+    <div class="resumen">
+      <div class="dato"><b>${FILAS.length}</b><span>Actividades con registro</span></div>
+      <div class="dato"><b>${emitidos}</b><span>Lugares apartados${lugares ? ` de ${lugares}` : ''}</span></div>
+      <div class="dato"><b>${espera}</b><span>En lista de espera</span></div>
+      <div class="dato"><b>${agotadas}</b><span>Agotadas</span></div>
+    </div>
+
+    <div class="filtros">
+      <input type="search" id="f-texto" placeholder="Buscar actividad o sede" aria-label="Buscar">
+      <select id="f-modo" aria-label="Modo de acceso">
+        <option value="">Boleto y confirmación</option>
+        <option value="boleto">Solo con boleto</option>
+        <option value="registro">Solo confirmación</option>
+      </select>
+      <select id="f-orden" aria-label="Ordenar">
+        <option value="ocupacion">Más llenas primero</option>
+        <option value="espera">Más lista de espera</option>
+        <option value="menos">Menos llenas primero</option>
+        <option value="fecha">Por fecha</option>
+      </select>
+      <label class="check"><input type="checkbox" id="f-espera"> Solo con lista de espera</label>
+      <button class="btn btn--linea btn--chico" type="button" id="f-csv">Exportar CSV</button>
+    </div>
+    <div class="tabla-caja"><table>
+      <thead><tr>
+        <th scope="col">Actividad</th><th scope="col">Cuándo</th>
+        <th scope="col">Ocupación</th><th scope="col" class="num">Espera</th>
+        <th scope="col" class="num">Entraron</th><th scope="col" class="num">Sala</th>
+        <th scope="col">Registro</th>
+      </tr></thead>
+      <tbody id="filas"></tbody>
+      <tfoot id="totales"></tfoot>
+    </table></div>`
+    : `<div class="vacio"><h3>Ninguna actividad pide boleto todavía</h3>
+        <p>El modo de acceso se elige en el Resumen de cada actividad o al publicarla en
+           «Armar programa».</p>
+        <a class="btn btn--linea" href="/panel/programa/">Armar programa</a></div>`}`;
+
+  if (!FILAS.length) return;
+  pintarFilas();
+  $('#f-texto').addEventListener('input', e => { filtro.texto = e.target.value; pintarFilas(); });
+  $('#f-modo').addEventListener('change', e => { filtro.modo = e.target.value; pintarFilas(); });
+  $('#f-orden').addEventListener('change', e => { filtro.orden = e.target.value; pintarFilas(); });
+  $('#f-espera').addEventListener('change', e => { filtro.espera = e.target.checked; pintarFilas(); });
+  $('#f-csv').addEventListener('click', exportar);
+}
+
+function pintarFilas() {
+  const f = filtradas();
+  $('#filas').innerHTML = f.length ? f.map(a => {
+    const [etq, tono] = estadoRegistro(a);
+    const boleto = a.acceso === 'boleto';
+    const pct = boleto ? Math.min(100, a.ocupacion_pct || 0) : 0;
+    return `
+    <tr>
+      <td><a href="/actividad/?id=${a.id}#boletos"><strong>${escapar(a.titulo)}</strong></a>
+        <span class="sub">${escapar(a.sede || 'Sin sede')}${a.eje ? ' · ' + escapar(a.eje) : ''}</span></td>
+      <td>${a.fecha ? escapar(fechaDia(a.fecha)) : 'Sin fecha'}
+        <span class="sub">${escapar(hora(a.hora_inicio))}</span></td>
+      <td>${boleto ? `
+        <div class="ocup${a.emitidos >= a.cupo ? ' ocup--llena' : ''}" title="${a.emitidos} de ${a.cupo} (${a.ocupacion_pct} %)">
+          <b>${a.emitidos} <small>de ${a.cupo} · ${a.ocupacion_pct} %</small></b>
+          <span class="ocup__barra"><i style="width:${pct}%"></i></span>
+        </div>` : `<b>${a.emitidos}</b> <span class="sub">confirmaciones, sin tope</span>`}</td>
+      <td class="num">${a.en_espera || '—'}</td>
+      <td class="num">${a.asistieron || '—'}</td>
+      <td class="num">${a.capacidad_sala ?? '—'}</td>
+      <td><span class="chip chip--${tono}">${etq}</span></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:28px">Nada coincide con los filtros.</td></tr>';
+
+  const suma = (k) => f.reduce((s, a) => s + (a[k] || 0), 0);
+  $('#totales').innerHTML = f.length > 1 ? `
+    <tr><td>${f.length} actividades</td><td></td>
+      <td>${suma('emitidos')} lugares apartados</td>
+      <td class="num">${suma('en_espera')}</td><td class="num">${suma('asistieron')}</td>
+      <td></td><td></td></tr>` : '';
+}
+
+function exportar() {
+  const celda = v => { const s = String(v ?? ''); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const f = filtradas();
+  const csv = [
+    ['Actividad', 'Sede', 'Eje', 'Fecha', 'Hora', 'Modo', 'Cupo', 'Emitidos', 'Ocupación %',
+     'En espera', 'Entraron', 'Capacidad sala', 'Registro'],
+    ...f.map(a => [a.titulo, a.sede, a.eje, a.fecha, hora(a.hora_inicio),
+      a.acceso === 'boleto' ? 'Boleto' : 'Confirmación', a.acceso === 'boleto' ? a.cupo : '',
+      a.emitidos, a.ocupacion_pct ?? '', a.en_espera, a.asistieron, a.capacidad_sala ?? '',
+      estadoRegistro(a)[0]]),
+  ].map(r => r.map(celda).join(',')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  const enlace = Object.assign(document.createElement('a'), { href: url, download: 'boletos-por-actividad.csv' });
+  document.body.appendChild(enlace); enlace.click(); enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+</script>
+</body>
+</html>

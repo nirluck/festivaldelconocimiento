@@ -344,15 +344,22 @@ a{color:var(--turquesa-tx)}
 .pg-act__meta .pg-sede{color:var(--tx-2);font-weight:500}
 
 /* ---- póster en la tarjeta ------------------------------------------------
-   Una tercera columna con la miniatura. Proporción 4:5 y «cover», centrado:
-   es EXACTAMENTE el recorte que enseña la vista previa del selector de póster
+   Una tercera columna con la miniatura, CUADRADA como el póster. 120 px y no
+   menos: un cuadrado de Instagram suele traer el título en letra grande, y a
+   ese tamaño todavía se reconoce de un vistazo. Cabe en el alto de una
+   tarjeta de un renglón de título sin estirarla.
+
+   «cover» sigue ahí aunque los pósters nuevos ya son cuadrados: el que se
+   subió antes de la regla (1538 × 1600) se recorta 2 % en vez de deformarse.
+
+   Es EXACTAMENTE el recorte que enseña la vista previa del selector de póster
    (app.css, .poster__mini). Si cambia aquí, tiene que cambiar allá, o el
    coordinador vería una cosa al subir y otra en la cartelera.
 --------------------------------------------------------------------------- */
 .pg-act--poster{grid-template-columns:92px 1fr auto}
 .pg-act__poster{
-  width:88px; height:auto; aspect-ratio:4/5; object-fit:cover;
-  align-self:center; margin:14px 16px 14px 0;
+  width:120px; height:auto; aspect-ratio:1/1; object-fit:cover;
+  align-self:center; margin:16px 18px 16px 0;
   border-radius:9px; background:var(--ice);
   box-shadow:0 1px 2px rgba(18,52,59,.12), 0 6px 16px rgba(18,52,59,.12);
   transition:transform .18s ease;
@@ -376,7 +383,7 @@ a{color:var(--turquesa-tx)}
   }
   .pg-act--poster .pg-act__hora{grid-area:hora}
   .pg-act--poster .pg-act__cuerpo{grid-area:cuerpo}
-  .pg-act--poster .pg-act__poster{grid-area:poster;width:72px;margin:14px 14px 14px 0;align-self:start}
+  .pg-act--poster .pg-act__poster{grid-area:poster;width:80px;margin:15px 14px 15px 0;align-self:start}
 }
 
 /* ---- bloque de «sin fecha» -----------------------------------------------
@@ -443,8 +450,10 @@ a{color:var(--turquesa-tx)}
 /* ---- ficha de datos ------------------------------------------------------- */
 .pg-det{padding:clamp(26px,5vw,44px) 0 90px}
 .pg-det__rejilla{display:grid;gap:clamp(22px,4vw,38px)}
+/* 360 px de lado: el póster cuadrado ocupa lo mismo que el vertical de antes
+   (320 × 400) y conserva su presencia. */
 @media (min-width:900px){
-  .pg-det__rejilla{grid-template-columns:1fr 320px;align-items:start}
+  .pg-det__rejilla{grid-template-columns:1fr 360px;align-items:start}
 }
 
 .pg-ficha{
@@ -463,6 +472,11 @@ a{color:var(--turquesa-tx)}
 /* ---- el póster en la ficha ------------------------------------------------
    Completo, sin recortar: aquí sí se tiene que poder leer. Liga a la imagen
    grande para quien quiera verla o guardarla.
+
+   «aspect-ratio: auto 1 / 1» aparta un cuadrado ANTES de que cargue la
+   imagen, así la tarjeta de datos no brinca hacia abajo al llegar el póster.
+   El «auto» hace que, ya cargada, mande su proporción real: un póster de antes
+   de la regla del cuadrado se ve entero, sin recorte.
 --------------------------------------------------------------------------- */
 .pg-poster{
   display:block; border-radius:var(--r); overflow:hidden; background:#fff;
@@ -470,7 +484,7 @@ a{color:var(--turquesa-tx)}
   transition:transform .2s ease;
 }
 .pg-poster:hover{transform:translateY(-3px)}
-.pg-poster img{width:100%;height:auto}
+.pg-poster img{width:100%;height:auto;aspect-ratio:auto 1/1;background:var(--ice)}
 
 /* En celular el lado va PRIMERO: póster y luego cuándo y dónde, antes que la
    descripción larga. Quien abre la liga desde WhatsApp quiere saber eso. */

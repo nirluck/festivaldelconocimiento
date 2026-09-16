@@ -114,7 +114,7 @@ legend{
 .campo .pista{font-size:.82rem;color:var(--tx-3);line-height:1.45}
 .campo.completo{grid-column:1/-1}
 
-input[type=text],input[type=email],input[type=tel],input[type=password],
+input[type=text],input[type=email],input[type=tel],input[type=password],input[type=search],
 input[type=date],select,textarea{
   font:inherit;font-size:.97rem;color:var(--tx);
   background:var(--surface);
@@ -228,7 +228,7 @@ tbody tr:hover{background:var(--ice)}
 .act__pie{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:.84rem;color:var(--tx-3)}
 /* Miniatura del póster antes del título. «order:-1» porque el h3 va primero en
    el marcado (es lo que se lee) y la imagen, decorativa, va antes a la vista. */
-.act__poster{width:44px;aspect-ratio:4/5;object-fit:cover;border-radius:6px;
+.act__poster{width:48px;aspect-ratio:1/1;object-fit:cover;border-radius:7px;
   border:1px solid var(--line);flex:0 0 auto;order:-1}
 .act__top:has(.act__poster) h3{flex:1}
 /* Recordatorio para quien aún no sube el póster: sin él, la actividad sale
@@ -242,17 +242,17 @@ tbody tr:hover{background:var(--ice)}
    porque lo usan dos páginas —registro y panel de actividad— que ya cargan
    esta.
 
-   El marco tiene proporción 4:5, la de un póster vertical: así lo vacío ya
+   El marco es cuadrado, como tiene que ser el póster: así lo vacío ya
    sugiere qué forma de imagen se espera, sin tener que explicarlo.
 -------------------------------------------------------------------------- */
 .poster{display:grid;gap:18px 24px;align-items:start}
 /* «.btn» y «.poster__mini» declaran display, y cualquier display le gana al
    atributo hidden: sin esto, «Quitar póster» se veía sin haber póster. */
 .poster [hidden]{display:none!important}
-@media(min-width:640px){.poster{grid-template-columns:220px 1fr}}
+@media(min-width:640px){.poster{grid-template-columns:240px 1fr}}
 
 .poster__marco{
-  position:relative;aspect-ratio:4/5;width:100%;max-width:260px;
+  position:relative;aspect-ratio:1/1;width:100%;max-width:260px;
   border-radius:var(--r-s);overflow:hidden;cursor:pointer;
   background:var(--ice);border:1.5px solid var(--line);
   display:flex;align-items:center;justify-content:center;
@@ -299,11 +299,117 @@ tbody tr:hover{background:var(--ice)}
 .poster__pistas b{color:var(--tx-2)}
 
 /* La miniatura con el mismo recorte que usa la cartelera (programa.css,
-   .pg-act__poster): 4:5 y «cover». Si la cartelera cambia su recorte, esto
-   tiene que cambiar con ella, o la vista previa mentiría. */
+   .pg-act__poster): cuadrada y «cover». Si la cartelera cambia su recorte,
+   esto tiene que cambiar con ella, o la vista previa mentiría. */
 .poster__mini{display:flex;align-items:center;gap:12px;font-size:.8rem;color:var(--tx-3)}
-.poster__mini img{width:66px;aspect-ratio:4/5;object-fit:cover;border-radius:7px;
+.poster__mini img{width:72px;aspect-ratio:1/1;object-fit:cover;border-radius:8px;
   border:1px solid var(--line);background:var(--ice)}
+
+/* --------------------------------------------------------------- acceso --
+   Modo de acceso, cupo y ventana de boletos (assets/js/campos-acceso.js).
+-------------------------------------------------------------------------- */
+input[type=number],input[type=datetime-local],input[type=time]{
+  font:inherit;font-size:.97rem;color:var(--tx);background:var(--surface);
+  border:1.5px solid var(--line);border-radius:var(--r-s);padding:11px 13px;width:100%;
+}
+.acceso{display:grid;gap:16px}
+.acceso [hidden]{display:none!important}
+.acceso__modos{margin:0;display:grid;gap:8px}
+.acceso__tit{font-weight:600;font-size:.92rem;margin-bottom:4px;font-family:var(--f-body);letter-spacing:0}
+.acceso__modo{display:flex;gap:11px;align-items:flex-start;cursor:pointer;
+  border:1.5px solid var(--line);border-radius:var(--r-s);padding:11px 14px;background:var(--surface)}
+.acceso__modo:has(input:checked){border-color:var(--turquesa);background:#F0FAFB}
+.acceso__modo input{width:auto;margin-top:4px;accent-color:var(--turquesa-tx)}
+.acceso__modo b{display:block;font-size:.95rem}
+.acceso__modo small{display:block;color:var(--tx-3);font-size:.84rem;line-height:1.4}
+.acceso__cupo{display:grid;gap:16px}
+@media(min-width:640px){.acceso__cupo:has(select){grid-template-columns:1fr 1fr}}
+.acceso__ventana summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--turquesa-tx)}
+.acceso__ventana[open] summary{margin-bottom:10px}
+.acceso__ventana .pista{display:block;font-size:.82rem;color:var(--tx-3);margin-bottom:12px}
+
+/* ------------------------------------------------------ módulo Boletos --
+   assets/js/modulos/boletos.js y /panel/boletos/.
+-------------------------------------------------------------------------- */
+.chip--azul{background:#E1F2F5;color:#0A5A68}
+.chip--gris{background:var(--line-2);color:var(--tx-3)}
+
+.bol .tarjeta h2{margin-bottom:6px}
+.bol .leyenda{margin-bottom:16px}
+.bol-nota{font-size:.84rem;color:var(--tx-3);margin-top:10px;line-height:1.5}
+.bol-nota--aviso{color:#6B4700;background:var(--ambar-bg);padding:8px 12px;border-radius:8px}
+.bol-nota code, .bol .leyenda code{font-size:.9em;background:var(--ice);padding:1px 5px;border-radius:4px}
+
+.bol-cifras{display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end}
+.bol-cifra{display:grid;gap:2px}
+.bol-cifra b{font-family:var(--f-disp);font-size:1.7rem;line-height:1;font-variant-numeric:tabular-nums}
+.bol-cifra--grande b{font-size:2.6rem}
+.bol-cifra b small{font-size:.5em;color:var(--tx-3);font-weight:600}
+.bol-cifra span{font-size:.82rem;color:var(--tx-3)}
+.bol-barra{height:10px;background:var(--line-2);border-radius:99px;overflow:hidden;margin-top:18px}
+.bol-barra i{display:block;height:100%;background:var(--turquesa-tx);border-radius:99px}
+
+.bol-liga{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:18px;
+  padding-top:16px;border-top:1px solid var(--line-2);font-size:.9rem}
+.bol-liga span{color:var(--tx-3)}
+.bol-liga a{overflow-wrap:anywhere;font-weight:600}
+
+.bol-mini{background:none;border:0;padding:6px 4px;font:inherit;font-size:.84rem;
+  color:var(--turquesa-tx);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.bol-mini:disabled{opacity:.5;cursor:progress}
+.bol-mini--peligro{color:var(--rojo)}
+.bol-peligro{border-color:var(--rojo)!important;color:var(--rojo)!important}
+.bol-peligro:hover{background:var(--rojo)!important;color:#fff!important}
+
+.bol-qr{display:grid;gap:20px;align-items:start}
+@media(min-width:640px){.bol-qr{grid-template-columns:200px 1fr}}
+.bol-qr__codigo{width:200px;max-width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.bol-qr__codigo svg{width:100%;height:auto}
+.bol-qr__lado{display:grid;gap:14px;min-width:0}
+.bol-botones{display:flex;flex-wrap:wrap;gap:8px}
+
+.bol-filtros{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center}
+.bol-filtros input[type=search]{flex:1 1 240px;font:inherit;font-size:.95rem;padding:10px 13px;
+  border:1.5px solid var(--line);border-radius:var(--r-s);min-width:0}
+.bol-filtros select{flex:0 1 220px;width:auto}
+.bol-masa{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;
+  background:var(--rojo-bg);padding:10px 14px;border-radius:var(--r-s);font-size:.9rem;color:#8C2418}
+.bol-tabla td{vertical-align:middle}
+.bol-tabla input[type=checkbox]{width:18px;height:18px;accent-color:var(--turquesa-tx)}
+.bol-codigo{font-family:var(--f-disp);font-weight:700;letter-spacing:.04em;color:var(--tx);white-space:nowrap}
+.bol-hora{display:block;font-size:.76rem;color:var(--tx-3);margin-top:2px}
+.bol-acc{white-space:nowrap;text-align:right}
+.bol-acc > * + *{margin-left:6px}
+.bol-vacio{text-align:center;color:var(--tx-3);padding:28px}
+
+.bol-emitido{display:grid;gap:16px;align-items:center;margin-top:18px;padding:16px;
+  background:var(--ice);border-radius:var(--r-s)}
+@media(min-width:560px){.bol-emitido{grid-template-columns:150px 1fr}}
+.bol-emitido__qr{width:150px;background:#fff;border-radius:8px;overflow:hidden}
+.bol-emitido__qr svg{width:100%;height:auto}
+.bol-emitido p + p{margin-top:6px}
+.bol-codigo-grande{font-family:var(--f-disp);font-weight:700;font-size:1.8rem;letter-spacing:.06em}
+.bol-emitido .bol-botones{margin-top:12px}
+.bol-qr-puerta{margin-top:12px}
+
+.bol-nueva{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:18px}
+.bol-nueva .campo{flex:1 1 280px}
+
+/* Listas de barras: una serie, un tono, el número escrito al lado. */
+.bol-graficas{display:grid;gap:26px 34px}
+@media(min-width:760px){.bol-graficas{grid-template-columns:1fr 1fr}}
+.bol-graf{margin:0;min-width:0}
+.bol-graf figcaption{font-family:var(--f-disp);font-weight:700;font-size:.95rem;margin-bottom:10px}
+.bol-graf figcaption small{font-family:var(--f-body);font-weight:400;color:var(--tx-3)}
+.bol-graf ul{display:grid;gap:7px}
+.bol-graf li{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:10px;align-items:center;font-size:.86rem}
+.bol-graf__et{color:var(--tx-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bol-graf__barra{height:12px;background:var(--line-2);border-radius:0 4px 4px 0;overflow:hidden}
+.bol-graf__barra i{display:block;height:100%;background:var(--turquesa-tx);border-radius:0 4px 4px 0}
+.bol-graf__sin .bol-graf__barra i{background:#9AAAAD}
+.bol-graf__num{font-variant-numeric:tabular-nums;font-weight:600;color:var(--tx);min-width:4.5em;text-align:right}
+.bol-graf__num small{font-weight:400;color:var(--tx-3);margin-left:6px}
+.bol-graf li:hover .bol-graf__barra i{background:var(--dark)}
 
 /* ------------------------------------------------------------------ pie -- */
 .pie{
