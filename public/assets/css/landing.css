@@ -306,19 +306,6 @@
 
 .fdc-hero__inner { position: relative; z-index: 2; width: 100%; max-width: 900px; padding-inline: 24px; }
 
-.fdc-hero__eyebrow {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--fdc-f-disp);
-  font-size: .8em; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
-  color: #fff;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.24);
-  padding: 9px 20px; border-radius: 100px;
-  margin-bottom: 30px;
-  backdrop-filter: blur(6px);
-}
-.fdc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--fdc-amarillo); flex: none; }
-
 /* Logotipo a la izquierda y fecha a su derecha, alineados por la base para que
    las cifras se apoyen en la misma línea que el logotipo. */
 .fdc-hero__cabeza {
@@ -412,35 +399,6 @@
   font-size: clamp(1.1em, 2.4vw, 1.5em); font-weight: 700;
   letter-spacing: -.01em; line-height: 1.05;
 }
-
-.fdc-hero__lede {
-  color: rgba(255,255,255,.9);
-  font-size: clamp(1em, 1.8vw, 1.16em);
-  max-width: 56ch; margin: 0 auto 34px;
-  text-shadow: 0 2px 14px color-mix(in srgb, var(--marca-oscuro-3) 75%, transparent);
-}
-.fdc-hero__lede b { color: var(--fdc-amarillo); }
-
-/* Cuenta regresiva */
-.fdc-count { display: flex; justify-content: center; gap: 10px; margin-bottom: 36px; flex-wrap: wrap; }
-.fdc-count__unit {
-  min-width: 82px; padding: 14px 10px 11px;
-  background: rgba(255,255,255,.09);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: var(--fdc-r-s);
-  backdrop-filter: blur(8px);
-}
-.fdc-count__unit span {
-  display: block; font-family: var(--fdc-f-disp);
-  font-size: 1.9em; font-weight: 700; line-height: 1; color: #fff;
-  font-variant-numeric: tabular-nums;
-}
-.fdc-count__unit small {
-  display: block; margin-top: 5px;
-  font-size: .74em; letter-spacing: .12em; text-transform: uppercase;
-  color: rgba(255,255,255,.6);
-}
-.fdc-count.is-live { display: none; }
 
 .fdc-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-bottom: 44px; }
 
@@ -940,9 +898,10 @@
   color: rgba(0,0,0,.46);
 }
 .fdc-pleca__row {
-  /* Once marcas en una sola fila. La altura sigue al ancho de pantalla en vez
-     de ir por saltos: con saltos siempre queda un tramo intermedio donde una
-     se cae sola al renglón de abajo. */
+  /* Veinte marcas: en escritorio caben en dos renglones de unas diez. La
+     altura sigue al ancho de pantalla en vez de ir por saltos: con saltos
+     siempre queda un tramo intermedio donde una se cae sola al renglón de
+     abajo. */
   --pl: clamp(30px, 4.4vw, 56px);
   display: flex; flex-wrap: wrap;
   align-items: center; justify-content: center;
@@ -954,20 +913,27 @@
    iguala a ojo, que es como se mira una pleca, y no matemáticamente. */
 .fdc-pl { height: calc(var(--pl) * var(--f, 1)); width: auto; display: block; }
 
-.fdc-pl--unam    { --f: 1.04; }
-.fdc-pl--cic     { --f: .65;  }
-.fdc-pl--uabc    { --f: 1.08; }
-.fdc-pl--cnyn    { --f: .88;  }
-.fdc-pl--ia      { --f: 1;    }
-.fdc-pl--tecnm   { --f: .73;  }
-.fdc-pl--ite     { --f: .77;  }
-.fdc-pl--cetys   { --f: .88;  }
-.fdc-pl--cicese  { --f: .65;  }
-.fdc-pl--gob     { --f: 1.08; }
-.fdc-pl--amor    { --f: 1;    }
-.fdc-pl--riviera { --f: 1.04; }
-.fdc-pl--c475    { --f: .92;  }
-.fdc-pl--c43     { --f: 1.04; }
+/* Factor ≈ 1/√(ancho/alto), acotado entre .65 y 1.08, redondeado a ojo. */
+.fdc-pl--unam         { --f: 1.04; }
+.fdc-pl--cic          { --f: .65;  }
+.fdc-pl--uabc         { --f: 1.08; }
+.fdc-pl--uabc-cultura { --f: .78;  }
+.fdc-pl--cnyn         { --f: .88;  }
+.fdc-pl--ia           { --f: 1;    }
+.fdc-pl--tecnm        { --f: .73;  }
+.fdc-pl--ite          { --f: .77;  }
+.fdc-pl--cetys        { --f: .68;  }
+.fdc-pl--cicese       { --f: .65;  }
+.fdc-pl--alcoholes    { --f: .65;  }
+.fdc-pl--centro       { --f: .65;  }
+.fdc-pl--secultura    { --f: .65;  }
+.fdc-pl--icbc         { --f: .65;  }
+.fdc-pl--ceart        { --f: .65;  }
+.fdc-pl--imcudhe      { --f: .65;  }
+.fdc-pl--gob          { --f: .72;  }
+.fdc-pl--riviera      { --f: 1.04; }
+.fdc-pl--c475         { --f: .80;  }
+.fdc-pl--c43          { --f: 1.04; }
 
 /* Por debajo de aquí la fila ya no cabe por mucho que se encoja. Envuelve, pero
    con las marcas a un tamaño legible en vez de dejarlas en 24px con tal de que
@@ -1063,8 +1029,6 @@
   .fdc-hero__rango { gap: 10px; }
   .fdc-hero__cta { flex-direction: column; }
   .fdc-hero__cta .fdc-btn { width: 100%; }
-  .fdc-count__unit { min-width: 68px; padding: 11px 8px 9px; }
-  .fdc-count__unit span { font-size: 1.5em; }
 
   .fdc-disc, .fdc-acts, .fdc-memo, .fdc-part, .fdc-social { grid-template-columns: 1fr; }
   .fdc-soon { grid-template-columns: 1fr; text-align: center; }

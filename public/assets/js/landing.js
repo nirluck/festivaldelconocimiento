@@ -12,14 +12,10 @@
    *  La entrega PHP en window.FDC_CONFIG (ver fdc_encolar_assets()).
    *  Los valores de respaldo permiten abrir este archivo fuera de WordPress.
    *
-   *  Para cambiar las fechas NO hace falta tocar este archivo; usa los filtros
-   *  'fdc_fecha_inicio' y 'fdc_fecha_fin' desde el functions.php del tema.
    * ---------------------------------------------------------------------- */
   var CFG = window.FDC_CONFIG || {};
 
-  var IMG    = CFG.img || '/assets/img/';
-  var INICIO = new Date(CFG.inicio || '2026-10-17T09:00:00-07:00');
-  var FIN    = new Date(CFG.fin    || '2026-10-24T23:59:59-07:00');
+  var IMG = CFG.img || '/assets/img/';
 
   var root = document.querySelector('.fdc');
   if (!root) return;
@@ -96,45 +92,7 @@
   })();
 
   /* ====================================================================== *
-   *  2. CUENTA REGRESIVA
-   * ====================================================================== */
-  (function countdown() {
-    var box = $('#fdc-count');
-    if (!box) return;
-
-    var out = {
-      d: $('[data-count="d"]', box), h: $('[data-count="h"]', box),
-      m: $('[data-count="m"]', box), s: $('[data-count="s"]', box)
-    };
-    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
-
-    function tick() {
-      var diff = INICIO - new Date();
-
-      if (diff <= 0) {
-        var enCurso = new Date() <= FIN;
-        box.innerHTML = '<p class="fdc-count__live">' +
-          (enCurso ? '¡El festival está en marcha!' : 'Nos vemos en la próxima edición') +
-          '</p>';
-        box.style.cssText = 'display:block;font-family:var(--fdc-f-disp);font-weight:700;' +
-          'font-size:1.3em;color:var(--fdc-amarillo);margin-bottom:36px;';
-        clearInterval(iv);
-        return;
-      }
-
-      var sec = Math.floor(diff / 1000);
-      out.d.textContent = Math.floor(sec / 86400);
-      out.h.textContent = pad(Math.floor(sec / 3600) % 24);
-      out.m.textContent = pad(Math.floor(sec / 60) % 60);
-      out.s.textContent = pad(sec % 60);
-    }
-
-    tick();
-    var iv = setInterval(tick, 1000);
-  })();
-
-  /* ====================================================================== *
-   *  3. DATOS DE IMÁGENES
+   *  2. DATOS DE IMÁGENES
    * ====================================================================== */
 
   /* Galería fotográfica — ediciones anteriores */
@@ -216,7 +174,7 @@
   var VISIBLES = 8; /* carteles mostrados antes de pulsar "Ver toda la cartelera" */
 
   /* ====================================================================== *
-   *  4. CONSTRUCCIÓN DE GALERÍAS
+   *  3. CONSTRUCCIÓN DE GALERÍAS
    * ====================================================================== */
   var lbGrupo = [], lbIndex = 0;
 
@@ -298,7 +256,7 @@
   })();
 
   /* ====================================================================== *
-   *  5. LIGHTBOX
+   *  4. LIGHTBOX
    * ====================================================================== */
   var lb      = $('#fdc-lb');
   var lbImg   = lb ? $('img', lb) : null;
@@ -362,7 +320,7 @@
   }
 
   /* ====================================================================== *
-   *  6. VIDEO DE YOUTUBE (fachada — sólo carga al hacer clic)
+   *  5. VIDEO DE YOUTUBE (fachada — sólo carga al hacer clic)
    * ====================================================================== */
   (function video() {
     var box = $('.fdc-video');
@@ -384,7 +342,7 @@
   })();
 
   /* ====================================================================== *
-   *  7. NAVEGACIÓN SUAVE (sólo para los enlaces internos del festival)
+   *  6. NAVEGACIÓN SUAVE (sólo para los enlaces internos del festival)
    * ====================================================================== */
   $$('a[href^="#fdc-"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
@@ -396,7 +354,7 @@
   });
 
   /* ====================================================================== *
-   *  8. VOLVER ARRIBA
+   *  7. VOLVER ARRIBA
    * ====================================================================== */
   (function volverArriba() {
     var btn = $('#fdc-top');
@@ -418,7 +376,7 @@
   })();
 
   /* ====================================================================== *
-   *  9. APARICIÓN AL HACER SCROLL
+   *  8. APARICIÓN AL HACER SCROLL
    * ====================================================================== */
   (function reveal() {
     if (reduced || !('IntersectionObserver' in window)) return;
@@ -445,7 +403,7 @@
   })();
 
   /* ====================================================================== *
-   *  10. AÑO EN EL PIE DE PÁGINA
+   *  9. AÑO EN EL PIE DE PÁGINA
    * ====================================================================== */
   (function anio() {
     var y = document.getElementById('fdc-year');
