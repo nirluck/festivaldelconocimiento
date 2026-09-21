@@ -90,9 +90,11 @@ function disponibilidad(act, espera) {
       Anótate en la lista de espera: si alguien cancela, o si sobran lugares en la
       entrada, pasan primero quienes están en ella.</p>`;
   }
-  const n = act.disponibles;
-  return `<p class="bf__disp${act.estado_boletos === 'pocos' ? ' bf__disp--pocos' : ''}">
-    Boleto gratuito · <b>${n === 1 ? 'queda 1 lugar' : `quedan ${n} lugares`}</b></p>`;
+  // Sin el número de lugares: no es asunto del público. Cuando quedan pocos se
+  // avisa, sin decir cuántos.
+  const pocos = act.estado_boletos === 'pocos';
+  return `<p class="bf__disp${pocos ? ' bf__disp--pocos' : ''}">
+    Boleto gratuito${pocos ? ' · <b>últimos lugares</b>' : ''}</p>`;
 }
 
 function opcionesHtml(lista, placeholder) {

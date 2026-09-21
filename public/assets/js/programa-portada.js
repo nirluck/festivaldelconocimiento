@@ -124,12 +124,13 @@ function pintar(acts, total) {
     </div>`;
 }
 
-/** « · Quedan 3 lugares», o nada si la actividad es de entrada libre. */
+/** « · Boleto gratuito», o nada si la actividad es de entrada libre. Nunca el
+    número de lugares: no es asunto del público. */
 function boleto(a) {
   if (a.acceso === 'registro') return a.estado_boletos === 'cerrado' ? '' : ' · Confirma asistencia';
   if (a.acceso !== 'boleto') return '';
   switch (a.estado_boletos) {
-    case 'pocos':   return a.disponibles === 1 ? ' · Queda 1 lugar' : ` · Quedan ${a.disponibles} lugares`;
+    case 'pocos':   return ' · Últimos lugares';
     case 'agotado': return ' · Agotado';
     case 'pronto':  return ' · Boletos muy pronto';
     case 'cerrado': return '';

@@ -430,13 +430,97 @@ a{color:var(--turquesa-tx)}
 .pg-volver svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round}
 
-/* El hero de la actividad toma el color de su eje como acento. El fondo sigue
-   siendo el azul petróleo: cuatro heros de colores distintos romperían la
-   identidad del sitio en cuatro. */
-.pg-hero--act{padding-bottom:clamp(26px,4vw,38px)}
+/* ---- hero de la actividad -------------------------------------------------
+   Con póster, el póster hace dos trabajos: completo a la derecha junto al
+   título, y desenfocado de fondo cubriendo toda la banda bajo un velo de
+   color. El velo lleva el oscuro de la marca por la izquierda, donde va el
+   texto, y deja asomar el color del eje hacia la derecha: cada actividad tiene
+   su atmósfera y el sitio sigue siendo uno solo.
+
+   Sin póster se queda como estaba: el oscuro de la marca y los anillos.
+   ------------------------------------------------------------------------- */
+.pg-hero--act{padding:clamp(34px,6vw,64px) 0}
 .pg-hero--act::after{opacity:.1}
 .pg-hero--act .pg-kicker{color:var(--eje)}
-.pg-hero--act h1{font-size:clamp(1.8rem,5vw,2.9rem)}
+.pg-hero--act h1{font-size:clamp(1.9rem,5vw,3.1rem)}
+.pg-hero--act .pg-hero__lede{
+  font-size:clamp(1.04rem,2.2vw,1.2rem); line-height:1.55;
+  color:rgba(255,255,255,.86); max-width:48ch;
+}
+
+.pg-hero--poster{isolation:isolate}
+.pg-hero--poster::after{display:none}      /* los anillos sobran: decora la foto */
+
+/* 12 px de desenfoque: la foto se reconoce, fuera de foco. Con 42 se volvía
+   una mancha de color y, sumada a un velo muy cerrado, no se veía.
+   El margen negativo esconde la orilla del desenfoque, que se deslava hacia
+   transparente y dejaría un marco claro alrededor de la banda. */
+.pg-hero__fondo{
+  position:absolute; inset:-36px; z-index:-2;
+  background-position:center; background-size:cover; background-repeat:no-repeat;
+  filter:blur(12px) saturate(1.3);
+}
+/* Dos capas: el oscuro encima, que manda por la izquierda, y el color del eje
+   debajo, que tiñe la foto. El primer velo dejaba pasar entre el 5 y el 15 %
+   de la imagen detrás del texto, y a la derecha, donde pasaba más, la tapaba
+   el póster: la foto no se veía.
+
+   Estas cifras son las más abiertas que aguantan el peor caso, un píxel blanco
+   de fondo con el color de eje más claro posible: la entradilla, que termina
+   hacia el 42 % del ancho, queda arriba de 5:1, y el título, que es letra
+   grande, arriba de 3:1. La sombra del texto es respaldo, no el cálculo. */
+.pg-hero__velo{
+  position:absolute; inset:0; z-index:-1;
+  background:
+    linear-gradient(95deg,
+      color-mix(in srgb, var(--marca-oscuro-2) 78%, transparent) 0%,
+      color-mix(in srgb, var(--marca-oscuro-2) 60%, transparent) 50%,
+      color-mix(in srgb, var(--marca-oscuro-2) 22%, transparent) 100%),
+    color-mix(in srgb, var(--eje) 28%, transparent);
+}
+.pg-hero--poster h1,
+.pg-hero--poster .pg-hero__lede{text-shadow:0 1px 14px rgba(0,0,0,.45)}
+
+.pg-hero__rejilla{display:grid;gap:clamp(26px,4vw,60px);align-items:center}
+@media (min-width:900px){
+  .pg-hero--poster .pg-hero__rejilla{grid-template-columns:minmax(0,1fr) clamp(300px,30vw,390px)}
+}
+
+/* El póster completo, sin recortar: aquí se tiene que poder leer. Liga a la
+   imagen grande. «aspect-ratio: auto 1/1» aparta el cuadrado antes de que
+   cargue, para que el hero no brinque; ya cargada manda su proporción real. */
+.pg-hero__poster{
+  display:block; width:100%; border-radius:14px; overflow:hidden;
+  background:rgba(255,255,255,.06);
+  box-shadow:0 28px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.14);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.pg-hero__poster:hover{
+  transform:translateY(-4px);
+  box-shadow:0 34px 70px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.24);
+}
+.pg-hero__poster img{width:100%;height:auto;aspect-ratio:auto 1/1}
+
+/* La acción principal de la página, junto al título. */
+.pg-hero__cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.pg-hero__cta:empty{display:none}
+.pg-btn--grande{font-size:1rem;padding:15px 28px}
+.pg-hero .pg-btn--lleno{box-shadow:0 10px 28px rgba(212,17,111,.35)}
+
+/* En pantalla angosta el texto ocupa todo el ancho, así que el velo oscurece
+   parejo y no solo por la izquierda. El póster va después del botón: primero
+   qué es y cómo conseguir lugar, luego la imagen, a un tamaño que no empuje
+   los datos una pantalla entera hacia abajo. */
+@media (max-width:899px){
+  .pg-hero__velo{
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--marca-oscuro-2) 62%, transparent) 0%,
+        color-mix(in srgb, var(--marca-oscuro-2) 80%, transparent) 60%),
+      color-mix(in srgb, var(--eje) 28%, transparent);
+  }
+  .pg-hero__poster{max-width:260px}
+}
 
 .pg-hero__tipo{
   display:flex; width:fit-content; align-items:center; gap:9px; margin-bottom:14px;
@@ -447,13 +531,14 @@ a{color:var(--turquesa-tx)}
 }
 .pg-hero__tipo i{width:9px;height:9px;border-radius:50%;background:var(--eje);flex:0 0 auto}
 
-/* ---- ficha de datos ------------------------------------------------------- */
-.pg-det{padding:clamp(26px,5vw,44px) 0 90px}
-.pg-det__rejilla{display:grid;gap:clamp(22px,4vw,38px)}
-/* 360 px de lado: el póster cuadrado ocupa lo mismo que el vertical de antes
-   (320 × 400) y conserva su presencia. */
+/* ---- cuerpo: los datos a la izquierda, el texto a la derecha --------------
+   Los datos van primero porque es lo que se busca de un vistazo: cuándo,
+   dónde, cómo se entra. En celular quedan antes del texto por el mismo motivo,
+   y ahí basta el orden del documento. */
+.pg-det{padding:clamp(28px,5vw,48px) 0 90px}
+.pg-det__rejilla{display:grid;gap:clamp(24px,4vw,52px)}
 @media (min-width:900px){
-  .pg-det__rejilla{grid-template-columns:1fr 360px;align-items:start}
+  .pg-det__rejilla{grid-template-columns:330px minmax(0,1fr);align-items:start}
 }
 
 .pg-ficha{
@@ -461,37 +546,14 @@ a{color:var(--turquesa-tx)}
   border-top:4px solid var(--eje);
   border-radius:var(--r); padding:22px 24px; box-shadow:var(--sombra);
 }
-/* El lado pegajoso solo SIN póster. Con póster suma más de 800 px de alto,
-   más que la pantalla de una laptop: pegado arriba, su parte de abajo —los
-   datos de horario y sede— no se alcanzaría a ver nunca. */
-.pg-lado{display:flex;flex-direction:column;gap:18px;min-width:0}
+/* Pegajoso: el póster se fue al hero y la columna quedó en datos y boleto,
+   unos 550 px, que caben en la pantalla de una laptop. Antes, con el póster,
+   pasaba de 800 y su parte de abajo no se alcanzaba nunca. */
+.pg-lado{display:flex;flex-direction:column;gap:16px;min-width:0}
 @media (min-width:900px){
-  .pg-lado:not(.pg-lado--poster){position:sticky;top:calc(var(--cab-alto,64px) + 22px)}
+  .pg-lado{position:sticky;top:calc(var(--cab-alto,64px) + 22px)}
 }
 
-/* ---- el póster en la ficha ------------------------------------------------
-   Completo, sin recortar: aquí sí se tiene que poder leer. Liga a la imagen
-   grande para quien quiera verla o guardarla.
-
-   «aspect-ratio: auto 1 / 1» aparta un cuadrado ANTES de que cargue la
-   imagen, así la tarjeta de datos no brinca hacia abajo al llegar el póster.
-   El «auto» hace que, ya cargada, mande su proporción real: un póster de antes
-   de la regla del cuadrado se ve entero, sin recorte.
---------------------------------------------------------------------------- */
-.pg-poster{
-  display:block; border-radius:var(--r); overflow:hidden; background:#fff;
-  border:1px solid var(--line); box-shadow:var(--sombra-h);
-  transition:transform .2s ease;
-}
-.pg-poster:hover{transform:translateY(-3px)}
-.pg-poster img{width:100%;height:auto;aspect-ratio:auto 1/1;background:var(--ice)}
-
-/* En celular el lado va PRIMERO: póster y luego cuándo y dónde, antes que la
-   descripción larga. Quien abre la liga desde WhatsApp quiere saber eso. */
-@media (max-width:899px){
-  .pg-lado{order:-1}
-  .pg-poster{max-width:360px;width:100%;margin-inline:auto}
-}
 .pg-ficha h2{
   font-family:var(--f-disp); font-size:.74rem; font-weight:700;
   letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3);
@@ -511,21 +573,47 @@ a{color:var(--turquesa-tx)}
   stroke:var(--eje-tx);fill:none;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round}
 
-.pg-texto h2{
-  font-family:var(--f-disp); font-weight:700; font-size:1.22rem;
-  letter-spacing:-.02em; margin-bottom:12px;
+/* ---- el texto --------------------------------------------------------------
+   Lo que escribe coordinación, con el formato que reconoce formato() en
+   programa.js: párrafos, listas, subtítulos, negritas y ligas. Medida de 66
+   caracteres, lo cómodo para leer de corrido. Los selectores van con «>» para
+   no alcanzar al bloque de compartir, que vive dentro. */
+.pg-texto{min-width:0;max-width:66ch;font-size:1.06rem;line-height:1.75;color:var(--tx-2)}
+.pg-texto > p{margin-bottom:1.1em;text-wrap:pretty}
+/* El primer párrafo abre: un punto más grande y más oscuro. */
+.pg-texto > p:first-child{font-size:clamp(1.1rem,2.2vw,1.24rem);line-height:1.6;color:var(--tx)}
+.pg-texto > h3{
+  font-family:var(--f-disp); font-weight:700; font-size:1.16rem; line-height:1.3;
+  letter-spacing:-.015em; color:var(--tx); margin:1.7em 0 .55em;
 }
-.pg-texto__lede{
-  font-size:clamp(1.06rem,2.4vw,1.18rem); line-height:1.55; color:var(--tx);
-  padding-left:16px; border-left:3px solid var(--eje);
-  margin-bottom:26px; text-wrap:pretty;
+.pg-texto > h3:first-child{margin-top:0}
+.pg-texto > ul, .pg-texto > ol{display:grid;gap:.5em;margin:0 0 1.3em}
+.pg-texto li{position:relative;padding-left:1.6em;text-wrap:pretty}
+.pg-texto ul li::before{
+  content:''; position:absolute; left:.3em; top:.72em;
+  width:7px; height:7px; border-radius:50%; background:var(--eje);
 }
-.pg-texto p{color:var(--tx-2);margin-bottom:14px;max-width:68ch;text-wrap:pretty}
-.pg-texto p:last-child{margin-bottom:0}
+.pg-texto ol{counter-reset:paso}
+.pg-texto ol li{counter-increment:paso}
+.pg-texto ol li::before{
+  content:counter(paso) '.'; position:absolute; left:0; top:0;
+  font-family:var(--f-disp); font-weight:700; color:var(--eje-tx);
+  font-variant-numeric:tabular-nums;
+}
+.pg-texto strong{color:var(--tx);font-weight:600}
+.pg-texto a{color:var(--eje-tx);text-underline-offset:3px;text-decoration-thickness:1px;overflow-wrap:anywhere}
 
-/* ---- compartir ------------------------------------------------------------ */
-.pg-comp{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px;
-  padding-top:22px;border-top:1px solid var(--line)}
+/* ---- compartir ------------------------------------------------------------
+   En segundo plano a propósito: contorno fino y letra chica. La acción de la
+   página es conseguir boleto, y compartir no debe competir con ella. */
+.pg-comp{margin-top:36px;padding-top:22px;border-top:1px solid var(--line)}
+.pg-comp__tit{
+  font-family:var(--f-disp); font-size:.72rem; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3); margin-bottom:12px;
+}
+.pg-comp__botones{display:flex;gap:8px;flex-wrap:wrap}
+.pg-comp .pg-btn{font-size:.84rem;padding:8px 16px;border-width:1px;border-color:var(--line);color:var(--tx-2)}
+.pg-comp .pg-btn:hover{background:var(--dark);border-color:var(--dark);color:#fff}
 .pg-btn{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   font-family:var(--f-disp); font-weight:600; font-size:.9rem;
@@ -578,6 +666,8 @@ a{color:var(--turquesa-tx)}
   .pg-dia__tit{border-bottom:1.5pt solid #000}
   .pg-cuerpo{padding:14pt 0 0}
   .pg-ficha,.pg-lado{position:static;box-shadow:none}
+  .pg-hero__fondo,.pg-hero__velo,.pg-hero__cta{display:none!important}
+  .pg-hero__poster{box-shadow:none;max-width:200px}
   .pg-act__poster{box-shadow:none}
 }
 

@@ -448,8 +448,10 @@ function etiquetaBoleto(a) {
     return e === 'cerrado' ? '' : `<span class="pg-bol">${ICO.boleto}Confirma asistencia</span>`;
   }
   switch (e) {
+    // Sin número: cuántos lugares quedan no es asunto del público, y con el
+    // sobrecupo incluido ni siquiera es la capacidad de la sala.
     case 'pocos':
-      return `<span class="pg-bol pg-bol--pocos">${ICO.boleto}${a.disponibles === 1 ? 'Queda 1 lugar' : `Quedan ${a.disponibles} lugares`}</span>`;
+      return `<span class="pg-bol pg-bol--pocos">${ICO.boleto}Últimos lugares</span>`;
     case 'agotado':
       return `<span class="pg-bol pg-bol--agotado">${ICO.boleto}Agotado · lista de espera</span>`;
     case 'pronto':
@@ -493,7 +495,9 @@ function bloqueBoleto(a) {
     texto = '<b>Se terminaron los lugares.</b> Anótate en la lista de espera: si alguien cancela o sobran lugares en la entrada, pasas primero.';
     boton = '<button class="pg-btn pg-btn--lleno" type="button" data-abrir-boleto>Anotarme en la lista de espera</button>';
   } else {
-    texto = `Esta actividad tiene cupo y pide boleto gratuito. <b>${a.disponibles === 1 ? 'Queda 1 lugar' : `Quedan ${a.disponibles} lugares`}.</b>`;
+    texto = e === 'pocos'
+      ? 'Esta actividad tiene cupo y pide boleto gratuito. <b>Quedan los últimos lugares.</b>'
+      : 'Esta actividad tiene cupo y pide boleto gratuito.';
     boton = '<button class="pg-btn pg-btn--lleno" type="button" data-abrir-boleto>Consigue tu boleto</button>';
   }
 
@@ -503,6 +507,26 @@ function bloqueBoleto(a) {
       <p>${texto}</p>
       ${boton}
     </section>`;
+}
+
+/**
+ * El botón principal en el hero, junto al título. Es la misma acción que el
+ * recuadro de la columna de datos, sin la explicación: el recuadro se queda
+ * con ella. En «pronto» y «cerrado» no hay nada que pulsar y el hero no pone
+ * botón; la explicación de por qué sí la da el recuadro.
+ */
+function ctaHero(a) {
+  if (!a.acceso || a.acceso === 'libre') return '';
+  const mio = boletoDeActividad(a.slug);
+  if (mio) {
+    return `<a class="pg-btn pg-btn--lleno pg-btn--grande" href="/boleto/#${escapar(mio.token)}">${ICO.boleto}Ver mi boleto</a>`;
+  }
+  const e = a.estado_boletos;
+  if (e === 'pronto' || e === 'cerrado') return '';
+  const texto = a.acceso === 'registro' ? 'Confirmar asistencia'
+              : e === 'agotado'        ? 'Anotarme en la lista de espera'
+              :                          'Consigue tu boleto';
+  return `<button class="pg-btn pg-btn--lleno pg-btn--grande" type="button" data-abrir-boleto>${ICO.boleto}${texto}</button>`;
 }
 
 /** De dónde llegó la persona a la ficha, para el campo «origen» del boleto. */
@@ -520,8 +544,13 @@ function origenFicha() {
 }
 
 function conectarBloque(a, origen) {
-  document.querySelectorAll('[data-abrir-boleto]').forEach(b =>
-    b.addEventListener('click', () => abrirDialogo(a, origen, b.hasAttribute('data-forzar'))));
+  // Solo los botones que aún no tienen oyente. Ahora hay dos sitios con botón,
+  // el hero y el recuadro, que se repintan por separado; uno conectado dos
+  // veces llamaría a showModal sobre un diálogo ya abierto, y eso lanza error.
+  document.querySelectorAll('[data-abrir-boleto]:not([data-conectado])').forEach(b => {
+    b.setAttribute('data-conectado', '');
+    b.addEventListener('click', () => abrirDialogo(a, origen, b.hasAttribute('data-forzar')));
+  });
 }
 
 async function abrirDialogo(a, origen, forzar) {
@@ -594,6 +623,8 @@ async function refrescarBloque(id, origen) {
   const t = document.createElement('template');
   t.innerHTML = bloqueBoleto(data).trim();
   if (t.content.firstElementChild) viejo.replaceWith(t.content.firstElementChild);
+  const hero = document.getElementById('hero-boleto');
+  if (hero) hero.innerHTML = ctaHero(data);
   conectarBloque(data, origen);
 }
 
@@ -652,74 +683,86 @@ async function pintarFicha(slug) {
   const meta = document.querySelector('meta[name="description"]');
   if (meta && a.resumen) meta.setAttribute('content', a.resumen);
 
-  const cuandoDia  = a.fecha ? diaLargo(a.fecha) : null;
-  const descripcion = (a.descripcion || '').trim();
+  const cuandoDia = a.fecha ? diaLargo(a.fecha) : null;
+  const poster    = a.poster ? urlPoster(a.poster) : '';
+
+  // El resumen suele traer varios párrafos —el de Los Panchos trae cuatro— y se
+  // pintaba en un solo <p>, así que llegaba como un bloque corrido. Si el
+  // primero es corto sube al hero como entradilla; el resto abre el texto, y
+  // detrás va la descripción.
+  const resumen = bloquesDe(a.resumen);
+  const lede = (resumen.length && esEntradilla(resumen[0])) ? resumen.shift() : '';
+  const cuerpo = formato([...resumen, ...bloquesDe(a.descripcion)].join('\n\n'));
 
   pagina.innerHTML = `
-  <header class="pg-hero pg-hero--act" style="${estiloEje(a.eje_color)}">
-    <div class="pg-wrap pg-hero__in">
-      <a class="pg-volver" href="/programa/${location.hash}">${ICO.flecha} Todo el programa</a>
-      ${a.tipo || a.eje ? `
-      <p class="pg-hero__tipo"><i></i>${escapar(a.tipo || a.eje)}</p>` : ''}
-      <p class="pg-kicker">${escapar(a.eje || 'Festival del Conocimiento')}</p>
-      <h1>${escapar(a.titulo)}</h1>
+  <header class="pg-hero pg-hero--act${poster ? ' pg-hero--poster' : ''}" style="${estiloEje(a.eje_color)}">
+    ${poster ? `
+    <div class="pg-hero__fondo" aria-hidden="true"></div>
+    <div class="pg-hero__velo" aria-hidden="true"></div>` : ''}
+    <div class="pg-wrap pg-hero__in pg-hero__rejilla">
+      <div class="pg-hero__txt">
+        <a class="pg-volver" href="/programa/${location.hash === '#boleto' ? '' : location.hash}">${ICO.flecha} Todo el programa</a>
+        ${a.tipo || a.eje ? `
+        <p class="pg-hero__tipo"><i></i>${escapar(a.tipo || a.eje)}</p>` : ''}
+        <p class="pg-kicker">${escapar(a.eje || 'Festival del Conocimiento')}</p>
+        <h1>${escapar(a.titulo)}</h1>
+        ${lede ? `<p class="pg-hero__lede">${enLinea(escapar(lede))}</p>` : ''}
+        <div class="pg-hero__cta" id="hero-boleto">${ctaHero(a)}</div>
+      </div>
+      ${poster ? `
+      <a class="pg-hero__poster" href="${escapar(poster)}" target="_blank" rel="noopener"
+         title="Ver el póster completo">
+        <img src="${escapar(poster)}" alt="Póster de «${escapar(a.titulo)}»" decoding="async"
+             onerror="this.closest('.pg-hero').classList.remove('pg-hero--poster');this.closest('.pg-hero__poster').remove()">
+      </a>` : ''}
     </div>
   </header>
 
   <div class="pg-det"><div class="pg-wrap">
     <div class="pg-det__rejilla">
 
+      <aside class="pg-lado" aria-label="Datos de la actividad">
+        <div class="pg-ficha" style="${estiloEje(a.eje_color)}">
+          <h2>Los datos</h2>
+          <dl>
+            <div class="pg-ficha__fila">${ICO.calend}
+              <div><dt>Cuándo</dt>
+                <dd>${cuandoDia ? escapar(cuandoDia) : 'Por confirmar'}
+                  ${a.fecha ? `<small>${escapar(String(a.fecha).slice(0, 4))}</small>` : ''}
+                </dd></div>
+            </div>
+            <div class="pg-ficha__fila">${ICO.reloj}
+              <div><dt>Horario</dt><dd>${escapar(rangoHoras(a))}</dd></div>
+            </div>
+            ${a.sede ? `
+            <div class="pg-ficha__fila">${ICO.pin}
+              <div><dt>Sede</dt><dd>${escapar(a.sede)}
+                ${a.sede_direccion ? `<small>${escapar(a.sede_direccion)}</small>` : ''}
+              </dd></div>
+            </div>` : ''}
+            ${a.tipo ? `
+            <div class="pg-ficha__fila">${ICO.etiq}
+              <div><dt>Tipo de actividad</dt><dd>${escapar(a.tipo)}</dd></div>
+            </div>` : ''}
+            <div class="pg-ficha__fila">${ICO.gente}
+              <div><dt>Entrada</dt>
+                <dd>${entradaFicha(a)}</dd></div>
+            </div>
+          </dl>
+        </div>
+        ${bloqueBoleto(a)}
+      </aside>
+
       <div class="pg-texto" style="${estiloEje(a.eje_color)}">
-        ${a.resumen ? `<p class="pg-texto__lede">${escapar(a.resumen)}</p>` : ''}
-        ${descripcion ? `
-          <h2>De qué se trata</h2>
-          ${parrafos(descripcion)}`
-        : (a.resumen ? '' : `
+        ${cuerpo || (lede ? '' : `
           <p>La descripción completa de esta actividad se publicará pronto.
              Los datos de día, hora y sede ya están en firme.</p>`)}
 
         <div class="pg-comp">
-          ${botonesCompartir(a)}
+          <p class="pg-comp__tit">Comparte esta actividad</p>
+          <div class="pg-comp__botones">${botonesCompartir(a)}</div>
         </div>
       </div>
-
-      <aside class="pg-lado${a.poster ? ' pg-lado--poster' : ''}">
-      ${bloqueBoleto(a)}
-      ${a.poster ? `
-      <a class="pg-poster" href="${urlPoster(a.poster)}" target="_blank" rel="noopener"
-         title="Ver el póster completo">
-        <img src="${urlPoster(a.poster)}" alt="Póster de «${escapar(a.titulo)}»" decoding="async"
-             onerror="this.closest('.pg-poster').remove()">
-      </a>` : ''}
-      <div class="pg-ficha" style="${estiloEje(a.eje_color)}">
-        <h2>Los datos</h2>
-        <dl>
-          <div class="pg-ficha__fila">${ICO.calend}
-            <div><dt>Cuándo</dt>
-              <dd>${cuandoDia ? escapar(cuandoDia) : 'Por confirmar'}
-                ${a.fecha ? `<small>${escapar(String(a.fecha).slice(0, 4))}</small>` : ''}
-              </dd></div>
-          </div>
-          <div class="pg-ficha__fila">${ICO.reloj}
-            <div><dt>Horario</dt><dd>${escapar(rangoHoras(a))}</dd></div>
-          </div>
-          ${a.sede ? `
-          <div class="pg-ficha__fila">${ICO.pin}
-            <div><dt>Sede</dt><dd>${escapar(a.sede)}
-              ${a.sede_direccion ? `<small>${escapar(a.sede_direccion)}</small>` : ''}
-            </dd></div>
-          </div>` : ''}
-          ${a.tipo ? `
-          <div class="pg-ficha__fila">${ICO.etiq}
-            <div><dt>Tipo de actividad</dt><dd>${escapar(a.tipo)}</dd></div>
-          </div>` : ''}
-          <div class="pg-ficha__fila">${ICO.gente}
-            <div><dt>Entrada</dt>
-              <dd>${entradaFicha(a)}</dd></div>
-          </div>
-        </dl>
-      </div>
-      </aside>
 
     </div>
 
@@ -728,6 +771,12 @@ async function pintarFicha(slug) {
       <div class="pg-lista" id="mismo-lista"></div>
     </section>
   </div></div>`;
+
+  // El fondo desenfocado se pone desde aquí y no en un atributo style: la ruta
+  // viene de la base, y JSON.stringify la deja como cadena CSS bien cerrada
+  // aunque trajera comillas o paréntesis.
+  const fondo = pagina.querySelector('.pg-hero__fondo');
+  if (fondo) fondo.style.backgroundImage = `url(${JSON.stringify(poster)})`;
 
   document.querySelectorAll('.pg-btn[data-copiar]').forEach(b =>
     b.addEventListener('click', copiarLiga));
@@ -743,20 +792,90 @@ async function pintarFicha(slug) {
   if (a.fecha) await pintarMismoDia(a);
 }
 
-/** El texto largo llega como un bloque; los saltos dobles son párrafos. */
-function parrafos(texto) {
-  return texto
-    .split(/\n{2,}/)
-    .map(p => `<p>${escapar(p.trim()).replace(/\n/g, '<br>')}</p>`)
-    .join('');
+/* ============================================================================
+   EL TEXTO DE LA FICHA
+   ----------------------------------------------------------------------------
+   Coordinación escribe en un cuadro de texto plano y aquí se respeta lo que
+   pone, en vez de fundirlo en un solo bloque:
+
+     · un renglón en blanco separa párrafos
+     · un renglón que empieza con guion, viñeta o asterisco es una lista
+     · un renglón que empieza con «1.» o «1)» es una lista numerada
+     · un renglón corto y suelto que acaba en dos puntos es un subtítulo
+     · **así** va en negritas, y las ligas http(s) se vuelven enlaces
+
+   Todo se ESCAPA PRIMERO y el formato se aplica sobre texto ya escapado: nada
+   de lo que se escriba en ese cuadro puede meter HTML en la página.
+   ========================================================================== */
+const ENTRADILLA_MAX = 220;
+const RE_VINETA = /^[-•*–]\s+/;
+const RE_NUMERO = /^\d{1,2}[.)]\s+/;
+
+/** Parte un texto en bloques separados por renglones en blanco. */
+function bloquesDe(texto) {
+  return String(texto || '')
+    .replace(/\r\n?/g, '\n')
+    .split(/\n[ \t]*\n/)
+    .map(b => b.trim())
+    .filter(Boolean);
 }
 
+/** Un párrafo que puede subir al hero: corto, de un renglón y que no es lista. */
+function esEntradilla(bloque) {
+  return bloque.length <= ENTRADILLA_MAX
+    && !bloque.includes('\n')
+    && !RE_VINETA.test(bloque) && !RE_NUMERO.test(bloque);
+}
+
+/** Negritas y enlaces. Recibe texto YA escapado. */
+function enLinea(html) {
+  return html
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // El último carácter no puede ser puntuación: «visita https://x.org.» no
+    // debe llevarse el punto final dentro del enlace.
+    .replace(/(^|[\s(])(https?:\/\/[^\s<]*[^\s<.,;:!?)])/g,
+      '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+}
+
+function formato(texto) {
+  return bloquesDe(texto).map(bloque => {
+    let html = '', grupo = [], tipo = null;          // tipo: 'ul' | 'ol' | 'p'
+
+    const cerrar = () => {
+      if (!grupo.length) return;
+      if (tipo === 'ul' || tipo === 'ol') {
+        html += `<${tipo}>${grupo.map(l => `<li>${enLinea(escapar(l))}</li>`).join('')}</${tipo}>`;
+      } else if (grupo.length === 1 && grupo[0].length <= 60 && grupo[0].endsWith(':')) {
+        html += `<h3>${enLinea(escapar(grupo[0].slice(0, -1)))}</h3>`;
+      } else {
+        html += `<p>${grupo.map(l => enLinea(escapar(l))).join('<br>')}</p>`;
+      }
+      grupo = [];
+    };
+
+    // Renglón por renglón, porque es común escribir el título de una lista y
+    // sus puntos sin dejar renglón en blanco en medio.
+    for (const renglon of bloque.split('\n')) {
+      const l = renglon.trim();
+      if (!l) continue;
+      const t = RE_VINETA.test(l) ? 'ul' : RE_NUMERO.test(l) ? 'ol' : 'p';
+      if (t !== tipo) { cerrar(); tipo = t; }
+      grupo.push(t === 'ul' ? l.replace(RE_VINETA, '') : t === 'ol' ? l.replace(RE_NUMERO, '') : l);
+    }
+    cerrar();
+    return html;
+  }).join('');
+}
+
+/* Compartir va en segundo plano: botones de contorno y pequeños. Con WhatsApp
+   relleno en magenta competía con «Consigue tu boleto», que es la única acción
+   principal de la página. */
 function botonesCompartir(a) {
   const url = location.origin + '/programa/' + encodeURIComponent(a.slug) + '/';
   const texto = `${a.titulo} · Festival del Conocimiento`;
   return `
-    <a class="pg-btn pg-btn--lleno" target="_blank" rel="noopener"
-       href="https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}">Compartir por WhatsApp</a>
+    <a class="pg-btn" target="_blank" rel="noopener"
+       href="https://wa.me/?text=${encodeURIComponent(texto + ' ' + url)}">WhatsApp</a>
     <a class="pg-btn" target="_blank" rel="noopener"
        href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}">Facebook</a>
     <button class="pg-btn" type="button" data-copiar="${escapar(url)}">${ICO.liga} Copiar liga</button>`;
