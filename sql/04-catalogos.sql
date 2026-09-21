@@ -58,6 +58,7 @@ insert into public.sedes (nombre, orden) values
   ('Bodegas de Santo Tomás',                                12),
   ('Teatro Universitario Benito Juárez',                   13),
   ('Parque Ejido El Porvenir',                              14),
+  ('Centro de Investigación Científica y de Educación Superior de Ensenada (CICESE)', 15),
   ('Otra sede',                                             98),
   ('Por definir',                                           99)
 on conflict (nombre) do update set orden = excluded.orden;
@@ -75,7 +76,7 @@ on conflict (nombre) do update set orden = excluded.orden;
 
 -- =============================================================================
 --  COMPROBACIÓN
---  Al terminar deberías ver 4 ejes, 14 tipos y 16 sedes.
+--  Al terminar deberías ver 4 ejes, 14 tipos y 17 sedes.
 --
 --  Ya no se cuentan «dias» ni «ajustes»: 07-nucleo.sql eliminó esas tablas.
 --  Los días los sustituyó «actividades.fecha», acotada por la edición activa.
