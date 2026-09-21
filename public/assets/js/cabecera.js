@@ -73,9 +73,9 @@ const RUTAS_SISTEMA = ['/mi-actividad/', '/actividad/', '/panel/', '/registro/',
 const MENU_SISTEMA = {
   administrador: [
     ['/panel/',          'Tablero',         ['/actividad/']],
-    ['/panel/programa/', 'Armar programa'],
-    ['/panel/boletos/',  'Boletos'],
     ['/mi-actividad/',   'Mis actividades'],
+    ['/panel/boletos/',  'Boletos'],
+    ['/panel/programa/', 'Armar programa'],
   ],
   coordinador: [
     ['/mi-actividad/', 'Mis actividades', ['/actividad/']],

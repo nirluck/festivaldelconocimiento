@@ -28,6 +28,10 @@
   .btn--peligro{color:var(--rojo);border-color:var(--rojo)}
   .btn--peligro:hover{background:var(--rojo);color:#fff}
   .confirmar{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+  /* La fila entera abre la actividad. */
+  tbody tr[data-href]{cursor:pointer}
+  .fila-tit{color:inherit;text-decoration:none}
+  tbody tr[data-href]:hover .fila-tit strong{color:var(--turquesa-tx);text-decoration:underline;text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -123,6 +127,7 @@ function pintar() {
   $('#f-buscar').addEventListener('input', tabla);
   $('#csv').addEventListener('click', exportar);
   $('#tabla').addEventListener('click', accionFila);
+  $('#tabla').addEventListener('click', abrirFila);
   tabla();
 }
 
@@ -178,13 +183,13 @@ function tabla() {
         </thead>
         <tbody>
           ${d.map(f => `
-            <tr>
+            <tr data-href="/actividad/?id=${encodeURIComponent(f.id)}">
               <td>
                 <span class="luces luces--${f.color}"><i></i><i></i><i></i></span>
                 <span class="chip chip--${f.color}">${escapar(f.etiqueta)}</span>
               </td>
               <td>
-                <strong>${escapar(f.titulo)}</strong>
+                <a class="fila-tit" href="/actividad/?id=${encodeURIComponent(f.id)}"><strong>${escapar(f.titulo)}</strong></a>
                 <span class="motivo">
                   <span class="eje">${escapar(f.eje || '—')}</span>
                   ${escapar(f.tipo || '')}${f.fecha ? ' · ' + escapar(fechaDia(f.fecha)) : ''}${f.hora_inicio ? ' · ' + escapar(hora(f.hora_inicio)) + ' h' : ''}
@@ -213,6 +218,21 @@ function tabla() {
     <p class="entrada" style="margin-top:14px;font-size:.86rem">
       ${d.length} de ${filas.length} ${vista === 'archivadas' ? 'archivadas' : 'actividades'}.
     </p>`;
+}
+
+/* ------------------------------------------------------ abrir una fila --
+   Un clic en cualquier parte de la fila abre la administración de la
+   actividad. El título es además un enlace de verdad: con teclado se llega
+   con Tab, y Ctrl o ⌘ + clic lo abren en otra pestaña como cualquier liga.
+   No se dispara sobre los botones de la fila ni sobre el correo, ni si la
+   persona estaba seleccionando texto para copiarlo. */
+function abrirFila(e) {
+  if (e.target.closest('a, button, input, select, textarea, label')) return;
+  if (String(getSelection()).trim()) return;
+  const tr = e.target.closest('tr[data-href]');
+  if (!tr) return;
+  if (e.ctrlKey || e.metaKey) window.open(tr.dataset.href, '_blank', 'noopener');
+  else location.href = tr.dataset.href;
 }
 
 /* -------------------------------------------------------- acciones ------- */
