@@ -14,107 +14,207 @@
      ARMAR EL PROGRAMA · estilos propios de esta pantalla
      Van aquí y no en app.css siguiendo lo que ya hace /panel/: es una pantalla
      sola y su CSS no lo usa nadie más.
+
+     LA IDEA DEL DISEÑO (21 de septiembre de 2026)
+     La versión anterior ponía los ocho días en columnas de 252 px, uno junto
+     al otro: 2 100 px de ancho que obligaban a desplazarse a los lados, con la
+     bandeja y la página desplazándose cada una por su cuenta, y medio metro de
+     cifras y avisos antes de ver la primera actividad. Ahora:
+
+       · Dos paneles que llenan la pantalla: «Por programar» y «Programa».
+         Cada uno se desplaza por dentro; la página, no.
+       · Los días son PESTAÑAS: uno a la vez, sin desplazarse a los lados.
+       · Arriba, lo mínimo: título, cifras en una línea y una guía de tres
+         pasos que se puede cerrar.
      ========================================================================== */
 
-  .sub{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
-  .sub a{
-    font-family:var(--f-disp);font-weight:600;font-size:.88rem;text-decoration:none;
-    color:var(--tx-2);padding:8px 16px;border-radius:100px;border:1.5px solid var(--line);
-    background:var(--surface);
+  /* Cualquier display le gana al atributo hidden; aquí se le devuelve. */
+  .mesa [hidden], .brindis[hidden], .guia[hidden]{display:none!important}
+
+  /* ---- la hoja ocupa la pantalla, en escritorio --------------------------
+     Alto fijo al de la ventana para que los paneles se desplacen por dentro.
+     Con «min-height» por si la pantalla es muy baja: entonces sí se desplaza
+     la página, pero los paneles no se aplastan hasta quedar inservibles. */
+  .hoja--mesa{padding-top:20px;padding-bottom:16px}
+  @media(min-width:900px){
+    .hoja--mesa{display:flex;flex-direction:column;
+      height:calc(100dvh - var(--cab-alto,64px));min-height:620px}
+    .hoja--mesa .mesa{flex:1;min-height:0}
   }
-  .sub a:hover{border-color:var(--turquesa);color:var(--tx)}
-  .sub a[aria-current="page"]{background:var(--dark);border-color:var(--dark);color:#fff}
 
-  .resumen{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:22px}
-  @media(min-width:760px){.resumen{grid-template-columns:repeat(4,1fr)}}
-  .dato{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-        padding:16px 18px;box-shadow:var(--sombra)}
-  .dato b{display:block;font-family:var(--f-disp);font-size:1.85rem;line-height:1;
-          font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .dato span{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-3)}
-  .dato--pub b{color:var(--sem-verde)} .dato--band b{color:var(--ambar)}
-  .dato--choq b{color:var(--rojo)}     .dato--dias b{color:var(--turquesa-tx)}
+  /* ---- encabezado: una línea ------------------------------------------- */
+  .enc{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin-bottom:12px}
+  .enc .kicker{margin-bottom:3px}
+  .enc h1{font-size:clamp(1.4rem,2.4vw,1.85rem)}
+  .cifras{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+  .cifra{font-size:.84rem;color:var(--tx-2);background:var(--surface);
+    border:1px solid var(--line);border-radius:100px;padding:6px 12px;white-space:nowrap}
+  .cifra b{font-family:var(--f-disp);color:var(--tx);font-variant-numeric:tabular-nums}
+  button.cifra--choque{font:inherit;font-size:.84rem;cursor:pointer;
+    background:var(--rojo-bg);border-color:#E7B3AC;color:#8C2418}
+  button.cifra--choque b{color:#8C2418}
+  button.cifra--choque:hover{border-color:var(--rojo)}
 
-  /* ---- el tablero: bandeja fija + días desplazables --------------------- */
-  .mesa{display:grid;gap:16px;align-items:start}
-  @media(min-width:1000px){.mesa{grid-template-columns:286px minmax(0,1fr)}}
+  /* ---- guía de tres pasos --------------------------------------------- */
+  .guia{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;
+    background:var(--ice);border:1px solid #CFE3E5;border-radius:var(--r-s);
+    padding:9px 12px 9px 14px;margin-bottom:12px;font-size:.87rem;color:var(--tx-2)}
+  .guia ol{display:flex;flex-wrap:wrap;gap:6px 20px;counter-reset:paso;flex:1}
+  .guia li{display:flex;align-items:center;gap:8px}
+  .guia li::before{
+    counter-increment:paso;content:counter(paso);flex:0 0 auto;
+    width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    background:var(--dark);color:#fff;font:700 .74rem/1 var(--f-disp)}
+  .guia li b{color:var(--tx)}
+  .guia__cerrar{background:none;border:0;font:inherit;font-size:.82rem;color:var(--tx-3);
+    text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}
 
-  .col{
-    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-    display:flex;flex-direction:column;min-height:120px;box-shadow:var(--sombra);
-  }
-  .col__tit{
-    padding:13px 15px;border-bottom:1px solid var(--line-2);
-    display:flex;justify-content:space-between;align-items:baseline;gap:8px;
-    position:sticky;top:0;background:var(--surface);border-radius:var(--r) var(--r) 0 0;z-index:2;
-  }
-  .col__tit h2{font-family:var(--f-disp);font-size:.95rem;font-weight:700;letter-spacing:-.01em}
-  .col__tit small{font-size:.74rem;color:var(--tx-3);white-space:nowrap;
-                  font-variant-numeric:tabular-nums}
-  .col__cuerpo{padding:11px;display:flex;flex-direction:column;gap:9px;flex:1}
+  /* ---- la mesa: dos paneles -------------------------------------------- */
+  .mesa{display:grid;gap:14px}
+  @media(min-width:900px){.mesa{grid-template-columns:minmax(290px,340px) minmax(0,1fr)}}
 
-  /* La bandeja puede tener cuarenta actividades: se desplaza sola. */
-  .col--bandeja .col__cuerpo{max-height:min(72vh,780px);overflow-y:auto}
-  .col--bandeja{border-left:4px solid var(--ambar)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--sombra);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .panel--pend{border-top:4px solid var(--ambar)}
+  .panel--prog{border-top:4px solid var(--sem-verde)}
+  .panel__cab{padding:12px 14px;border-bottom:1px solid var(--line-2);display:grid;gap:10px}
+  .panel__tit{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .panel__tit h2{font-size:1rem;margin:0}
+  .panel__tit small{font-size:.78rem;color:var(--tx-3);white-space:nowrap}
+  .panel__cuerpo{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+    padding:12px;display:flex;flex-direction:column;gap:9px}
+  .panel.soltar{border-color:var(--turquesa);box-shadow:0 0 0 3px rgba(16,171,196,.2)}
+  .panel__cab input[type=search]{padding:8px 12px;font-size:.9rem}
 
-  /* Los ocho días en una tira horizontal. Partirlos en renglones rompería la
-     lectura de calendario, que es la razón de ser de esta pantalla. */
-  .dias{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:start}
-  .dias .col{flex:0 0 252px}
-  .col--hoy{border-color:var(--turquesa);box-shadow:0 0 0 2px rgba(16,171,196,.16)}
-  .col--vacio .col__cuerpo{min-height:70px}
-
-  /* Zona de caída activa mientras se arrastra */
-  .col.soltar{border-color:var(--turquesa);background:var(--ice)}
-  .col.soltar .col__tit{background:var(--ice)}
-
-  /* ---- tarjeta de actividad --------------------------------------------- */
-  .ac{
-    border:1px solid var(--line);border-left:4px solid var(--eje,var(--turquesa));
+  /* ---- una actividad por programar ------------------------------------- */
+  .pend{border:1px solid var(--line);border-left:4px solid var(--eje,var(--turquesa));
     border-radius:var(--r-s);padding:11px 12px;background:var(--surface);
-    display:flex;flex-direction:column;gap:7px;cursor:grab;
+    display:grid;gap:8px;cursor:grab}
+  .pend:active{cursor:grabbing}
+  .pend__cab{display:flex;gap:10px;align-items:flex-start}
+  .pend__poster,.fila__poster{width:42px;aspect-ratio:1/1;object-fit:cover;flex:0 0 auto;
+    border-radius:6px;border:1px solid var(--line);background:var(--ice)}
+  .pend__tit,.fila__tit{font:700 .94rem/1.3 var(--f-disp);letter-spacing:-.01em;color:var(--tx);
+    text-wrap:pretty}
+  .pend__eti{font-size:.75rem;color:var(--tx-3);margin-top:2px}
+  .pend__eti b{color:var(--eje-tx,var(--turquesa-tx));font-weight:700}
+  .pend__prop{font-size:.8rem;color:var(--tx-2)}
+  .pend__prop b{font-variant-numeric:tabular-nums}
+  .pend__acc{display:flex;gap:6px;align-items:center}
+  .pend__acc .btn{flex:1}
+
+  /* Botones de la pantalla: un poco más grandes que los «mini» de antes, que
+     con el dedo no se atinaban. 34 px de alto como mínimo. */
+  .btn--oscuro{background:var(--dark);color:#fff}
+  .btn--oscuro:hover:not(:disabled){background:var(--darker)}
+  .bt{font:600 .8rem var(--f-disp);min-height:34px;padding:6px 13px;border-radius:100px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--tx-2);cursor:pointer;
+    text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .bt:hover{border-color:var(--dark);color:var(--tx)}
+  .bt--quita:hover{border-color:var(--rojo);color:var(--rojo)}
+  .bt:disabled{opacity:.5;cursor:wait}
+
+  /* ---- etiquetas pequeñas ---------------------------------------------- */
+  .etqs{display:flex;flex-wrap:wrap;gap:5px}
+  .etq{font-size:.72rem;font-weight:600;border-radius:100px;padding:2px 9px;line-height:1.5}
+  .etq--falta {background:var(--ambar-bg);color:#6B4700}
+  .etq--choque{background:var(--rojo-bg);color:#8C2418}
+  .etq--poster{background:#FFF3DE;color:#6B4700}
+  .etq--acceso{background:var(--ice);color:var(--tx-2)}
+
+  /* ---- pestañas de días ------------------------------------------------ */
+  /* «position:relative» para que offsetLeft de cada pestaña se mida contra la
+     tira: así se centra la activa desplazando solo la tira (ver pintarDias). */
+  .dias{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:thin;position:relative}
+  .dia{flex:0 0 auto;min-width:62px;padding:6px 10px 7px;border:1.5px solid var(--line);
+    border-radius:12px;background:var(--surface);color:var(--tx-2);cursor:pointer;
+    font-family:var(--f-disp);display:flex;flex-direction:column;align-items:center;
+    gap:1px;position:relative;transition:border-color .15s ease, background .15s ease}
+  .dia small{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--tx-3)}
+  .dia b{font-size:1.06rem;line-height:1.1;font-variant-numeric:tabular-nums}
+  .dia span{font-size:.68rem;font-weight:600;color:var(--tx-3);font-variant-numeric:tabular-nums}
+  .dia:hover{border-color:var(--turquesa)}
+  .dia[aria-selected="true"]{background:var(--dark);border-color:var(--dark);color:#fff}
+  .dia[aria-selected="true"] small,.dia[aria-selected="true"] span{color:rgba(255,255,255,.72)}
+  .dia--vacio:not([aria-selected="true"]){opacity:.7}
+  .dia--hoy:not([aria-selected="true"]){border-color:var(--turquesa)}
+  /* Punto rojo: ese día tiene un empalme. */
+  .dia--choque::after{content:'';position:absolute;top:5px;right:5px;width:7px;height:7px;
+    border-radius:50%;background:var(--rojo);box-shadow:0 0 0 2px var(--surface)}
+  .dia--todos{justify-content:center}
+  .dia--todos b{font-size:.9rem}
+  /* Mientras se arrastra, las pestañas se marcan como lugar donde soltar. */
+  .mesa.arrastrando .dia{border-style:dashed;border-color:var(--turquesa)}
+  .dia.soltar{background:#DDF2F4!important;color:var(--tx)!important;border-style:solid!important}
+
+  /* ---- la agenda del día ----------------------------------------------- */
+  .agenda__dia{font:700 .76rem var(--f-disp);letter-spacing:.09em;text-transform:uppercase;
+    color:var(--tx-3);padding:8px 2px 0}
+  .agenda__dia:first-child{padding-top:0}
+  .fila{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:6px 14px;align-items:center;
+    border:1px solid var(--line);border-left:4px solid var(--eje,var(--turquesa));
+    border-radius:var(--r-s);padding:10px 12px;background:var(--surface);cursor:grab}
+  .fila:active{cursor:grabbing}
+  .fila__hora{font:700 .98rem/1.15 var(--f-disp);font-variant-numeric:tabular-nums;color:var(--tx)}
+  .fila__hora small{display:block;font-size:.78rem;font-weight:500;color:var(--tx-3)}
+  .fila__cuerpo{display:flex;gap:10px;align-items:center;min-width:0}
+  .fila__texto{min-width:0;display:grid;gap:4px}
+  .fila__meta{font-size:.8rem;color:var(--tx-3);display:flex;flex-wrap:wrap;gap:2px 12px}
+  .fila__meta b{color:var(--tx-2);font-weight:500}
+  .fila__acc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .fila--choca{background:#FFF7F6}
+  /* Recién publicada o movida: destella para que se vea dónde quedó. */
+  .fila--nueva{animation:resalta 2.6s ease}
+  @keyframes resalta{
+    0%,45%{background:var(--verde-bg);box-shadow:0 0 0 3px rgba(30,142,90,.35)}
+    100%{background:var(--surface);box-shadow:none}}
+  @media (prefers-reduced-motion:reduce){.fila--nueva{animation:none;outline:3px solid var(--sem-verde)}}
+  @media(max-width:700px){
+    .fila{grid-template-columns:1fr;gap:8px}
+    .fila__hora small{display:inline;margin-left:4px}
+    .fila__acc{justify-content:flex-start}
   }
-  .ac:active{cursor:grabbing}
-  .ac.arrastrando{opacity:.4}
-  .ac__eti{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-    font-family:var(--f-disp);font-size:.66rem;font-weight:700;
-    letter-spacing:.08em;text-transform:uppercase;color:var(--tx-3)}
-  .ac__eti b{color:var(--eje-tx,var(--turquesa-tx))}
-  .ac__tit{font-family:var(--f-disp);font-size:.92rem;font-weight:700;
-    line-height:1.3;letter-spacing:-.01em;color:var(--tx);text-wrap:pretty}
-  /* Miniatura del póster flotando a la derecha del título: identifica la
-     tarjeta de un vistazo sin robarle una columna a la bandeja. */
-  .ac__poster{float:right;width:40px;aspect-ratio:1/1;object-fit:cover;
-    border-radius:4px;margin:0 0 4px 8px;border:1px solid var(--line)}
+
+  /* ---- vacíos que enseñan ---------------------------------------------- */
+  .vacio-mesa{margin:auto 0;text-align:center;padding:28px 18px;color:var(--tx-3);font-size:.9rem;
+    border:2px dashed var(--line);border-radius:var(--r)}
+  .vacio-mesa h3{font-family:var(--f-disp);font-size:1.02rem;color:var(--tx);margin-bottom:6px}
+  .vacio-mesa p{max-width:40ch;margin:0 auto}
+  .vacio-mesa .bt{margin-top:12px}
+  /* Solo en celular: en escritorio «Por programar» ya está a la vista. */
+  .vacio-mesa .cambio-solo{display:none}
+  @media(max-width:899px){.vacio-mesa .cambio-solo{display:inline-flex}}
+
+  /* ---- celular: un panel a la vez -------------------------------------- */
+  .cambio{display:none}
+  @media(max-width:899px){
+    .cambio{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-bottom:12px;
+      background:var(--line-2);border-radius:12px}
+    .cambio button{font:600 .9rem var(--f-disp);border:0;border-radius:9px;padding:10px 8px;
+      background:none;color:var(--tx-2);cursor:pointer}
+    .cambio button[aria-pressed="true"]{background:var(--surface);color:var(--tx);
+      box-shadow:0 1px 3px rgba(18,52,59,.14)}
+    .mesa[data-movil="pend"] .panel--prog,
+    .mesa[data-movil="prog"] .panel--pend{display:none}
+    .panel__cuerpo{overflow:visible}
+  }
+
+  /* ---- mensajes flotantes ---------------------------------------------
+     Abajo y encima de todo, en vez de un aviso dentro de la página que la
+     empujaba hacia abajo y obligaba a subir a leerlo. */
+  .brindis{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:950;
+    display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);
+    background:var(--dark);color:#fff;border-radius:12px;padding:11px 12px 11px 16px;
+    box-shadow:0 14px 36px rgba(0,0,0,.28);font-size:.92rem}
+  .brindis--mal{background:#8C2418}
+  .brindis button{flex:0 0 auto;background:none;border:1.5px solid rgba(255,255,255,.55);color:#fff;
+    border-radius:100px;padding:5px 13px;font:600 .82rem var(--f-disp);cursor:pointer}
+  .brindis button:hover{background:rgba(255,255,255,.14)}
+
+  /* ---- diálogo de programación ------------------------------------------ */
   .dlg__sinposter{font-size:.84rem;color:#6B4700;background:var(--ambar-bg);
     border-left:3px solid var(--ambar);border-radius:var(--r-s);padding:9px 12px;margin-bottom:16px}
   .dlg__sinposter a{color:#6B4700;font-weight:600}
-  .ac__meta{font-size:.78rem;color:var(--tx-3);display:flex;flex-direction:column;gap:2px}
-  .ac__meta b{color:var(--tx-2);font-weight:600;font-variant-numeric:tabular-nums}
-  .ac__acc{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
-  .mini{
-    font:inherit;font-family:var(--f-disp);font-size:.76rem;font-weight:600;
-    padding:5px 11px;border-radius:100px;cursor:pointer;
-    border:1.5px solid var(--line);background:var(--surface);color:var(--tx-2);
-    text-decoration:none;display:inline-flex;align-items:center;gap:5px;
-  }
-  .mini:hover{border-color:var(--dark);color:var(--tx)}
-  .mini--pub{background:var(--dark);border-color:var(--dark);color:#fff}
-  .mini--pub:hover{background:var(--darker);color:#fff}
-  .mini--quita:hover{border-color:var(--rojo);color:var(--rojo)}
-  .mini:disabled{opacity:.5;cursor:wait}
-
-  /* Señal de empalme: la actividad comparte sede y hora con otra */
-  .ac--choca{background:var(--rojo-bg)}
-  .ac__choque{font-size:.74rem;color:#8C2418;font-weight:600;display:flex;gap:5px}
-
-  /* Falta algo para poder publicarla */
-  .ac__falta{font-size:.74rem;color:var(--ambar);font-weight:600}
-
-  .col__nada{font-size:.8rem;color:var(--tx-3);text-align:center;padding:14px 8px;
-    border:1.5px dashed var(--line);border-radius:var(--r-s)}
-
-  /* ---- diálogo de programación ------------------------------------------ */
   dialog.dlg{
     border:0;border-radius:var(--r);padding:0;max-width:520px;width:calc(100% - 32px);
     box-shadow:0 24px 70px color-mix(in srgb, var(--marca-oscuro-2) 32%, transparent);color:var(--tx);
@@ -131,24 +231,22 @@
   .dlg__acc{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;align-items:center}
   .dlg__aviso{margin-bottom:16px}
   .horas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-
-  /* ---- lista de empalmes ------------------------------------------------ */
-  .choques{
-    background:var(--rojo-bg);border-left:4px solid var(--rojo);color:#8C2418;
-    border-radius:var(--r-s);padding:14px 18px;margin-bottom:20px;font-size:.9rem;
-  }
-  .choques h3{font-family:var(--f-disp);font-size:.95rem;margin-bottom:7px}
-  .choques li{margin-top:5px;font-size:.86rem}
-  .choques b{font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 
 <div data-cabecera></div>
 
-<main class="hoja" id="pagina">
+<main class="hoja hoja--mesa" id="pagina">
   <div class="cargando">Cargando el programa…</div>
 </main>
+
+<!-- Fuera de #pagina a propósito: la página se vuelve a dibujar tras cada
+     cambio, y el mensaje tiene que sobrevivir a ese repintado. -->
+<div class="brindis" id="brindis" role="status" aria-live="polite" hidden>
+  <span id="brindis-txt"></span>
+  <button type="button" id="brindis-btn" hidden>Deshacer</button>
+</div>
 
 <footer class="pie">Festival del Conocimiento · Administración</footer>
 
@@ -156,25 +254,27 @@
 /* ============================================================================
    ARMAR EL PROGRAMA · pantalla de la administración
    ----------------------------------------------------------------------------
-   Dos mitades:
+   Dos paneles:
 
-     BANDEJA   lo que los coordinadores registraron y todavía no entra al
-               programa. Trae la fecha que ellos propusieron, como pista.
-     LOS OCHO DÍAS   lo ya publicado, en su día y en orden de hora.
+     POR PROGRAMAR   lo que los coordinadores registraron y todavía no entra
+                     al programa. Trae la fecha que ellos propusieron, como
+                     pista, y lo que le falta para poder publicarse.
+     PROGRAMA        lo ya publicado, un día a la vez en pestañas, en orden de
+                     hora. La pestaña «Todos» lo muestra entero.
 
-   «Agregar al programa» no es solo encender un interruptor: abre un diálogo
-   donde la administración confirma día, hora y sede, porque una actividad sin
-   sede en una cartelera no le sirve a nadie. Las tres son obligatorias para
-   publicar.
+   «Programar» no es solo encender un interruptor: abre un diálogo donde la
+   administración confirma día, hora y sede —porque una actividad sin sede en
+   una cartelera no le sirve a nadie— y el modo de acceso. Al publicar, el
+   panel salta a ese día y la actividad destella, para que se vea dónde quedó.
 
    Los empalmes se AVISAN, no se bloquean: una sede puede tener dos salas y
    sostener dos actividades a la misma hora. Quien decide es la persona.
 
    Arrastrar es un acelerador de escritorio, no el mecanismo: todo se puede
-   hacer con el botón «Programar», que es lo que funciona con el dedo. Mover
-   algo ya publicado de un día a otro sí escribe directo —es reversible y se
-   ve al instante—; sacar algo de la bandeja siempre pasa por el diálogo,
-   porque ahí faltan datos que confirmar.
+   hacer con los botones, que es lo que funciona con el dedo y con el teclado.
+   Se arrastra a una PESTAÑA de día. Mover algo ya publicado a otro día escribe
+   directo —es reversible, y el mensaje ofrece «Deshacer»—; sacar algo de «Por
+   programar» siempre pasa por el diálogo, porque ahí faltan datos.
    ========================================================================== */
 
 import * as campoAcceso from '/assets/js/campos-acceso.js';
@@ -192,7 +292,15 @@ let EDICION = null;
 let SEDES   = [];
 let ACTS    = [];      // actividades no archivadas de la edición activa
 let DIAS    = [];      // los días del festival, en ISO
-let buscar  = '';
+
+/* Estado de la pantalla. Sobrevive a los repintados: cada cambio vuelve a
+   leer la base y a dibujar, y la persona no debe perder dónde estaba. */
+let buscar   = '';
+let vistaDia = null;   // 'todos' | '2026-10-17'
+let movil    = null;   // en celular, qué panel se ve: 'pend' | 'prog'
+let resaltar = null;   // id de la actividad que debe destellar al dibujar
+
+const CLAVE_GUIA = 'fdc_guia_programa_cerrada';
 
 /* ------------------------------------------------------------- arranque --- */
 (async function iniciar() {
@@ -224,8 +332,8 @@ async function cargar() {
             'cupo, publica, responsable, correo, avance')
     .eq('edicion_id', EDICION.id)
     .eq('archivada', false)
-    .order('fecha', { ascending: true, nullsFirst: true })
-    .order('hora_inicio', { ascending: true, nullsFirst: true })
+    .order('fecha', { ascending: true, nullsFirst: false })
+    .order('hora_inicio', { ascending: true, nullsFirst: false })
     .order('titulo', { ascending: true });
 
   if (error) {
@@ -234,10 +342,10 @@ async function cargar() {
   }
   ACTS = data || [];
 
-  // El póster no viene en la vista del semáforo (ver modulos/poster.js). Se
-  // pide aparte; si falla, la pantalla funciona igual, solo sin miniaturas.
+  // El póster y el modo de acceso no vienen en la vista del semáforo (ver
+  // modulos/poster.js). Se piden aparte; si falla, la pantalla funciona igual,
+  // solo sin miniaturas.
   if (ACTS.length) {
-    // También el modo de acceso: la vista del semáforo no lo trae.
     const { data: ps } = await db.from('actividades')
       .select('id, poster, acceso, lugares_max').in('id', ACTS.map(a => a.id));
     const mapa = Object.fromEntries((ps || []).map(r => [r.id, r]));
@@ -247,7 +355,24 @@ async function cargar() {
       a.lugares_max = mapa[a.id]?.lugares_max || 4;
     });
   }
+
+  elegirVistaInicial();
   pintar();
+}
+
+/* Con qué día abrir, solo la primera vez: el de la dirección (#2026-10-18) si
+   viene; si el festival está ocurriendo, hoy; si no, el primer día que ya
+   tiene algo. Así nunca se abre en un día vacío pudiendo evitarlo. */
+function elegirVistaInicial() {
+  if (vistaDia === null) {
+    const h = location.hash.replace(/^#/, '');
+    const hoy = iso(new Date());
+    const conAlgo = DIAS.find(d => ACTS.some(a => a.publica && a.fecha === d));
+    vistaDia = (h === 'todos' || DIAS.includes(h)) ? h
+             : DIAS.includes(hoy) ? hoy
+             : (conAlgo || DIAS[0] || 'todos');
+  }
+  if (movil === null) movil = ACTS.some(a => !a.publica) ? 'pend' : 'prog';
 }
 
 /* --------------------------------------------------------------- fechas --- */
@@ -273,6 +398,14 @@ function etiquetaDia(isoTx) {
   const f = aFecha(isoTx);
   if (!f) return isoTx;
   const s = f.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' }).replace('.', '');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** «Sábado 17 de octubre» */
+function diaLargo(isoTx) {
+  const f = aFecha(isoTx);
+  if (!f) return isoTx;
+  const s = f.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -323,7 +456,7 @@ function todosLosChoques() {
   return pares;
 }
 
-/* ---------------------------------------------------------------- pintar -- */
+/* ---------------------------------------------------------------- datos --- */
 function faltaPara(a) {
   const f = [];
   if (!a.fecha)       f.push('día');
@@ -332,208 +465,372 @@ function faltaPara(a) {
   return f;
 }
 
+const publicadas = () => ACTS.filter(a => a.publica);
+
+/* Por programar: primero lo que ya trae fecha propuesta, en orden; al final lo
+   que no trae ninguna. Así arriba queda lo más fácil de resolver. */
+function pendientes() {
+  const q = buscar.trim().toLowerCase();
+  return ACTS.filter(a => !a.publica)
+    .filter(a => !q || (a.titulo + ' ' + (a.responsable || '') + ' ' + (a.sede || '')).toLowerCase().includes(q))
+    .sort((a, b) =>
+      (a.fecha ? 0 : 1) - (b.fecha ? 0 : 1) ||
+      String(a.fecha || '').localeCompare(String(b.fecha || '')) ||
+      String(a.hora_inicio || '').localeCompare(String(b.hora_inicio || '')) ||
+      a.titulo.localeCompare(b.titulo, 'es'));
+}
+
+function etiquetaAcceso(a) {
+  if (a.acceso === 'boleto')   return `Con boleto${a.cupo ? ' · ' + a.cupo + ' lugares' : ''}`;
+  if (a.acceso === 'registro') return 'Confirmar asistencia';
+  return 'Entrada libre';
+}
+
+/* ================================================================ pintar ==
+   La cáscara se dibuja entera en cada carga; después, los paneles se pueden
+   repintar por separado sin tocar los escuchadores, que van por delegación en
+   la mesa (ver conectarMesa).
+   ====================================================================== */
 function pintar() {
-  const publicadas = ACTS.filter(a => a.publica);
-  const bandeja    = ACTS.filter(a => !a.publica);
-  const choques    = todosLosChoques();
-  const conDia     = new Set(publicadas.map(a => a.fecha).filter(Boolean)).size;
+  const pub     = publicadas();
+  const nPend   = ACTS.filter(a => !a.publica).length;
+  const choques = todosLosChoques();
+  const conDia  = new Set(pub.map(a => a.fecha).filter(Boolean)).size;
+  const guiaCerrada = (() => { try { return localStorage.getItem(CLAVE_GUIA) === '1'; } catch (e) { return false; } })();
 
   pagina.innerHTML = `
-    <div class="sub">
-      <a href="/panel/">Tablero</a>
-      <a href="/panel/programa/" aria-current="page">Programa</a>
-      <a href="/programa/" target="_blank" rel="noopener">Ver la cartelera ↗</a>
-    </div>
-
-    <div class="titulo">
-      <p class="kicker">Administración</p>
-      <h1>Armar el programa</h1>
-      <p class="entrada">
-        Arrastra una actividad al día que le toca, o usa «Programar».
-        Para entrar al programa público necesita <strong>día, hora y sede</strong>:
-        así la cartelera nunca muestra un hueco.
-      </p>
-    </div>
-
-    <div class="resumen">
-      <div class="dato dato--pub"><b>${publicadas.length}</b><span>En el programa</span></div>
-      <div class="dato dato--band"><b>${bandeja.length}</b><span>En la bandeja</span></div>
-      <div class="dato dato--dias"><b>${conDia}</b><span>de ${DIAS.length} días con programa</span></div>
-      <div class="dato dato--choq"><b>${choques.length}</b><span>${choques.length === 1 ? 'Empalme' : 'Empalmes'}</span></div>
-    </div>
-
-    <div class="aviso" id="p-aviso" hidden></div>
-
-    ${choques.length ? `
-    <div class="choques">
-      <h3>${choques.length === 1 ? 'Un empalme' : choques.length + ' empalmes'} de sede y horario</h3>
-      <p>No impide publicar —una sede puede tener dos salas—, pero conviene revisarlo.</p>
-      <ul>
-        ${choques.map(([a, b]) => `<li>
-          <b>${escapar(fechaDia(a.fecha))} · ${escapar(hora(a.hora_inicio))}</b> ·
-          ${escapar(a.sede)}: «${escapar(a.titulo)}» y «${escapar(b.titulo)}»
-        </li>`).join('')}
-      </ul>
-    </div>` : ''}
-
-    <div class="filtros" style="margin-bottom:16px">
-      <input type="text" id="f-buscar" value="${escapar(buscar)}"
-             placeholder="Buscar en la bandeja por actividad o responsable" style="min-width:290px">
-    </div>
-
-    <div class="mesa">
-      <div class="col col--bandeja" data-dia="bandeja">
-        <div class="col__tit">
-          <h2>Bandeja</h2>
-          <small>${bandeja.length} sin publicar</small>
-        </div>
-        <div class="col__cuerpo" id="c-bandeja"></div>
+    <div class="enc">
+      <div>
+        <p class="kicker">Administración</p>
+        <h1>Armar el programa</h1>
       </div>
+      <div class="cifras">
+        <span class="cifra"><b>${pub.length}</b> en el programa</span>
+        <span class="cifra"><b>${nPend}</b> por programar</span>
+        <span class="cifra"><b>${conDia}</b> de ${DIAS.length} días con actividades</span>
+        ${choques.length ? `<button type="button" class="cifra cifra--choque" id="ir-choque"
+            title="Ir al primer empalme">⚠ <b>${choques.length}</b> ${choques.length === 1 ? 'empalme' : 'empalmes'}</button>` : ''}
+        <a class="bt" href="/programa/" target="_blank" rel="noopener">Ver la cartelera ↗</a>
+      </div>
+    </div>
 
-      <div class="dias" id="c-dias"></div>
+    <div class="guia" id="guia" ${guiaCerrada ? 'hidden' : ''}>
+      <ol>
+        <li>Elige una actividad de <b>Por programar</b>.</li>
+        <li>Presiona <b>Programar</b> y confirma día, hora y sede.</li>
+        <li>Queda <b>publicada</b> en su día, a la derecha. También puedes arrastrarla a la pestaña del día.</li>
+      </ol>
+      <button type="button" class="guia__cerrar" id="guia-cerrar">Entendido, ocultar</button>
+    </div>
+
+    <div class="cambio" role="group" aria-label="Qué panel ver">
+      <button type="button" data-movil="pend" aria-pressed="${movil === 'pend'}">Por programar (${nPend})</button>
+      <button type="button" data-movil="prog" aria-pressed="${movil === 'prog'}">Programa (${pub.length})</button>
+    </div>
+
+    <div class="mesa" data-movil="${movil}">
+      <section class="panel panel--pend" data-soltar="bandeja" aria-labelledby="t-pend">
+        <div class="panel__cab">
+          <div class="panel__tit">
+            <h2 id="t-pend">Por programar</h2>
+            <small id="n-pend"></small>
+          </div>
+          <input type="search" id="f-buscar" value="${escapar(buscar)}"
+                 placeholder="Buscar por actividad, responsable o sede"
+                 aria-label="Buscar en Por programar">
+        </div>
+        <div class="panel__cuerpo" id="c-pend"></div>
+      </section>
+
+      <section class="panel panel--prog" aria-labelledby="t-prog">
+        <div class="panel__cab">
+          <div class="panel__tit">
+            <h2 id="t-prog">Programa</h2>
+            <small>Arrastra a una pestaña para cambiar de día</small>
+          </div>
+          <div class="dias" role="tablist" aria-label="Días del festival" id="c-dias"></div>
+        </div>
+        <div class="panel__cuerpo" id="c-agenda" role="tabpanel" tabindex="-1"></div>
+      </section>
     </div>
 
     ${dialogoHtml()}`;
 
-  $('#f-buscar').addEventListener('input', e => {
-    buscar = e.target.value;
-    pintarBandeja();
+  $('#f-buscar').addEventListener('input', e => { buscar = e.target.value; pintarPendientes(); });
+
+  $('#guia-cerrar').addEventListener('click', () => {
+    $('#guia').hidden = true;
+    try { localStorage.setItem(CLAVE_GUIA, '1'); } catch (e) {}
   });
 
-  pintarBandeja();
+  document.querySelectorAll('.cambio [data-movil]').forEach(b =>
+    b.addEventListener('click', () => cambiarMovil(b.dataset.movil)));
+
+  const irChoque = $('#ir-choque');
+  if (irChoque) irChoque.addEventListener('click', () => {
+    const [a] = choques[0];
+    verDia(a.fecha, { enfocar: true });
+    cambiarMovil('prog');
+  });
+
+  pintarPendientes();
   pintarDias();
+  pintarAgenda();
   conectarMesa();
   conectarDialogo();
 }
 
-function pintarBandeja() {
-  const q = buscar.trim().toLowerCase();
-  const d = ACTS.filter(a => !a.publica)
-    .filter(a => !q || (a.titulo + ' ' + (a.responsable || '')).toLowerCase().includes(q));
-
-  $('#c-bandeja').innerHTML = d.length
-    ? d.map(a => tarjeta(a, false)).join('')
-    : `<p class="col__nada">${q ? 'Nada coincide con la búsqueda.'
-        : 'Todo lo registrado ya está en el programa.'}</p>`;
+function cambiarMovil(cual) {
+  movil = cual;
+  const mesa = $('.mesa');
+  if (mesa) mesa.dataset.movil = cual;
+  document.querySelectorAll('.cambio [data-movil]').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.movil === cual)));
 }
 
-function pintarDias() {
-  const hoy = iso(new Date());
+/* ---------------------------------------------------- por programar ------ */
+function pintarPendientes() {
+  const d = pendientes();
+  const total = ACTS.filter(a => !a.publica).length;
+  $('#n-pend').textContent = buscar.trim() ? `${d.length} de ${total}` : `${total} ${total === 1 ? 'actividad' : 'actividades'}`;
 
-  $('#c-dias').innerHTML = DIAS.map(d => {
-    const delDia = ACTS.filter(a => a.publica && a.fecha === d);
-    return `
-      <div class="col${d === hoy ? ' col--hoy' : ''}${delDia.length ? '' : ' col--vacio'}" data-dia="${d}">
-        <div class="col__tit">
-          <h2>${escapar(etiquetaDia(d))}</h2>
-          <small>${delDia.length || '—'}</small>
-        </div>
-        <div class="col__cuerpo">
-          ${delDia.length
-            ? delDia.map(a => tarjeta(a, true)).join('')
-            : '<p class="col__nada">Sin actividades</p>'}
-        </div>
-      </div>`;
-  }).join('');
+  if (!d.length) {
+    $('#c-pend').innerHTML = buscar.trim()
+      ? `<div class="vacio-mesa"><h3>Nada coincide</h3><p>Prueba con otra palabra o borra la búsqueda.</p></div>`
+      : `<div class="vacio-mesa"><h3>Todo está en el programa</h3>
+           <p>Cuando un coordinador registre una actividad nueva, aparecerá aquí para programarla.</p></div>`;
+    return;
+  }
+  $('#c-pend').innerHTML = d.map(tarjetaPendiente).join('');
 }
 
-function tarjeta(a, publicada) {
-  const falta   = faltaPara(a);
-  const choca   = publicada ? choquesDe(a, ACTS.filter(x => x.publica)) : [];
-  const propone = !publicada && a.fecha;
+function tarjetaPendiente(a) {
+  const falta = faltaPara(a);
+  const propone = a.fecha
+    ? `Propone <b>${escapar(fechaDia(a.fecha))}</b>${a.hora_inicio ? ' · <b>' + escapar(hora(a.hora_inicio)) + '</b>' : ''}${a.sede && a.sede !== 'Por definir' ? ' · ' + escapar(a.sede) : ''}`
+    : 'Sin fecha propuesta';
 
   return `
-  <article class="ac${choca.length ? ' ac--choca' : ''}" draggable="true"
-           data-id="${a.id}" style="${estilo(a)}">
-    <p class="ac__eti">
-      <b>${escapar(a.eje || '—')}</b>
-      ${a.tipo ? escapar(a.tipo) : ''}
-    </p>
-    <h3 class="ac__tit">${a.poster
-      ? `<img class="ac__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">` : ''}${escapar(a.titulo)}</h3>
-
-    <div class="ac__meta">
-      ${publicada
-        ? `<span><b>${escapar(hora(a.hora_inicio) || '—')}${a.hora_fin ? '–' + escapar(hora(a.hora_fin)) : ''}</b></span>
-           <span>${escapar(a.sede || 'Sin sede')}</span>`
-        : `${propone ? `<span>Propone: <b>${escapar(fechaDia(a.fecha))}</b>${a.hora_inicio ? ' ' + escapar(hora(a.hora_inicio)) : ''}</span>` : ''}
-           ${a.sede && a.sede !== 'Por definir' ? `<span>${escapar(a.sede)}</span>` : ''}
-           <span>${escapar(a.responsable || '—')}</span>`}
+  <article class="pend" draggable="true" data-id="${a.id}" style="${estilo(a)}"
+           aria-label="${escapar(a.titulo)}">
+    <div class="pend__cab">
+      ${a.poster ? `<img class="pend__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">` : ''}
+      <div>
+        <h3 class="pend__tit">${escapar(a.titulo)}</h3>
+        <p class="pend__eti"><b>${escapar(a.eje || '—')}</b>${a.tipo ? ' · ' + escapar(a.tipo) : ''}${a.responsable ? ' · ' + escapar(a.responsable) : ''}</p>
+      </div>
     </div>
-
-    ${choca.length ? `<p class="ac__choque">⚠ Empalma con «${escapar(choca[0].titulo)}»</p>` : ''}
-    ${!publicada && falta.length ? `<p class="ac__falta">Falta ${falta.join(', ')}</p>` : ''}
-
-    <div class="ac__acc">
-      ${publicada
-        ? `<button class="mini" type="button" data-accion="editar" data-id="${a.id}">Cambiar</button>
-           <button class="mini mini--quita" type="button" data-accion="quitar" data-id="${a.id}">Quitar</button>
-           <a class="mini" href="/programa/${encodeURIComponent(a.slug)}/" target="_blank" rel="noopener">Ver ↗</a>`
-        : `<button class="mini mini--pub" type="button" data-accion="programar" data-id="${a.id}">Programar</button>
-           <a class="mini" href="/actividad/?id=${a.id}">Abrir</a>`}
+    <p class="pend__prop">${propone}</p>
+    ${falta.length || !a.poster ? `<div class="etqs">
+      ${falta.map(f => `<span class="etq etq--falta">Falta ${f}</span>`).join('')}
+      ${!a.poster ? '<span class="etq etq--poster">Sin póster</span>' : ''}
+    </div>` : ''}
+    <div class="pend__acc">
+      <button type="button" class="btn btn--chico btn--oscuro" data-accion="programar" data-id="${a.id}">Programar →</button>
+      <a class="bt" href="/actividad/?id=${a.id}" title="Abrir la actividad completa">Abrir</a>
     </div>
   </article>`;
 }
 
-/* ====================================================== arrastrar y soltar
-   Todo por delegación, en el contenedor .mesa y una sola vez.
+/* ---------------------------------------------------------- pestañas ----- */
+function pintarDias() {
+  const pub  = publicadas();
+  const hoy  = iso(new Date());
+  const conChoque = new Set(todosLosChoques().map(([a]) => a.fecha));
 
-   La primera versión colgaba los escuchadores tarjeta por tarjeta después de
-   cada repintado, y como pintarBandeja() y pintarDias() recorrían «.ac» sin
-   distinguir de quién era cada tarjeta, las de la bandeja acababan con dos
-   juegos: un clic en «Quitar» preguntaba dos veces. Delegando, los elementos se
-   pueden volver a dibujar cuantas veces haga falta sin tocar los escuchadores.
+  const tab = (valor, arriba, abajo, n, clases) => `
+    <button type="button" role="tab" class="dia ${clases}" data-dia="${valor}"
+            aria-selected="${vistaDia === valor}" aria-controls="c-agenda"
+            tabindex="${vistaDia === valor ? '0' : '-1'}"
+            aria-label="${escapar(valor === 'todos' ? 'Todos los días' : diaLargo(valor))}, ${n} ${n === 1 ? 'actividad' : 'actividades'}">
+      <small>${escapar(arriba)}</small><b>${escapar(abajo)}</b><span>${n || '—'}</span>
+    </button>`;
+
+  $('#c-dias').innerHTML =
+    tab('todos', 'Ver', 'Todos', pub.length, 'dia--todos') +
+    DIAS.map(d => {
+      const f = aFecha(d);
+      const semana = f.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', '');
+      const n = pub.filter(a => a.fecha === d).length;
+      return tab(d, semana, String(f.getDate()), n,
+        [n ? '' : 'dia--vacio', d === hoy ? 'dia--hoy' : '', conChoque.has(d) ? 'dia--choque' : ''].join(' '));
+    }).join('');
+
+  // Que la pestaña activa quede a la vista dentro de la tira. A mano y no con
+  // scrollIntoView: ese también desplaza la PÁGINA, y en celular la hacía
+  // brincar hasta las pestañas cada vez que se guardaba algo.
+  const tira = $('#c-dias'), sel = tira.querySelector('[aria-selected="true"]');
+  if (sel) tira.scrollLeft = sel.offsetLeft - (tira.clientWidth - sel.offsetWidth) / 2;
+  $('#c-agenda').setAttribute('aria-label', vistaDia === 'todos' ? 'Todo el programa' : diaLargo(vistaDia));
+}
+
+function verDia(dia, { enfocar = false } = {}) {
+  vistaDia = dia;
+  history.replaceState(null, '', '#' + dia);
+  pintarDias();
+  pintarAgenda();
+  if (enfocar) {
+    const t = $(`#c-dias [data-dia="${dia}"]`);
+    if (t) t.focus();
+  }
+}
+
+/* ------------------------------------------------------------ agenda ----- */
+function pintarAgenda() {
+  const pub = publicadas();
+  const todasPub = pub;
+  const cuerpo = $('#c-agenda');
+
+  if (vistaDia === 'todos') {
+    const dias = DIAS.filter(d => pub.some(a => a.fecha === d));
+    cuerpo.innerHTML = dias.length
+      ? dias.map(d => `
+          <h3 class="agenda__dia">${escapar(diaLargo(d))} · ${pub.filter(a => a.fecha === d).length}</h3>
+          ${pub.filter(a => a.fecha === d).map(a => fila(a, todasPub)).join('')}`).join('')
+      : vacioAgenda('todos');
+  } else {
+    const delDia = pub.filter(a => a.fecha === vistaDia);
+    cuerpo.innerHTML = delDia.length ? delDia.map(a => fila(a, todasPub)).join('') : vacioAgenda(vistaDia);
+  }
+
+  if (resaltar) {
+    const el = cuerpo.querySelector(`.fila[data-id="${resaltar}"]`);
+    if (el) {
+      el.classList.add('fila--nueva');
+      el.scrollIntoView({ block: 'nearest' });
+    }
+    resaltar = null;
+  }
+}
+
+function vacioAgenda(dia) {
+  const hay = ACTS.some(a => !a.publica);
+  return `
+    <div class="vacio-mesa">
+      <h3>${dia === 'todos' ? 'El programa todavía está vacío' : 'Nada programado el ' + escapar(diaLargo(dia).toLowerCase())}</h3>
+      <p>${hay
+        ? 'Elige una actividad de «Por programar» y presiona <b>Programar</b>. También puedes arrastrarla a la pestaña de este día.'
+        : 'Por ahora no hay actividades esperando. Cuando se registre alguna, aparecerá en «Por programar».'}</p>
+      ${hay ? '<button type="button" class="bt cambio-solo" data-ir-pend>Ver «Por programar»</button>' : ''}
+    </div>`;
+}
+
+function fila(a, pub) {
+  const choca = choquesDe(a, pub);
+  const i = hora(a.hora_inicio), f = hora(a.hora_fin);
+
+  return `
+  <article class="fila${choca.length ? ' fila--choca' : ''}" draggable="true"
+           data-id="${a.id}" style="${estilo(a)}" aria-label="${escapar(a.titulo)}">
+    <div class="fila__hora">${escapar(i || '—')}${f ? `<small>a ${escapar(f)}</small>` : ''}</div>
+    <div class="fila__cuerpo">
+      ${a.poster ? `<img class="fila__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">` : ''}
+      <div class="fila__texto">
+        <h3 class="fila__tit">${escapar(a.titulo)}</h3>
+        <p class="fila__meta">
+          <span><b>${escapar(a.sede || 'Sin sede')}</b></span>
+          <span>${escapar(a.eje || '')}${a.tipo ? ' · ' + escapar(a.tipo) : ''}</span>
+        </p>
+        <div class="etqs">
+          <span class="etq etq--acceso">${escapar(etiquetaAcceso(a))}</span>
+          ${choca.length ? `<span class="etq etq--choque">⚠ Empalma con «${escapar(choca[0].titulo)}»</span>` : ''}
+          ${!a.poster ? '<span class="etq etq--poster">Sin póster</span>' : ''}
+        </div>
+      </div>
+    </div>
+    <div class="fila__acc">
+      <button type="button" class="bt" data-accion="editar" data-id="${a.id}">Cambiar</button>
+      <button type="button" class="bt bt--quita" data-accion="quitar" data-id="${a.id}">Quitar</button>
+      <a class="bt" href="/programa/${encodeURIComponent(a.slug)}/" target="_blank" rel="noopener"
+         aria-label="Ver «${escapar(a.titulo)}» en la cartelera">Ver ↗</a>
+    </div>
+  </article>`;
+}
+
+/* ============================================== clics, teclado y arrastre
+   Todo por delegación, en el contenedor .mesa y una sola vez por dibujo.
+
+   Una versión anterior colgaba los escuchadores tarjeta por tarjeta después
+   de cada repintado, y las tarjetas acababan con dos juegos: un clic en
+   «Quitar» preguntaba dos veces. Delegando, los paneles se pueden volver a
+   dibujar cuantas veces haga falta sin tocar los escuchadores.
    ====================================================================== */
 let arrastrado = null;
 
 function conectarMesa() {
-  const mesa = document.querySelector('.mesa');
+  const mesa = $('.mesa');
   if (!mesa) return;
 
   mesa.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-accion]');
-    if (btn) accion(btn);
+    if (btn) { accion(btn); return; }
+    const tab = e.target.closest('.dia[data-dia]');
+    if (tab) { verDia(tab.dataset.dia); return; }
+    if (e.target.closest('[data-ir-pend]')) cambiarMovil('pend');
+  });
+
+  // Pestañas con flechas, Inicio y Fin: el patrón de teclado de una lista de
+  // pestañas. Solo la seleccionada entra en el orden de tabulación.
+  mesa.addEventListener('keydown', (e) => {
+    const tab = e.target.closest('.dia[data-dia]');
+    if (!tab) return;
+    const tabs = [...mesa.querySelectorAll('.dia[data-dia]')];
+    const i = tabs.indexOf(tab);
+    let j = null;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    if (e.key === 'ArrowLeft')  j = (i - 1 + tabs.length) % tabs.length;
+    if (e.key === 'Home')       j = 0;
+    if (e.key === 'End')        j = tabs.length - 1;
+    if (j === null) return;
+    e.preventDefault();
+    verDia(tabs[j].dataset.dia, { enfocar: true });
   });
 
   mesa.addEventListener('dragstart', (e) => {
-    const el = e.target.closest('.ac');
+    const el = e.target.closest('.pend, .fila');
     if (!el) return;
     arrastrado = el.dataset.id;
-    el.classList.add('arrastrando');
+    mesa.classList.add('arrastrando');
     e.dataTransfer.effectAllowed = 'move';
     // Firefox no inicia el arrastre si no se escribe algo en dataTransfer.
     e.dataTransfer.setData('text/plain', el.dataset.id);
   });
 
-  mesa.addEventListener('dragend', (e) => {
-    const el = e.target.closest('.ac');
-    if (el) el.classList.remove('arrastrando');
+  mesa.addEventListener('dragend', () => {
     arrastrado = null;
-    mesa.querySelectorAll('.col.soltar').forEach(c => c.classList.remove('soltar'));
+    mesa.classList.remove('arrastrando');
+    mesa.querySelectorAll('.soltar').forEach(c => c.classList.remove('soltar'));
   });
+
+  // Lugares donde se puede soltar: una pestaña de día (que no sea «Todos»),
+  // la agenda de un día concreto, o el panel «Por programar» para despublicar.
+  const destino = (e) => {
+    const tab = e.target.closest('.dia[data-dia]');
+    if (tab) return tab.dataset.dia === 'todos' ? null : { el: tab, dia: tab.dataset.dia };
+    if (e.target.closest('#c-agenda') && vistaDia !== 'todos')
+      return { el: $('.panel--prog'), dia: vistaDia };
+    const band = e.target.closest('[data-soltar="bandeja"]');
+    if (band) return { el: band, dia: 'bandeja' };
+    return null;
+  };
 
   mesa.addEventListener('dragover', (e) => {
-    const col = e.target.closest('.col[data-dia]');
-    if (!col || !arrastrado) return;
+    if (!arrastrado) return;
+    const d = destino(e);
+    mesa.querySelectorAll('.soltar').forEach(c => { if (!d || c !== d.el) c.classList.remove('soltar'); });
+    if (!d) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    col.classList.add('soltar');
-  });
-
-  mesa.addEventListener('dragleave', (e) => {
-    const col = e.target.closest('.col[data-dia]');
-    // «dragleave» también salta al pasar sobre un hijo: solo cuenta si el
-    // puntero salió de verdad de la columna.
-    if (col && !col.contains(e.relatedTarget)) col.classList.remove('soltar');
+    d.el.classList.add('soltar');
   });
 
   mesa.addEventListener('drop', (e) => {
-    const col = e.target.closest('.col[data-dia]');
-    if (!col) return;
+    const d = destino(e);
+    mesa.querySelectorAll('.soltar').forEach(c => c.classList.remove('soltar'));
+    if (!d) return;
     e.preventDefault();
-    col.classList.remove('soltar');
     const id = arrastrado || e.dataTransfer.getData('text/plain');
-    if (id) soltar(id, col.dataset.dia);
+    if (id) soltar(id, d.dia);
   });
 }
 
@@ -541,7 +838,7 @@ async function soltar(id, destino) {
   const a = ACTS.find(x => x.id === id);
   if (!a) return;
 
-  // A la bandeja: despublicar. Es lo mismo que el botón «Quitar».
+  // A «Por programar»: despublicar. Es lo mismo que el botón «Quitar».
   if (destino === 'bandeja') {
     if (!a.publica) return;
     await quitar(a);
@@ -549,21 +846,30 @@ async function soltar(id, destino) {
   }
   if (a.fecha === destino && a.publica) return;    // ya estaba ahí
 
-  // Ya publicada y solo cambia de día: se escribe directo. Es reversible y el
-  // resultado se ve al instante, así que pedir confirmación sería estorbo.
+  // Ya publicada y solo cambia de día: se escribe directo, con «Deshacer» en
+  // el mensaje. Pedir confirmación sería estorbo: es reversible y se ve.
   if (a.publica && !faltaPara(a).length) {
-    await guardar(a.id, { fecha: destino }, `«${a.titulo}» se movió al ${fechaDia(destino)}.`);
+    const antes = a.fecha;
+    resaltar = a.id;
+    vistaDia = destino;
+    await guardar(a.id, { fecha: destino }, `«${a.titulo}» se movió al ${fechaDia(destino)}.`, {
+      deshacer: async () => {
+        resaltar = a.id;
+        vistaDia = antes;
+        await guardar(a.id, { fecha: antes }, `«${a.titulo}» volvió al ${fechaDia(antes)}.`);
+      },
+    });
     return;
   }
 
-  // Viene de la bandeja, o le falta algo: al diálogo, con el día ya puesto.
+  // Viene de «Por programar», o le falta algo: al diálogo, con el día puesto.
   abrirDialogo(a, destino);
 }
 
 /* ============================================================== diálogo === */
 function dialogoHtml() {
   return `
-  <dialog class="dlg" id="dlg">
+  <dialog class="dlg" id="dlg" aria-labelledby="dlg-tit">
     <form class="dlg__in" id="dlg-forma" novalidate>
       <p class="dlg__tit" id="dlg-tit">Programar actividad</p>
       <p class="dlg__sub" id="dlg-sub"></p>
@@ -638,10 +944,12 @@ function abrirDialogo(a, diaSugerido) {
   $('#dlg-ok').textContent  = yaEsta ? 'Guardar cambios' : 'Publicar en el programa';
   $('#dlg-aviso').hidden = true;
 
+  // El día: el que se pidió al soltar; si no, el que propuso el coordinador;
+  // si no propuso ninguno, el día que se está viendo a la derecha.
   const selF = $('#dlg-fecha');
   selF.innerHTML = '<option value="">Elige el día</option>' +
     DIAS.map(d => `<option value="${d}">${escapar(etiquetaDia(d))} · ${escapar(fechaDia(d, true))}</option>`).join('');
-  selF.value = diaSugerido || a.fecha || '';
+  selF.value = diaSugerido || a.fecha || (vistaDia && vistaDia !== 'todos' ? vistaDia : '');
 
   const selS = $('#dlg-sede');
   // «Por definir» se queda fuera a propósito: es justo lo que esta pantalla
@@ -687,7 +995,7 @@ function revisarChoque() {
     fecha: $('#dlg-fecha').value,
     hora_inicio: $('#dlg-inicio').value, hora_fin: $('#dlg-fin').value,
   };
-  const ch = choquesDe(tentativa, ACTS.filter(a => a.publica));
+  const ch = choquesDe(tentativa, publicadas());
 
   if (!ch.length) { caja.hidden = true; return; }
   caja.className = 'aviso aviso--mal dlg__aviso';
@@ -741,12 +1049,19 @@ async function enviarDialogo(ev) {
     return;
   }
 
-  const titulo = editando.titulo;
+  const { titulo, id } = editando;
   $('#dlg').close();
   editando = null;
+
+  // Llevar la vista a donde quedó, y que destelle: así se entiende qué pasó.
+  vistaDia = fecha;
+  resaltar = id;
+  history.replaceState(null, '', '#' + fecha);
+  if (nuevo) movil = 'prog';
+
   await recargar(nuevo
-    ? `«${titulo}» ya está en el programa público.`
-    : `«${titulo}» se actualizó en el programa.`);
+    ? `«${titulo}» ya está en el programa del ${fechaDia(fecha)}.`
+    : `«${titulo}» se actualizó.`);
 }
 
 /* ============================================================== acciones == */
@@ -754,13 +1069,18 @@ async function accion(btn) {
   const a = ACTS.find(x => x.id === btn.dataset.id);
   if (!a) return;
 
-  if (btn.dataset.accion === 'programar' || btn.dataset.accion === 'editar') {
+  if (btn.dataset.accion === 'programar') {
+    // Si no propuso fecha, el diálogo toma el día que se está viendo.
+    abrirDialogo(a, null);
+    return;
+  }
+  if (btn.dataset.accion === 'editar') {
     abrirDialogo(a, null);
     return;
   }
   if (btn.dataset.accion === 'quitar') {
     if (!confirm(`¿Quitar «${a.titulo}» del programa público?\n\n`
-               + 'Vuelve a la bandeja y deja de verse en la cartelera. '
+               + 'Vuelve a «Por programar» y deja de verse en la cartelera. '
                + 'Su día, hora y sede se conservan.')) return;
     btn.disabled = true;
     await quitar(a);
@@ -768,27 +1088,41 @@ async function accion(btn) {
 }
 
 async function quitar(a) {
-  await guardar(a.id, { publica: false }, `«${a.titulo}» salió del programa público.`);
+  await guardar(a.id, { publica: false }, `«${a.titulo}» volvió a «Por programar».`);
 }
 
-async function guardar(id, cambios, mensaje) {
+async function guardar(id, cambios, mensaje, { deshacer } = {}) {
   const { error } = await db.from('actividades').update(cambios).eq('id', id);
   if (error) { avisar('mal', explicar(error)); pintar(); return; }
-  await recargar(mensaje);
+  await recargar(mensaje, deshacer);
 }
 
-async function recargar(mensaje) {
+async function recargar(mensaje, deshacer) {
   await cargar();
-  if (mensaje) avisar('ok', mensaje);
+  if (mensaje) avisar('ok', mensaje, deshacer);
 }
 
-function avisar(tipo, texto) {
-  const caja = $('#p-aviso');
-  if (!caja) return;
-  caja.className = 'aviso aviso--' + tipo;
-  caja.textContent = texto;
+/* --------------------------------------------------- mensaje flotante ---- */
+let temporizador = null;
+
+function avisar(tipo, texto, deshacer) {
+  const caja = $('#brindis'), btn = $('#brindis-btn');
+  caja.classList.toggle('brindis--mal', tipo === 'mal');
+  $('#brindis-txt').textContent = texto;
+  btn.hidden = !deshacer;
+  btn.onclick = deshacer ? async () => { ocultar(); await deshacer(); } : null;
   caja.hidden = false;
-  caja.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Los errores se quedan hasta que alguien los lea; lo demás se va solo. Con
+  // «Deshacer» se da más tiempo: hay que alcanzar a presionarlo.
+  clearTimeout(temporizador);
+  if (tipo !== 'mal') temporizador = setTimeout(ocultar, deshacer ? 9000 : 5000);
+  else temporizador = setTimeout(ocultar, 15000);
+}
+
+function ocultar() {
+  clearTimeout(temporizador);
+  $('#brindis').hidden = true;
 }
 </script>
 </body>
