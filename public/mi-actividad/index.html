@@ -9,12 +9,94 @@
 <link rel="stylesheet" href="/assets/css/marca.css">
 <link rel="stylesheet" href="/assets/css/app.css">
 <link rel="stylesheet" href="/assets/css/cabecera.css">
+<style>
+  /* ==========================================================================
+     MIS ACTIVIDADES · estilos propios de esta pantalla
+     Van aquí y no en app.css, como en las pantallas del panel: solo los usa
+     esta página. (Las reglas «.acts» y «.act» de app.css eran de la versión
+     anterior de esta lista y ya no las usa nadie.)
+
+     Rediseño del 21 de septiembre de 2026: tres columnas en escritorio en vez
+     de dos, la hoja a todo lo ancho —a 980 px tres tarjetas quedaban de
+     300 px, demasiado angostas— y un buscador.
+     ========================================================================== */
+
+  .mias [hidden]{display:none!important}
+
+  /* ---- encabezado: título a la izquierda, registrar a la derecha -------- */
+  .mias-enc{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+    gap:14px 24px;margin-bottom:20px}
+  .mias-enc .entrada{margin-top:8px}
+
+  /* ---- buscador --------------------------------------------------------- */
+  .mias-barra{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:18px}
+  .mias-barra__campo{position:relative;flex:1 1 320px;max-width:520px}
+  .mias-barra__campo svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+    width:17px;height:17px;fill:none;stroke:var(--tx-3);stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+  .mias-barra input[type=search]{padding-left:40px}
+  .mias-barra__cuenta{font-size:.86rem;color:var(--tx-3);font-variant-numeric:tabular-nums}
+
+  /* ---- la rejilla: 1 · 2 · 3 columnas ----------------------------------- */
+  .mias{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:640px){.mias{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(min-width:1000px){.mias{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+  /* ---- una tarjeta -------------------------------------------------------
+     Columna flexible con el pie empujado hacia abajo: en una rejilla las
+     tarjetas de una fila miden lo mismo, y así los botones quedan alineados
+     aunque un título ocupe una línea y otro tres. */
+  .mia{display:flex;flex-direction:column;gap:12px;min-width:0;
+    background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--eje,var(--turquesa));
+    border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--sombra);
+    transition:box-shadow .18s ease, transform .18s ease}
+  .mia:hover{box-shadow:0 4px 10px rgba(18,52,59,.08), 0 16px 36px rgba(18,52,59,.12);transform:translateY(-2px)}
+
+  .mia__cab{display:flex;gap:12px;align-items:flex-start}
+  .mia__poster{width:58px;aspect-ratio:1/1;object-fit:cover;flex:0 0 auto;
+    border-radius:8px;border:1px solid var(--line);background:var(--ice)}
+  .mia__cabtxt{min-width:0}
+  .mia__eti{font-family:var(--f-disp);font-size:.7rem;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--tx-3);margin-bottom:4px}
+  .mia__eti b{color:var(--eje-tx,var(--turquesa-tx))}
+  .mia__tit{font-family:var(--f-disp);font-size:1.06rem;font-weight:700;line-height:1.28;
+    letter-spacing:-.012em;margin:0;text-wrap:pretty}
+  /* El título es la liga: el blanco más grande de la tarjeta. */
+  .mia__tit a{color:var(--tx);text-decoration:none}
+  .mia__tit a:hover{color:var(--eje-tx,var(--turquesa-tx));text-decoration:underline;text-underline-offset:3px}
+
+  .mia__cuando{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--tx-2)}
+  .mia__cuando span{display:flex;gap:7px;align-items:flex-start}
+  .mia__cuando svg{width:15px;height:15px;flex:0 0 auto;margin-top:3px;fill:none;stroke:var(--tx-3);
+    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .mia__cuando .sin{color:var(--tx-3);font-style:italic}
+
+  .mia__etqs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .mia__etq{font-size:.76rem;font-weight:600;border-radius:100px;padding:3px 10px;
+    background:var(--line-2);color:var(--tx-2);white-space:nowrap}
+  .mia__etq--pub{background:var(--verde-bg);color:#14603C}
+  a.mia__etq--poster{background:#FFF0E5;color:var(--naranja-tx);text-decoration:none;
+    border:1px dashed #E8B98C}
+  a.mia__etq--poster:hover{background:#FFE4CF}
+
+  /* Avance y botones, siempre al fondo de la tarjeta. */
+  .mia__pie{margin-top:auto;display:grid;gap:12px;padding-top:4px}
+  .mia__avance{display:grid;gap:6px;font-size:.82rem;color:var(--tx-3)}
+  .mia__barra{height:7px;background:var(--line-2);border-radius:99px;overflow:hidden}
+  .mia__barra i{display:block;height:100%;background:var(--turquesa);border-radius:99px}
+  .mia__avance b{color:var(--tx);font-variant-numeric:tabular-nums}
+  .mia__acc{display:flex;gap:8px;flex-wrap:wrap}
+  .mia__acc .btn{flex:1 1 auto}
+
+  /* ---- sin resultados de búsqueda -------------------------------------- */
+  .mias__nada{grid-column:1/-1}
+</style>
 </head>
 <body>
 
 <div data-cabecera></div>
 
-<main class="hoja hoja--media" id="pagina">
+<main class="hoja" id="pagina">
   <div class="cargando">Cargando…</div>
 </main>
 
@@ -24,15 +106,18 @@
 
 
 <script type="module">
-import { db, exigirSesion, explicar, fechaDia, hora, escapar } from '/assets/js/app.js';
+import { db, exigirSesion, explicar, catalogos, fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { urlPosterMini } from '/assets/js/archivos.js';
+import { estiloEje } from '/assets/js/color.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
 const params = new URLSearchParams(location.search);
 
 let yo = null;
+let ACTS = [];
+const EJES_COLOR = {};
 
 /* ========================================================================= */
 (async function iniciar() {
@@ -90,6 +175,15 @@ async function verLista() {
   }
   data.forEach(a => { a.poster = posters[a.id] || null; a._conPoster = a.id in posters; });
 
+  // El color de cada eje, para la franja de la tarjeta. Si el catálogo no
+  // llega, las tarjetas salen con el turquesa de respaldo y nada más.
+  try {
+    const cat = await catalogos();
+    cat.ejes.forEach(e => { EJES_COLOR[e.nombre] = e.color; });
+  } catch (e) { /* sin colores, pero con lista */ }
+
+  ACTS = data;
+
   let nueva = '';
   if (params.get('bienvenida')) {
     nueva = `<div class="aviso aviso--ok">
@@ -124,42 +218,118 @@ async function verLista() {
   }
 
   pagina.innerHTML = `${nueva}
-    <div class="titulo">
-      <p class="kicker">Tu cuenta</p>
-      <h1>Mis actividades</h1>
-      <p class="entrada">Da clic en cualquiera para completar sus datos y reportar cómo va.</p>
-      <p style="margin-top:18px">
-        <a class="btn btn--principal" href="/registro/">Registrar otra actividad</a>
-      </p>
+    <div class="mias-enc">
+      <div>
+        <p class="kicker">Tu cuenta</p>
+        <h1>Mis actividades</h1>
+        <p class="entrada">Abre cualquiera para completar sus datos, subir su póster o reportar cómo va.</p>
+      </div>
+      <a class="btn btn--principal" href="/registro/">+ Registrar otra actividad</a>
     </div>
-    <div class="acts">${data.map(tarjeta).join('')}</div>`;
+
+    <div class="mias-barra">
+      <label class="mias-barra__campo">
+        <span class="sr">Buscar en mis actividades</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="buscar" placeholder="Buscar por nombre, eje, tipo o sede" autocomplete="off">
+      </label>
+      <span class="mias-barra__cuenta" id="cuenta" aria-live="polite"></span>
+    </div>
+
+    <div class="mias" id="lista"></div>`;
+
+  $('#buscar').addEventListener('input', pintarLista);
+  pintarLista();
 }
 
+/* ============================== BÚSQUEDA ================================= */
+/* Sin acentos ni mayúsculas: quien escribe «tecnologia» o «cetys» tiene que
+   encontrar «Tecnología» y «CETYS Universidad». */
+const normal = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function coincide(a, q) {
+  if (!q) return true;
+  const texto = normal([a.titulo, a.eje, a.tipo, a.sede, a.etiqueta].join(' '));
+  // Cada palabra tiene que aparecer, en cualquier orden: «taller cetys».
+  return q.split(/\s+/).every(p => texto.includes(p));
+}
+
+function pintarLista() {
+  const q = normal($('#buscar').value.trim());
+  const d = ACTS.filter(a => coincide(a, q));
+  const total = ACTS.length;
+
+  $('#cuenta').textContent = q
+    ? `${d.length} de ${total}`
+    : `${total} ${total === 1 ? 'actividad' : 'actividades'}`;
+
+  if (!d.length) {
+    $('#lista').innerHTML = `
+      <div class="vacio mias__nada">
+        <h3>Ninguna actividad coincide</h3>
+        <p>Prueba con otra palabra: se busca en el nombre, el eje, el tipo y la sede.</p>
+        <button type="button" class="btn btn--linea btn--chico" id="limpiar">Borrar la búsqueda</button>
+      </div>`;
+    $('#limpiar').addEventListener('click', () => {
+      $('#buscar').value = '';
+      pintarLista();
+      $('#buscar').focus();
+    });
+    return;
+  }
+
+  $('#lista').innerHTML = d.map(tarjeta).join('');
+}
+
+/* =============================== TARJETA ================================= */
+const ICO = {
+  cal: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+};
+
 function tarjeta(a) {
+  const liga = `/actividad/?id=${a.id}`;
+  const cuando = a.fecha
+    ? `${escapar(fechaDia(a.fecha))}${a.hora_inicio ? ' · ' + escapar(hora(a.hora_inicio)) + ' h' : ''}`
+    : '<span class="sin">Fecha por definir</span>';
+  const sede = a.sede && a.sede !== 'Por definir'
+    ? escapar(a.sede) : '<span class="sin">Sede por definir</span>';
+
   return `
-    <article class="act">
-      <div class="act__top">
-        ${a.poster
-          ? `<img class="act__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">`
+    <article class="mia" style="${estiloEje(EJES_COLOR[a.eje])}">
+      <div class="mia__cab">
+        ${a.poster ? `<img class="mia__poster" src="${urlPosterMini(a.poster)}" alt="" loading="lazy">` : ''}
+        <div class="mia__cabtxt">
+          <p class="mia__eti"><b>${escapar(a.eje || 'Sin eje')}</b>${a.tipo ? ' · ' + escapar(a.tipo) : ''}</p>
+          <h2 class="mia__tit"><a href="${liga}">${escapar(a.titulo)}</a></h2>
+        </div>
+      </div>
+
+      <p class="mia__cuando">
+        <span>${ICO.cal}<span>${cuando}</span></span>
+        <span>${ICO.pin}<span>${sede}</span></span>
+      </p>
+
+      <div class="mia__etqs">
+        <span class="chip chip--${a.color}" title="${escapar(a.motivo || '')}">${escapar(a.etiqueta)}</span>
+        ${a.publica
+          ? '<span class="mia__etq mia__etq--pub">En el programa</span>'
+          : '<span class="mia__etq" title="La administración la publica cuando confirma día, hora y sede.">Aún no publicada</span>'}
+        ${a._conPoster && !a.poster
+          ? `<a class="mia__etq mia__etq--poster" href="${liga}#poster">Falta el póster · súbelo</a>`
           : ''}
-        <h3>${escapar(a.titulo)}</h3>
-        <span class="chip chip--${a.color}">${escapar(a.etiqueta)}</span>
       </div>
-      <div class="act__meta">
-        <span class="eje">${escapar(a.eje || 'Sin eje')}</span>
-        <span>${escapar(a.tipo || '')}</span>
-        ${a.fecha ? `<span>· ${escapar(fechaDia(a.fecha))}</span>` : ''}
-        ${a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : ''}
-      </div>
-      <div>
-        <div class="act__barra"><i style="width:${a.avance}%"></i></div>
-      </div>
-      ${a._conPoster && !a.poster
-        ? `<a class="act__falta" href="/actividad/?id=${a.id}#poster">Falta el póster · súbelo</a>`
-        : ''}
-      <div class="act__pie">
-        <span>${a.avance}% de avance${a.envios ? ` · ${a.envios} reporte${a.envios === 1 ? '' : 's'}` : ' · sin reportes'}</span>
-        <a class="btn btn--chico btn--linea" href="/actividad/?id=${a.id}">Abrir</a>
+
+      <div class="mia__pie">
+        <div class="mia__avance">
+          <div class="mia__barra" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+               aria-valuenow="${a.avance}" aria-label="Avance de «${escapar(a.titulo)}»"><i style="width:${a.avance}%"></i></div>
+          <span><b>${a.avance}%</b> de avance · ${a.envios ? `${a.envios} reporte${a.envios === 1 ? '' : 's'}` : 'sin reportes'}</span>
+        </div>
+        <div class="mia__acc">
+          <a class="btn btn--chico btn--principal" href="${liga}">Abrir</a>
+          <a class="btn btn--chico btn--linea" href="${liga}#avance">Reportar avance</a>
+        </div>
       </div>
     </article>`;
 }
