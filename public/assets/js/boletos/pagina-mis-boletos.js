@@ -8,9 +8,10 @@
 
 import { montarCabecera } from '../cabecera.js';
 import { estiloEje } from '../color.js';
-import { verBoleto } from './api.js';
+import { verBoleto, recuperarBoletos, mensaje } from './api.js';
 import { boletosGuardados, guardarBoleto, olvidarBoleto } from './almacen.js';
-import { escapar, diaLargo, rangoHoras, codigoLegible, lugaresTexto, aFecha } from './util.js';
+import { escapar, diaLargo, rangoHoras, codigoLegible, lugaresTexto, aFecha,
+         htmlNacimiento, leerNacimiento } from './util.js';
 
 const pagina = document.getElementById('pagina');
 
@@ -50,8 +51,8 @@ function pintar(lista) {
       <div class="pg-wrap pg-hero__in">
         <p class="pg-kicker">Festival del Conocimiento</p>
         <h1>Mis boletos</h1>
-        <p class="pg-hero__lede">Los boletos que pediste desde este teléfono.
-          Si los pediste en otro dispositivo, están allá.</p>
+        <p class="pg-hero__lede">Los boletos que pediste desde este teléfono. Si pediste
+          alguno en otro lado, abajo puedes recuperarlo con tu nombre y fecha de nacimiento.</p>
       </div>
     </header>
     <div class="pg-wrap bb-envoltura bb-envoltura--lista">
@@ -69,10 +70,72 @@ function pintar(lista) {
       <h2 class="mb-sub">Cancelados y anteriores</h2>
       <ul class="mb-lista mb-lista--apagada">${anteriores.map(fila).join('')}</ul>` : ''}
 
-      ${lista.length ? `
-      <p class="bb-mas">¿Perdiste un boleto que pediste en otro lado? En la entrada
-        pueden buscarlo con tu nombre o tu correo.</p>` : ''}
+      <section class="mb-recuperar bf-nota" id="recuperar" aria-labelledby="recuperar-tit">
+        <h2 id="recuperar-tit">¿Perdiste un boleto o lo pediste en otro teléfono?</h2>
+        <p>Escribe tu nombre y tu fecha de nacimiento tal como los pusiste al pedirlo.
+           Te mostramos tus boletos vigentes y quedan guardados en este teléfono.</p>
+        <form class="bf" id="rec-forma" novalidate>
+          <div class="bf__campo">
+            <label for="rec-nombre">Tu nombre</label>
+            <input id="rec-nombre" name="nombre" autocomplete="name" maxlength="120">
+          </div>
+          ${htmlNacimiento('rec')}
+          <p class="bf__error" id="rec-aviso" role="status" hidden></p>
+          <button class="pg-btn pg-btn--lleno bf__enviar" type="submit">Buscar mis boletos</button>
+        </form>
+        <p class="bb-mas">También puedes decir tu nombre en la entrada de la actividad:
+          allá tienen la lista.</p>
+      </section>
     </div>`;
+
+  conectarRecuperar();
+}
+
+function conectarRecuperar() {
+  const forma = document.getElementById('rec-forma');
+  const aviso = document.getElementById('rec-aviso');
+  const boton = forma.querySelector('button');
+  const decir = (texto, bien) => {
+    aviso.textContent = texto;
+    aviso.className = bien ? 'bf-exito' : 'bf__error';
+    aviso.hidden = false;
+  };
+
+  forma.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const d = Object.fromEntries(new FormData(forma));
+    const nombre = (d.nombre || '').trim();
+    const nacimiento = leerNacimiento(d);
+    if (nombre.length < 2) { forma.elements.nombre.focus(); return decir('Escribe tu nombre.'); }
+    if (!nacimiento) { forma.elements.dia.focus(); return decir('Elige tu fecha de nacimiento completa: día, mes y año.'); }
+
+    boton.disabled = true;
+    boton.textContent = 'Buscando…';
+    let r;
+    try {
+      r = await recuperarBoletos(nombre, nacimiento);
+    } catch (e) {
+      r = null;
+      decir(mensaje(e));
+    }
+    boton.disabled = false;
+    boton.textContent = 'Buscar mis boletos';
+    if (!r) return;
+    if (!r.ok) return decir(mensaje(r));
+    if (!r.boletos.length) {
+      return decir('No encontramos boletos vigentes con ese nombre y fecha. Revisa que el nombre '
+        + 'esté escrito igual que cuando lo pediste (con o sin segundo apellido, por ejemplo).');
+    }
+    r.boletos.forEach(b => guardarBoleto(b));
+    pintar(boletosGuardados());
+    const n = r.boletos.length;
+    const nuevo = document.getElementById('rec-aviso');
+    nuevo.textContent = n === 1 ? 'Encontramos tu boleto: ya está arriba, en tu lista.'
+                                : `Encontramos ${n} boletos: ya están arriba, en tu lista.`;
+    nuevo.className = 'bf-exito';
+    nuevo.hidden = false;
+    document.querySelector('.mb-lista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 function fila(b) {

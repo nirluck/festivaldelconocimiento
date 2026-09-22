@@ -182,6 +182,22 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
     ctx.textAlign = 'left';
   }
 
+  /* --- Aviso de privacidad ---------------------------------------------- */
+  // Recomendación legal: donde se pide el boleto, la pieza remite al aviso
+  // integral. En el cuadrado va bajo la columna de texto, lejos del QR.
+  ctx.fillStyle = '#627275';
+  ctx.font = `400 ${cuadrado ? 18 : 22}px ${F_TXT}`;
+  const aviso = 'Aviso de privacidad y términos: festivaldelconocimiento.org/privacidad';
+  if (cuadrado) {
+    // Dos renglones cortos: en uno solo invadiría el recuadro del QR.
+    ctx.fillText('Aviso de privacidad y términos:', M, H - altoPie - 40);
+    ctx.fillText('festivaldelconocimiento.org/privacidad', M, H - altoPie - 16);
+  } else {
+    ctx.textAlign = 'center';
+    ctx.fillText(aviso, W / 2, H - altoPie - 22);
+    ctx.textAlign = 'left';
+  }
+
   /* --- Pie -------------------------------------------------------------- */
   ctx.fillStyle = colorOscuro(); ctx.fillRect(0, H - altoPie, W, altoPie);
   ctx.fillStyle = '#FFFFFF';

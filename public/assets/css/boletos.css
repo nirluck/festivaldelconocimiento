@@ -320,6 +320,66 @@
   .bd{width:100%;max-width:100%;max-height:94vh;margin:auto 0 0;border-radius:20px 20px 0 0}
 }
 
+/* ======================================================= datos mínimos ==
+   Fecha de nacimiento, género y lugar con autocompletado
+   (formulario.js, lugar.js). 21 de septiembre de 2026.
+   ========================================================================== */
+.bf__fecha, .bf__genero{border:0;margin:0;padding:0;display:grid;gap:8px;min-width:0}
+.bf__fecha-campos{display:grid;grid-template-columns:4.6rem 1fr 6rem;gap:8px}
+
+.bf__opciones{display:flex;flex-wrap:wrap;gap:8px}
+.bf__opciones label{position:relative;cursor:pointer;font-weight:500!important}
+.bf__opciones input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.bf__opciones span{
+  display:inline-flex;align-items:center;min-height:44px;padding:0 16px;
+  border:1.5px solid var(--line);border-radius:99px;background:#fff;
+  font-size:.94rem;color:var(--tx-2);transition:all .15s;
+}
+.bf__opciones input:checked + span{background:var(--dark);border-color:var(--dark);color:#fff}
+.bf__opciones input:focus-visible + span{outline:3px solid var(--turquesa);outline-offset:2px}
+
+/* Autocompletado (combobox) */
+.cb{position:relative}
+.cb__lista{
+  position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);
+  margin:0;padding:6px;list-style:none;
+  background:#fff;border:1.5px solid var(--line);border-radius:12px;
+  box-shadow:var(--sombra-h, 0 12px 30px rgba(0,0,0,.12));
+  max-height:min(320px, 50vh);overflow-y:auto;
+}
+.cb__op{
+  padding:10px 12px;border-radius:8px;cursor:pointer;font-size:.95rem;color:var(--tx);
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+}
+.cb__op small{color:var(--tx-3);font-size:.78rem;flex:0 0 auto}
+.cb__op--activa, .cb__op:hover{background:var(--ice)}
+.cb__op--activa{outline:2px solid var(--turquesa);outline-offset:-2px}
+.cb__nada{padding:10px 12px;font-size:.9rem;color:var(--tx-3)}
+
+/* Aviso de privacidad simplificado, dentro del formulario */
+.bf__aviso{
+  font-size:.82rem;line-height:1.5;color:var(--tx-2);
+  background:var(--ice);border-radius:var(--r-s);padding:12px 14px;
+}
+.bf__aviso b{color:var(--tx)}
+
+/* «Guarda tu boleto»: el paso que sustituye al correo */
+.bf-guardar{
+  display:grid;gap:12px;margin-bottom:18px;padding:16px 18px;
+  background:var(--esp-bg);border:1.5px solid #EAD27A;border-radius:var(--r);
+  font-size:.92rem;line-height:1.5;color:var(--esp);
+}
+.bf-guardar b{color:#5C4A00}
+.bf-guardar .pg-btn{justify-self:start;min-height:48px}
+
+.bf-exito{
+  background:var(--ok-bg);color:var(--ok);border-left:4px solid var(--ok);
+  border-radius:8px;padding:11px 14px;font-size:.92rem;line-height:1.45;
+}
+
+.mb-recuperar{margin-top:32px}
+.mb-recuperar > p{margin-bottom:16px}
+
 /* ============================================================ impresión == */
 @media print{
   .bo-acciones, .bo-nota, .bo-cancelar, .bb-volver, .bb-mas, .bf-listo p{display:none!important}

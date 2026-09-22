@@ -9,13 +9,17 @@
      · Personas      la lista, con búsqueda, CSV, cancelar y admitir
      · Emitir        boletos a mano y boletos de grupo
      · Puerta        claves para que un voluntario registre entradas sin cuenta
-     · Quién viene   el público en agregado: origen, edad, ocupación, procedencia
+     · Quién viene   el público en agregado: origen, edad, género, municipio y colonia
+
+   Datos mínimos (asesoría legal, 21 de septiembre de 2026): del público solo
+   se guarda nombre, fecha de nacimiento, género y lugar. Aquí el nombre se ve
+   uno por uno; lo demás, solo en conjunto.
 
    Solo aparece si la actividad pide boleto o confirmación (acceso ≠ libre).
    Las reglas las pone la base (sql/11-boletos.sql): cada función vuelve a
    preguntar puede_editar_actividad(). Aquí solo se pinta.
 
-   Sin correo (fase H aplazada), lo que se emite a mano se entrega con la liga
+   El sistema no envía correos: lo que se emite a mano se entrega con la liga
    o la imagen del boleto: por eso el resultado las muestra a la vista.
    ========================================================================== */
 
@@ -269,7 +273,6 @@ class Modulo {
       if (e === 'entraron' && !b.asistio_en) return false;
       if (!t) return true;
       return (b.nombre || '').toLowerCase().includes(t)
-        || (b.correo || '').includes(t)
         || (b.codigo || '') === cod;
     });
   }
@@ -279,12 +282,12 @@ class Modulo {
     this.$('#bol-personas').innerHTML = `
       <h2>Personas</h2>
       <p class="leyenda">${total
-        ? 'Quienes pidieron boleto. El correo es solo para identificarlas: no lo compartas fuera de la organización.'
+        ? 'Quienes pidieron boleto. La lista es para organizar la entrada: no la compartas fuera de la organización.'
         : 'Todavía nadie ha pedido boleto.'}</p>
 
       ${total ? `
       <div class="bol-filtros">
-        <input type="search" id="bol-buscar" placeholder="Buscar por nombre, correo o código"
+        <input type="search" id="bol-buscar" placeholder="Buscar por nombre o código"
                value="${escapar(this.filtro.texto)}" aria-label="Buscar">
         <select id="bol-estado" aria-label="Filtrar por estado">
           ${[['vigentes', 'Activos y en espera'], ['activo', 'Activos sin entrar'], ['espera', 'Lista de espera'],
@@ -297,7 +300,7 @@ class Modulo {
       <div class="tabla-caja"><table class="bol-tabla">
         <thead><tr>
           <th scope="col"><input type="checkbox" id="bol-todos" aria-label="Seleccionar todos los visibles"></th>
-          <th scope="col">Código</th><th scope="col">Nombre</th><th scope="col">Correo</th>
+          <th scope="col">Código</th><th scope="col">Nombre</th>
           <th scope="col" class="num">Lugares</th><th scope="col">Estado</th>
           <th scope="col">Llegó por</th><th scope="col">Pedido</th><th scope="col"><span class="sr">Acciones</span></th>
         </tr></thead>
@@ -337,7 +340,6 @@ class Modulo {
         <td>${cancelable(b) ? `<input type="checkbox" data-sel aria-label="Seleccionar a ${escapar(b.nombre || b.codigo)}"${this.seleccion.has(b.id) ? ' checked' : ''}>` : ''}</td>
         <td><code class="bol-codigo">${escapar(codigoLegible(b.codigo))}</code></td>
         <td><strong>${escapar(b.nombre || 'Sin nombre (entrada en puerta)')}</strong></td>
-        <td>${escapar(b.correo || '—')}</td>
         <td class="num">${b.asistio_en && b.asistieron !== b.lugares ? `${b.asistieron} de ${b.lugares}` : b.lugares}</td>
         <td><span class="chip chip--${tono}">${etq}</span>${b.asistio_en ? `<small class="bol-hora">${escapar(aLas(b.asistio_en).replace(/^a las? /, ''))}</small>` : ''}</td>
         <td>${escapar(ORIGENES[b.origen] || b.origen)}</td>
@@ -347,7 +349,7 @@ class Modulo {
           ${cancelable(b) ? '<button class="bol-mini bol-mini--peligro" type="button" data-cancelar>Cancelar</button>' : ''}
         </td>
       </tr>`;
-    }).join('') : `<tr><td colspan="9" class="bol-vacio">Nada coincide con la búsqueda.</td></tr>`;
+    }).join('') : `<tr><td colspan="8" class="bol-vacio">Nada coincide con la búsqueda.</td></tr>`;
 
     const lugares = filas.filter(b => b.estado !== 'cancelado').reduce((s, b) => s + b.lugares, 0);
     this.$('#bol-cuenta').textContent =
@@ -420,14 +422,14 @@ class Modulo {
         : mensaje(data));
     }
     const b = this.boletos.find(x => x.id === id);
-    this.refrescar(`${b?.nombre || 'La persona'} pasó de la lista de espera a tener boleto. Avísale: el sistema todavía no manda correos.`);
+    this.refrescar(`${b?.nombre || 'La persona'} pasó de la lista de espera a tener boleto. Avísale tú: el sistema no envía correos.`);
   }
 
   exportar() {
     const filas = this.filtrados();
-    const col = ['Código', 'Nombre', 'Correo', 'Lugares', 'Estado', 'Llegó por', 'Pedido', 'Entró', 'Entraron'];
+    const col = ['Código', 'Nombre', 'Lugares', 'Estado', 'Llegó por', 'Pedido', 'Entró', 'Entraron'];
     const csv = [col, ...filas.map(b => [
-      codigoLegible(b.codigo), b.nombre || '', b.correo || '', b.lugares,
+      codigoLegible(b.codigo), b.nombre || '', b.lugares,
       b.asistio_en ? 'Entró' : (ESTADOS[b.estado]?.[0] || b.estado),
       ORIGENES[b.origen] || b.origen, fechaCSV(b.creado),
       fechaCSV(b.asistio_en), b.asistio_en ? b.asistieron : '',
@@ -445,17 +447,14 @@ class Modulo {
       <p class="leyenda">Para quien no puede pedirlo en línea, o para un grupo escolar:
         un solo boleto con todos sus lugares, a nombre de quien lo acompaña.
         ${reg ? '' : 'Cuenta contra el cupo igual que los demás.'}
-        Asegúrate de que la persona acepta el <a href="/privacidad/" target="_blank" rel="noopener">aviso de privacidad</a>.</p>
+        Solo se pide el nombre. Asegúrate de que la persona acepta los
+        <a href="/privacidad/#terminos" target="_blank" rel="noopener">términos y el aviso de privacidad</a>.</p>
 
       <form class="campos campos--2" id="bol-forma" novalidate>
         <div class="campo">
           <label for="bol-nombre">Nombre</label>
           <input type="text" id="bol-nombre" maxlength="120" required>
-        </div>
-        <div class="campo">
-          <label for="bol-correo">Correo</label>
-          <input type="email" id="bol-correo" maxlength="254" required>
-          <span class="pista">Si es un grupo, el de la persona responsable.</span>
+          <span class="pista">Si es un grupo, el de quien lo acompaña y su escuela u organización.</span>
         </div>
         <div class="campo">
           <label for="bol-lugares">Lugares</label>
@@ -477,16 +476,14 @@ class Modulo {
     forma.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const nombre = this.$('#bol-nombre').value.trim();
-      const correo = this.$('#bol-correo').value.trim();
       const lugares = parseInt(this.$('#bol-lugares').value, 10);
       if (nombre.length < 2) return this.$('#bol-nombre').focus();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return this.$('#bol-correo').focus();
       if (!(lugares >= 1 && lugares <= 1000)) return this.$('#bol-lugares').focus();
 
       const btn = this.$('#bol-emitir-btn');
       btn.disabled = true;
       const { data, error } = await db.rpc('emitir_boleto_panel', {
-        p_actividad: this.act.id, p_nombre: nombre, p_correo: correo, p_lugares: lugares,
+        p_actividad: this.act.id, p_nombre: nombre, p_lugares: lugares,
         p_grupo: this.$('#bol-grupo').checked, p_espera: this.$('#bol-espera').checked,
       });
       btn.disabled = false;
@@ -494,7 +491,6 @@ class Modulo {
       if (!data.ok) {
         const texto = data.error === 'agotado'
           ? `No hay lugar suficiente: ${data.disponibles ? `quedan ${data.disponibles}` : 'no queda ninguno'}. Pide menos lugares, marca «anotarlo en la lista de espera» o sube el cupo en Resumen.`
-          : data.error === 'duplicado' ? 'Ese correo ya tiene boleto para esta actividad. Búscalo en la lista de personas.'
           : mensaje(data);
         return this.avisar('mal', texto);
       }
@@ -515,7 +511,7 @@ class Modulo {
           <p><b>${b.estado === 'espera' ? 'Anotado en la lista de espera' : 'Boleto emitido'}</b>
             a nombre de ${escapar(b.nombre)} · ${b.lugares} ${b.lugares === 1 ? 'lugar' : 'lugares'}</p>
           <p class="bol-codigo-grande">${escapar(codigoLegible(b.codigo))}</p>
-          <p class="bol-nota">El sistema todavía no manda correos: <b>entrégale esta liga o la imagen</b>.
+          <p class="bol-nota">El sistema no envía correos: <b>entrégale esta liga o la imagen</b>.
             Con el código y su nombre también la encuentran en la entrada.</p>
           <div class="bol-botones">
             <button class="btn btn--principal btn--chico" type="button" data-copiar="${escapar(url)}">Copiar liga del boleto</button>
@@ -619,6 +615,8 @@ class Modulo {
   pintarPublico() {
     const r = this.resumen;
     const personas = Object.values(r.edad || {}).reduce((s, n) => s + n, 0);
+    // Pueden ser cientos de colonias: las doce con más gente y el resto junto.
+    const colonias = primeras(r.colonia, 12);
     const origen = Object.fromEntries(Object.entries(r.por_origen || {})
       .map(([k, v]) => [ORIGENES[k] || k, v]));
 
@@ -632,8 +630,9 @@ class Modulo {
       <div class="bol-graficas">
         ${barras('Cómo llegaron', origen, 'lugares')}
         ${barras('Edad', r.edad, 'personas')}
-        ${barras('Ocupación', r.ocupacion, 'personas')}
-        ${barras('Procedencia', r.procedencia, 'personas')}
+        ${barras('Género', r.genero, 'personas')}
+        ${barras('Municipio', r.municipio, 'personas')}
+        ${barras('Colonia', colonias, 'personas')}
         ${porDia(r.por_dia)}
       </div>
       ${r.cancelados ? `<p class="bol-nota">${r.cancelados} ${r.cancelados === 1 ? 'boleto cancelado' : 'boletos cancelados'} no cuentan aquí.</p>` : ''}` : ''}`;
@@ -641,6 +640,16 @@ class Modulo {
 }
 
 /* ============================================================== utilidades */
+
+/** Las «n» entradas con más valor; el resto suma en «Otras». «Sin dato» se respeta. */
+function primeras(datos, n) {
+  const filas = Object.entries(datos || {});
+  const sin = filas.filter(([k]) => k === 'Sin dato');
+  const con = filas.filter(([k]) => k !== 'Sin dato').sort((a, b) => b[1] - a[1]);
+  if (con.length <= n) return datos || {};
+  const resto = con.slice(n).reduce((s, [, v]) => s + v, 0);
+  return Object.fromEntries([...con.slice(0, n), [`Otras (${con.length - n})`, resto], ...sin]);
+}
 
 function cancelable(b) {
   return b.estado !== 'cancelado' && !b.asistio_en;

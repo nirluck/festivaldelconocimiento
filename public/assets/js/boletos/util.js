@@ -88,3 +88,40 @@ export function descargar(blob, nombre) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
+
+/* ------------------------------------------------ fecha de nacimiento --- */
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+               'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/**
+ * Fecha de nacimiento en tres listas y no en un calendario: el selector de
+ * fecha del teléfono abre en el mes actual, y llegar a 1978 son cuarenta y
+ * tantos años de toques.
+ */
+export function htmlNacimiento(id) {
+  const anio = new Date().getFullYear();
+  const opciones = (desde, hasta, texto) => Array.from({ length: Math.abs(hasta - desde) + 1 },
+    (_, i) => desde > hasta ? desde - i : desde + i)
+    .map(n => `<option value="${n}">${texto ? texto(n) : n}</option>`).join('');
+  return `
+    <fieldset class="bf__fecha">
+      <legend>Fecha de nacimiento</legend>
+      <div class="bf__fecha-campos">
+        <select name="dia" aria-label="Día"><option value="">Día</option>${opciones(1, 31)}</select>
+        <select name="mes" aria-label="Mes"><option value="">Mes</option>${opciones(1, 12, n => MESES[n - 1])}</select>
+        <select name="anio" aria-label="Año"><option value="">Año</option>${opciones(anio, 1920)}</select>
+      </div>
+      <small>Con tu nombre, sirve para recuperar tu boleto si lo pierdes.</small>
+    </fieldset>`;
+}
+
+/** «AAAA-MM-DD», o null si falta algo o la fecha no existe (31 de febrero). */
+export function leerNacimiento(d) {
+  const a = Number(d.anio), m = Number(d.mes), dia = Number(d.dia);
+  if (!a || !m || !dia) return null;
+  const f = new Date(a, m - 1, dia);
+  if (f.getFullYear() !== a || f.getMonth() !== m - 1 || f.getDate() !== dia) return null;
+  if (f > new Date()) return null;
+  return `${a}-${String(m).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}

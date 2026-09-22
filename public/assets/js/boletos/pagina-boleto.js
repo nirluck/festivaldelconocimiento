@@ -87,7 +87,7 @@ function sinBoleto(existio) {
           ? 'Se canceló, o se volvió a pedir y ahora tiene otra liga. Revisa tus boletos o pide uno nuevo desde el programa.'
           : 'La liga parece incompleta. Si la copiaste de un mensaje, asegúrate de incluirla entera.'}</p>
         <div class="bf-nota__botones">
-          <a class="pg-btn pg-btn--lleno" href="/mis-boletos/">Mis boletos</a>
+          <a class="pg-btn pg-btn--lleno" href="/mis-boletos/#recuperar">Recuperar mis boletos</a>
           <a class="pg-btn" href="/programa/">Ver el programa</a>
         </div>
       </div>

@@ -9,15 +9,17 @@
    «actividad» es una fila de vista_programa: trae acceso, lugares_max,
    disponibles, estado_boletos y boletos_desde.
 
-   El formulario es corto a propósito (PLAN.md, fase F): cada campo de más
-   pierde gente. Nombre, correo, lugares, edad y ocupación; la procedencia es
-   opcional.
+   Datos mínimos (asesoría legal, 21 de septiembre de 2026): nombre, fecha de
+   nacimiento, género y lugar de procedencia. SIN CORREO. Nombre y fecha de
+   nacimiento identifican a la persona: evitan el boleto doble y permiten
+   recuperarlo en «Mis boletos» si se pierde.
    ========================================================================== */
 
-import { opcionesFormulario, solicitarBoleto, mensaje } from './api.js';
+import { generos as leerGeneros, solicitarBoleto, mensaje } from './api.js';
+import { htmlLugar, conectarLugar } from './lugar.js';
 import { guardarBoleto, boletoDeActividad } from './almacen.js';
 import { htmlBoleto, htmlAcciones, conectarAcciones } from './tarjeta.js';
-import { escapar, lugaresTexto, fechaHoraTexto } from './util.js';
+import { escapar, lugaresTexto, fechaHoraTexto, htmlNacimiento, leerNacimiento } from './util.js';
 
 let _n = 0;
 
@@ -67,15 +69,15 @@ export async function montarFormulario(caja, act, op = {}) {
   }
 
   caja.innerHTML = '<p class="bf-cargando">Preparando el formulario…</p>';
-  let opciones;
+  let generos;
   try {
-    opciones = await opcionesFormulario();
+    generos = await leerGeneros();
   } catch (e) {
     caja.innerHTML = `<p class="pg-error">${escapar(mensaje(e))}</p>`;
     return;
   }
 
-  pintarFormulario(caja, act, opciones, { ...op, origen }, act.estado_boletos === 'agotado');
+  pintarFormulario(caja, act, generos, { ...op, origen }, act.estado_boletos === 'agotado');
 }
 
 /* ========================================================================== */
@@ -97,12 +99,7 @@ function disponibilidad(act, espera) {
     Boleto gratuito${pocos ? ' · <b>últimos lugares</b>' : ''}</p>`;
 }
 
-function opcionesHtml(lista, placeholder) {
-  return `<option value="">${escapar(placeholder)}</option>`
-    + lista.map(v => `<option value="${escapar(v)}">${escapar(v)}</option>`).join('');
-}
-
-function pintarFormulario(caja, act, opciones, op, espera) {
+function pintarFormulario(caja, act, generos, op, espera) {
   const id = 'bf' + (++_n);
   const max = Math.max(1, act.lugares_max || 1);
   // Con boleto se ofrecen solo los lugares que quedan; en espera, los del máximo.
@@ -118,13 +115,7 @@ function pintarFormulario(caja, act, opciones, op, espera) {
       <input id="${id}-nombre" name="nombre" autocomplete="name" maxlength="120" required>
     </div>
 
-    <div class="bf__campo">
-      <label for="${id}-correo">Correo electrónico</label>
-      <input id="${id}-correo" name="correo" type="email" autocomplete="email" inputmode="email"
-             maxlength="254" required aria-describedby="${id}-correo-ayuda">
-      <small id="${id}-correo-ayuda">Sirve para que cada persona tenga un solo boleto y para
-        encontrar el tuyo si lo pierdes. No te mandaremos publicidad.</small>
-    </div>
+    ${htmlNacimiento(id)}
 
     ${max > 1 ? `
     <fieldset class="bf__lugares">
@@ -139,33 +130,33 @@ function pintarFormulario(caja, act, opciones, op, espera) {
       <small>Tú y quienes vienen contigo. De tus acompañantes no pedimos ningún dato.</small>
     </fieldset>` : ''}
 
-    <div class="bf__dos">
-      <div class="bf__campo">
-        <label for="${id}-edad">Tu edad</label>
-        <select id="${id}-edad" name="edad" required>${opcionesHtml(opciones.edad, 'Elige…')}</select>
+    <fieldset class="bf__genero">
+      <legend>Género</legend>
+      <div class="bf__opciones">
+        ${generos.map(g => `
+        <label><input type="radio" name="genero" value="${escapar(g)}"><span>${escapar(g)}</span></label>`).join('')}
       </div>
-      <div class="bf__campo">
-        <label for="${id}-ocupacion">Ocupación</label>
-        <select id="${id}-ocupacion" name="ocupacion" required>${opcionesHtml(opciones.ocupacion, 'Elige…')}</select>
-      </div>
-    </div>
+    </fieldset>
 
-    ${opciones.procedencia.length ? `
-    <div class="bf__campo">
-      <label for="${id}-procedencia">¿Desde dónde vienes? <span class="bf__opcional">Opcional</span></label>
-      <select id="${id}-procedencia" name="procedencia">${opcionesHtml(opciones.procedencia, 'Prefiero no decir')}</select>
-    </div>` : ''}
+    ${htmlLugar(id)}
 
     <!-- Campo trampa: invisible para personas, irresistible para robots. -->
     <div class="bf__trampa" aria-hidden="true">
       <label>Sitio web <input name="sitio" tabindex="-1" autocomplete="off"></label>
     </div>
 
+    <div class="bf__aviso" id="${id}-aviso">
+      <b>Aviso de privacidad simplificado.</b> Festival del Conocimiento usa tu nombre,
+      fecha de nacimiento, género y lugar de procedencia solo para emitir tu boleto,
+      controlar el cupo y hacer estadísticas que no te identifican. No pedimos correo
+      ni compartimos tus datos. Aviso integral y términos:
+      <a href="/privacidad/" target="_blank" rel="noopener">festivaldelconocimiento.org/privacidad</a>.
+    </div>
+
     <label class="bf__consent">
-      <input type="checkbox" name="consiento" required aria-labelledby="${id}-consent">
-      <span id="${id}-consent">Leí el <a href="/privacidad/" target="_blank" rel="noopener">aviso de privacidad</a>
-        y acepto que mis datos se usen para emitir y administrar mi boleto.
-        Si soy menor de edad, cuento con la autorización de mi madre, padre o tutor.</span>
+      <input type="checkbox" name="consiento" required aria-labelledby="${id}-consent" aria-describedby="${id}-aviso">
+      <span id="${id}-consent">Acepto los <a href="/privacidad/#terminos" target="_blank" rel="noopener">términos y condiciones</a>
+        y el aviso de privacidad. Si soy menor de edad, cuento con la autorización de mi madre, padre o tutor.</span>
     </label>
 
     <p class="bf__error" role="alert" hidden></p>
@@ -177,6 +168,7 @@ function pintarFormulario(caja, act, opciones, op, espera) {
   </form>`;
 
   const form = caja.querySelector('form');
+  const lugar = conectarLugar(form, id);
   const errorCaja = form.querySelector('.bf__error');
   const boton = form.querySelector('.bf__enviar');
   const textoBoton = boton.textContent;
@@ -205,16 +197,17 @@ function pintarFormulario(caja, act, opciones, op, espera) {
     if (d.sitio) return;   // robot: no se manda nada y no se le explica por qué
 
     const nombre = (d.nombre || '').trim();
-    const correo = (d.correo || '').trim();
+    const nacimiento = leerNacimiento(d);
     if (nombre.length < 2) return error('Escribe tu nombre para que podamos identificar tu boleto en la entrada.', 'nombre');
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return error('Revisa tu correo: parece que le falta algo.', 'correo');
-    if (!d.edad) return error('Elige tu rango de edad.', 'edad');
-    if (!d.ocupacion) return error('Elige tu ocupación.', 'ocupacion');
-    if (!form.elements.consiento.checked) return error('Para darte tu boleto necesitamos que aceptes el aviso de privacidad.', 'consiento');
+    if (!nacimiento) return error('Revisa tu fecha de nacimiento: elige día, mes y año.', d.dia ? (d.mes ? 'anio' : 'mes') : 'dia');
+    if (!d.genero) return error('Elige una opción de género (puede ser «Prefiero no decir»).', 'genero');
+    const faltaLugar = lugar.error();
+    if (faltaLugar) return error(faltaLugar.texto, faltaLugar.campo);
+    if (!form.elements.consiento.checked) return error('Para darte tu boleto necesitamos que aceptes los términos y el aviso de privacidad.', 'consiento');
 
+    const { municipio, colonia } = lugar.valor();
     await enviar({
-      slug: act.slug, nombre, correo,
-      edad: d.edad, ocupacion: d.ocupacion, procedencia: d.procedencia || null,
+      slug: act.slug, nombre, nacimiento, genero: d.genero, municipio, colonia,
       lugares: Number(d.lugares || 1), origen: op.origen, consiento: true, espera,
     });
   });
@@ -256,9 +249,9 @@ function pintarFormulario(caja, act, opciones, op, espera) {
       return;
     }
 
-    const campos = { nombre: 'nombre', correo: 'correo', edad: 'edad', ocupacion: 'ocupacion',
-                     consentimiento: 'consiento', lugares: 'lugares', duplicado: 'correo',
-                     empalme: 'correo', tope: 'correo' };
+    const campos = { nombre: 'nombre', nacimiento: 'dia', genero: 'genero', municipio: 'municipio',
+                     colonia: 'colonia', consentimiento: 'consiento', lugares: 'lugares',
+                     duplicado: 'nombre' };
     error(mensaje(r), campos[r.error]);
   }
 
@@ -302,8 +295,14 @@ function pintarResultado(caja, b, guardado, op) {
     <div class="bf-listo" tabindex="-1">
       <h2>${escapar(titulo)}</h2>
       <p>${guardado
-        ? 'Quedó guardado en este teléfono, en <a href="/mis-boletos/">Mis boletos</a>. Para no depender de él, guárdalo también como imagen.'
-        : '<b>Este navegador no permite guardarlo.</b> Usa «Guardar imagen» o copia la liga antes de salir de esta página.'}</p>
+        ? 'Quedó guardado en este teléfono, en <a href="/mis-boletos/">Mis boletos</a>.'
+        : '<b>Este navegador no permite guardarlo.</b>'}</p>
+    </div>
+    <div class="bf-guardar">
+      <p><b>Paso importante: guarda tu boleto.</b> No te lo enviamos por correo.
+         Guarda la imagen en tu galería; si aun así lo pierdes, recupéralo en
+         «Mis boletos» con tu nombre y tu fecha de nacimiento.</p>
+      <button class="pg-btn pg-btn--lleno" type="button" data-bo="imagen">Guardar la imagen del boleto</button>
     </div>
     ${htmlBoleto(b)}
     ${htmlAcciones(b)}`;

@@ -697,7 +697,13 @@ rehacer nada.
 
 **Frontend de administración**
 
-- `/panel/programa/` · bandeja de lo no publicado y los ocho días en columnas.
+- `/panel/programa/` · dos paneles que llenan la pantalla: «Por programar» a la
+  izquierda y el programa a la derecha, **un día a la vez en pestañas** (más
+  «Todos»). Rediseñada el 21 de septiembre: la primera versión ponía los ocho
+  días en columnas de 252 px —2 100 px de ancho— y obligaba a desplazarse a
+  los lados y hacia abajo para ver o agregar algo. Arriba, una guía de tres
+  pasos que se puede cerrar; al publicar, el panel salta al día y la actividad
+  destella; mover de día ofrece «Deshacer». En celular, un panel a la vez.
 - **Publicar exige día, hora y sede.** Un renglón sin sede en una cartelera no
   le sirve a nadie, así que el interruptor suelto no basta: se abre un diálogo
   donde la administración confirma las tres cosas, con la fecha que propuso el
@@ -1276,6 +1282,47 @@ emite y no puede cambiar el cupo.
   cupo.
 - El formulario de registro y el módulo Resumen ganan el modo de acceso
   **propuesto** por el coordinador.
+
+#### F3½ · Datos mínimos — `sql/12-datos-minimos.sql` — escrito el 22 de septiembre de 2026, **por aplicar**
+
+La asesoría legal del festival (21 de septiembre) pidió aplicar la
+minimización de datos de la ley de Baja California. **Reemplaza** lo que esta
+fase decía sobre correo, edad, ocupación y procedencia:
+
+- **El público ya no deja correo ni ocupación.** Pide su boleto con nombre,
+  **fecha de nacimiento**, género (con «Prefiero no decir») y el **municipio**
+  desde donde visita; si es de Baja California, también la **colonia**
+  (opcional). La edad se calcula de la fecha y en el panel solo se ve por
+  rangos.
+- **El sistema no envía correos**, por decisión del equipo. La fase F5 queda
+  descartada para el público.
+- **Nombre + fecha de nacimiento identifican a la persona** (`clave_persona`,
+  un md5 del nombre normalizado y la fecha). Con eso siguen funcionando el
+  boleto único por actividad, el tope por persona y los empalmes, y se puede
+  **recuperar un boleto perdido** en `/mis-boletos/#recuperar`
+  (`recuperar_boletos()`, 10 intentos cada 10 minutos por dirección).
+- **La tabla `asistentes` desaparece**: sin correo no hay nada que distinga a
+  dos personas. Los datos van en el boleto. Se pierde el dato de «personas
+  distintas por edición».
+- **Lugar con autocompletado** contra el Catálogo Nacional de Códigos Postales
+  de Correos de México (2,478 municipios y 2,595 colonias de Baja
+  California). **Su nota de uso prohíbe distribuirlo**, así que: las tablas
+  `lugares_*` no se abren a nadie y se consultan de ocho en ocho con
+  `buscar_municipios()` y `buscar_colonias()`; los datos NO están en el
+  repositorio. Se generan con `herramientas/lugares/generar_sql.py` en
+  `sql/12b-lugares.local.sql` (ignorado por git). El boleto guarda el texto
+  del lugar, no el id, para poder recargar el catálogo.
+- **Aviso de privacidad** reescrito: responsable «Festival del Conocimiento»,
+  ley de Baja California, contacto jperalta@ens.cnyn.unam.mx, términos y
+  condiciones en `/privacidad/#terminos`, aviso simplificado dentro del
+  formulario y un renglón en los carteles. Ya no es borrador y entra al
+  sitemap.
+- **Panel:** sin correo en la lista, la búsqueda ni el CSV; gráficas de edad,
+  género, municipio y colonia (las doce con más gente y el resto junto).
+  Emitir a mano o para grupos pide solo nombre y lugares.
+
+**Orden para aplicar:** `12-datos-minimos.sql`, luego `12b-lugares.local.sql`,
+y otra vez `12-datos-minimos.sql` para ver sus comprobaciones en BIEN.
 
 #### F4 · Puerta — `/puerta/` — **la siguiente**
 

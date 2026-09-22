@@ -69,36 +69,51 @@ export async function actividadPorSlug(slug) {
   return filas.find(f => f.edicion_id === activa) || filas[0];
 }
 
-let _opciones = null;
-/** Las listas del formulario: { edad:[], ocupacion:[], procedencia:[] }. */
-export async function opcionesFormulario() {
-  if (_opciones) return _opciones;
-  const filas = await leer('opciones_asistencia', 'select=campo,valor&activa=eq.true&order=campo,orden');
-  const o = { edad: [], ocupacion: [], procedencia: [] };
-  filas.forEach(f => { if (o[f.campo]) o[f.campo].push(f.valor); });
-  _opciones = o;
-  return o;
+let _generos = null;
+/** Las opciones de género, del catálogo de la base. */
+export async function generos() {
+  if (_generos) return _generos;
+  const filas = await leer('opciones_asistencia', 'select=valor&campo=eq.genero&activa=eq.true&order=orden');
+  _generos = filas.map(f => f.valor);
+  return _generos;
 }
+
+/**
+ * Autocompletado del lugar. El catálogo (SEPOMEX) no se descarga entero:
+ * su nota de uso prohíbe distribuirlo, así que se consulta de ocho en ocho.
+ */
+export const buscarMunicipios = (texto) =>
+  rpc('buscar_municipios', { p_texto: texto });
+export const buscarColonias = (municipio, texto) =>
+  rpc('buscar_colonias', { p_municipio: municipio, p_texto: texto });
 
 /* ------------------------------------------------------------- operaciones */
 
+/**
+ * Datos mínimos (asesoría legal, 21 de septiembre de 2026): nombre, fecha de
+ * nacimiento, género y lugar. Sin correo.
+ */
 export function solicitarBoleto(d) {
   return rpc('solicitar_boleto', {
-    p_slug:        d.slug,
-    p_nombre:      d.nombre,
-    p_correo:      d.correo,
-    p_edad:        d.edad,
-    p_ocupacion:   d.ocupacion,
-    p_procedencia: d.procedencia || null,
-    p_lugares:     d.lugares || 1,
-    p_origen:      d.origen || 'otro',
-    p_consiento:   !!d.consiento,
-    p_espera:      !!d.espera,
+    p_slug:       d.slug,
+    p_nombre:     d.nombre,
+    p_nacimiento: d.nacimiento,          // 'AAAA-MM-DD'
+    p_genero:     d.genero,
+    p_municipio:  d.municipio,           // id del catálogo
+    p_colonia:    d.colonia || null,     // id del catálogo, solo Baja California
+    p_lugares:    d.lugares || 1,
+    p_origen:     d.origen || 'otro',
+    p_consiento:  !!d.consiento,
+    p_espera:     !!d.espera,
   });
 }
 
 export const verBoleto      = (token) => rpc('ver_boleto',      { p_token: token });
 export const cancelarBoleto = (token) => rpc('cancelar_boleto', { p_token: token });
+
+/** Con nombre y fecha de nacimiento, los boletos vigentes de esa persona. */
+export const recuperarBoletos = (nombre, nacimiento) =>
+  rpc('recuperar_boletos', { p_nombre: nombre, p_nacimiento: nacimiento });
 
 /* ---------------------------------------------------------------- mensajes */
 
@@ -116,15 +131,19 @@ export function mensaje(r) {
   }
   switch (r?.error) {
     case 'consentimiento':
-      return 'Para darte tu boleto necesitamos que aceptes el aviso de privacidad.';
+      return 'Para darte tu boleto necesitamos que aceptes los términos y el aviso de privacidad.';
     case 'nombre':
       return 'Escribe tu nombre para que podamos identificar tu boleto en la entrada.';
-    case 'correo':
-      return 'Revisa tu correo: parece que le falta algo.';
-    case 'edad':
-      return 'Elige tu rango de edad.';
-    case 'ocupacion':
-      return 'Elige tu ocupación.';
+    case 'nacimiento':
+      return 'Revisa tu fecha de nacimiento: elige día, mes y año.';
+    case 'genero':
+      return 'Elige una opción de género (puede ser «Prefiero no decir»).';
+    case 'municipio':
+      return 'Escribe tu ciudad o municipio y elígelo de la lista.';
+    case 'colonia':
+      return 'Elige tu colonia de la lista, o deja el campo vacío.';
+    case 'datos':
+      return 'Escribe tu nombre y tu fecha de nacimiento completa.';
     case 'lugares':
       return `En un boleto caben hasta ${r.maximo} ${r.maximo === 1 ? 'lugar' : 'lugares'}.`;
     case 'no_existe':
@@ -137,18 +156,18 @@ export function mensaje(r) {
       return 'Ya no se entregan boletos para esta actividad. Si sobran lugares, se ocupan en la entrada por orden de llegada.';
     case 'duplicado':
       return r.estado === 'espera'
-        ? 'Ese correo ya está en la lista de espera de esta actividad.'
-        : 'Ese correo ya tiene boleto para esta actividad. Búscalo en «Mis boletos» del teléfono donde lo pediste, o da tu nombre en la entrada.';
+        ? 'Ya estás en la lista de espera de esta actividad con ese nombre y fecha de nacimiento.'
+        : 'Ya hay un boleto para esta actividad con ese nombre y fecha de nacimiento. Recupéralo en «Mis boletos» o da tu nombre en la entrada.';
     case 'tope':
-      return `Ese correo ya tiene ${r.maximo} boletos, el máximo por persona. Si ya no vas a ir a alguna actividad, cancela ese boleto y podrás pedir otro.`;
+      return `Ya tienes ${r.maximo} boletos, el máximo por persona. Si ya no vas a ir a alguna actividad, cancela ese boleto y podrás pedir otro.`;
     case 'empalme':
-      return `Ese correo ya tiene boleto para «${r.con}», que coincide en horario con esta actividad.`;
+      return `Ya tienes boleto para «${r.con}», que coincide en horario con esta actividad.`;
     case 'agotado':
       return r.disponibles > 0
         ? `Solo ${r.disponibles === 1 ? 'queda 1 lugar' : `quedan ${r.disponibles} lugares`}. Pide ${r.disponibles === 1 ? 'uno' : r.disponibles + ' o menos'}.`
         : 'Se terminaron los lugares.';
     case 'demasiados':
-      return 'Se han pedido muchos boletos desde esta conexión en poco tiempo. Espera unos minutos y vuelve a intentarlo.';
+      return 'Hubo muchos intentos desde esta conexión en poco tiempo. Espera unos minutos y vuelve a intentarlo.';
     default:
       return 'Algo salió mal. Vuelve a intentarlo.';
   }

@@ -15,13 +15,13 @@ SQL
 cat <<'SQL' | docker exec -i fdc-prueba sh -c 'cat > /tmp/uno.sql'
 \set n random(1, 1000000000)
 set role anon;
-select public.solicitar_boleto('concurrencia-uno', 'Persona ' || :n, 'p' || :n || '@x.mx', '18 a 29 años', 'Estudiante', null, 1, 'cartel', true);
+select public.solicitar_boleto('concurrencia-uno', 'Persona ' || :n, '1990-01-01', 'Mujer', 1, null, 1, 'cartel', true);
 SQL
 cat <<'SQL' | docker exec -i fdc-prueba sh -c 'cat > /tmp/varios.sql'
 \set n random(1, 1000000000)
 \set l random(1, 4)
 set role anon;
-select public.solicitar_boleto('concurrencia-varios', 'Persona ' || :n, 'q' || :n || '@x.mx', '18 a 29 años', 'Estudiante', null, :l, 'cartel', true);
+select public.solicitar_boleto('concurrencia-varios', 'Persona ' || :n, '1990-01-01', 'Mujer', 1, null, :l, 'cartel', true);
 SQL
 
 echo "· 50 personas a la vez por 10 lugares"

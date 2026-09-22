@@ -1,9 +1,13 @@
 #!/bin/bash
 # Reconstruye desde cero una base de prueba DESECHABLE en Docker:
 # simulación de Supabase + sql/01..11 + datos de ejemplo.
-# Aplica 11-boletos.sql dos veces para comprobar que es re-ejecutable.
+# Aplica 11-boletos.sql y 12-datos-minimos.sql dos veces cada uno, para
+# comprobar que se pueden re-ejecutar.
 # Al terminar: docker rm -f fdc-prueba
 AQUI="$(cd "$(dirname "$0")" && pwd)"; SQL="$AQUI/../../sql"
+if ! docker info >/dev/null 2>&1; then
+  echo "Docker no está corriendo: abre Docker Desktop y vuelve a intentarlo."; exit 1
+fi
 docker rm -f fdc-prueba >/dev/null 2>&1
 docker run -d --name fdc-prueba -e POSTGRES_PASSWORD=x -p 55432:5432 postgres:16-alpine -c max_connections=200 >/dev/null
 until docker exec fdc-prueba pg_isready -U postgres -q 2>/dev/null; do sleep 1; done; sleep 1
@@ -22,6 +26,16 @@ values ('11111111-1111-1111-1111-111111111111','Taller de microscopía','', curr
        ('11111111-1111-1111-1111-111111111111','Charla empalmada','', current_date+5,'11:00',null,50,true,''),
        ('33333333-3333-3333-3333-333333333333','Borrador ajeno','', current_date+5,'16:00',null,20,false,'');
 SQLX
-run < "$SQL/11-boletos.sql" > /dev/null 2>&1 || { echo "FALLÓ 11"; tail /dev/null; exit 1; }
-run < "$SQL/11-boletos.sql" > "$AQUI/.ultima-salida.txt" 2>&1 || { echo "FALLÓ 11 (2a vez)"; tail "$AQUI/.ultima-salida.txt"; exit 1; }
+run < "$SQL/11-boletos.sql" > /dev/null 2>&1 || { echo "FALLÓ 11"; exit 1; }
+run < "$SQL/11-boletos.sql" > /dev/null 2>&1 || { echo "FALLÓ 11 (2a vez)"; exit 1; }
+# 12: datos mínimos. Dos veces, para comprobar que se puede re-ejecutar, y en
+# medio el catálogo de lugares, que se genera aparte y no está en el repositorio
+# (ver herramientas/lugares/generar_sql.py).
+run < "$SQL/12-datos-minimos.sql" > /dev/null 2>&1 || { echo "FALLÓ 12"; run < "$SQL/12-datos-minimos.sql" 2>&1 | grep -m3 ERROR; exit 1; }
+if [ -f "$SQL/12b-lugares.local.sql" ]; then
+  docker exec -i fdc-prueba psql -U postgres -v ON_ERROR_STOP=1 -q -X < "$SQL/12b-lugares.local.sql" > /dev/null || { echo "FALLÓ 12b"; exit 1; }
+else
+  echo "AVISO: falta sql/12b-lugares.local.sql; las pruebas de lugar van a fallar"
+fi
+run < "$SQL/12-datos-minimos.sql" > "$AQUI/.ultima-salida.txt" 2>&1 || { echo "FALLÓ 12 (2a vez)"; tail "$AQUI/.ultima-salida.txt"; exit 1; }
 tail -12 "$AQUI/.ultima-salida.txt"

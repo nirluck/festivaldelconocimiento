@@ -47,13 +47,17 @@ update public.actividades set boletos_desde = now() + interval '2 days'
  where titulo = 'Observación nocturna con telescopios';
 
 -- Llenar el planetario (agotado, con uno en espera) y dejar pocos en robots.
-select public.solicitar_boleto('planetario-movil', 'Persona ' || g, 'plan' || g || '@x.mx',
-                               '18 a 29 años', 'Estudiante', null, 2, 'cartel', true)
+-- Datos mínimos (sql/12): nombre, fecha de nacimiento, género y municipio.
+select public.solicitar_boleto('planetario-movil', 'Persona ' || g, ('1990-01-0' || g)::date,
+                               'Mujer', (select id from public.lugares_municipios where municipio = 'Ensenada' and estado = 'Baja California'),
+                               null, 2, 'cartel', true)
   from generate_series(1, 3) g;
-select public.solicitar_boleto('planetario-movil', 'En espera', 'espera@x.mx',
-                               '30 a 59 años', 'Docente', null, 2, 'redes', true, true);
-select public.solicitar_boleto('robots-que-dibujan', 'Persona ' || g, 'robot' || g || '@x.mx',
-                               '13 a 17 años', 'Estudiante', 'Tijuana', 4, 'programa', true)
+select public.solicitar_boleto('planetario-movil', 'En espera', '1985-06-15',
+                               'Hombre', (select id from public.lugares_municipios where municipio = 'Tijuana' and estado = 'Baja California'),
+                               null, 2, 'redes', true, true);
+select public.solicitar_boleto('robots-que-dibujan', 'Persona ' || g, ('2010-03-0' || g)::date,
+                               'Prefiero no decir', (select id from public.lugares_municipios where municipio = 'Tijuana' and estado = 'Baja California'),
+                               null, 4, 'programa', true)
   from generate_series(1, 4) g;
 
 select titulo, acceso, disponibles, estado_boletos from public.vista_programa order by fecha, hora_inicio;

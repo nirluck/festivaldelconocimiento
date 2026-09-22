@@ -105,6 +105,8 @@ export function htmlAcciones(b) {
        ${b.estado === 'espera' ? '' : 'Llega unos minutos antes: a la hora de inicio los lugares sin ocupar se abren a quien espera en la fila.'}</p>
     <p><b>Quien tenga la liga de este boleto puede usarlo o cancelarlo.</b>
        Compártela solo con quien va contigo.</p>
+    <p><b>Si lo pierdes,</b> recupéralo en <a href="/mis-boletos/#recuperar">Mis boletos</a>
+       con tu nombre y tu fecha de nacimiento.</p>
   </div>
   <div class="bo-cancelar" data-bo-caja-cancelar>
     <button class="bo-link" type="button" data-bo="cancelar">${ICO.tache} Ya no puedo ir: cancelar y liberar ${b.lugares > 1 ? 'mis lugares' : 'mi lugar'}</button>
