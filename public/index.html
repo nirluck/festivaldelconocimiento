@@ -6,6 +6,9 @@
 <title>Festival del Conocimiento 2026 · Ensenada, Baja California</title>
 <meta name="description" content="Del 17 al 24 de octubre de 2026 en Ensenada, Baja California. Ocho días de ciencia, arte, tecnología y humanidades. Actividades gratuitas para toda la comunidad. Impulsado por el CNyN-UNAM.">
 <link rel="icon" href="assets/img/icono-festcon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600;700&display=swap">
 <link rel="stylesheet" href="/assets/css/marca.css">
 <link rel="stylesheet" href="assets/css/landing.css">
 <link rel="stylesheet" href="/assets/css/cabecera.css">
@@ -43,42 +46,54 @@
   </div>
   <div class="fdc-hero__scrim"></div>
 
-  <!-- Anillos decorativos animados -->
-  <svg class="fdc-hero__rings" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+  <!-- Anillos decorativos: uno en cada esquina, como los del logotipo. -->
+  <svg class="fdc-hero__rings fdc-hero__rings--izq" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+    <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
+    <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
+  </svg>
+  <svg class="fdc-hero__rings fdc-hero__rings--der" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
     <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
     <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
   </svg>
 
+  <!-- Dos frases a mano, a los lados. Solo decoran: en pantallas angostas se
+       ocultan y para lectores de pantalla no existen. -->
+  <p class="fdc-hero__nota fdc-hero__nota--izq" aria-hidden="true">Ideas que transforman realidades</p>
+  <p class="fdc-hero__nota fdc-hero__nota--der" aria-hidden="true">La ciencia también se vive</p>
+
   <div class="fdc-hero__inner">
-    <!-- Logotipo y fecha en una sola línea: el logotipo manda a la izquierda y
-         la fecha lo acompaña a la derecha. En móvil se apilan. -->
+    <!-- Logotipo a la izquierda y, tras una línea vertical, la fecha con los
+         guiones de color. En móvil se apilan y la línea pasa a ser horizontal. -->
     <div class="fdc-hero__cabeza">
       <img class="fdc-hero__logo" src="assets/img/logo.png"
            alt="Festival del Conocimiento — ciencia, arte, tecnología y humanidades">
 
-      <p class="fdc-hero__dates">
-        <span class="fdc-hero__rango">
-          <strong>17</strong><span class="fdc-hero__dash">—</span><strong>24</strong>
-        </span>
-        <span class="fdc-hero__mes">octubre</span>
-        <span class="fdc-hero__anio">2026</span>
-      </p>
+      <div class="fdc-hero__fecha">
+        <p class="fdc-hero__rango">
+          <strong>17</strong><span class="fdc-hero__dash" aria-hidden="true"></span><strong>24</strong>
+        </p>
+        <p class="fdc-hero__mesanio">
+          <span class="fdc-hero__mes">octubre</span>
+          <span class="fdc-hero__anio">2026</span>
+        </p>
+        <span class="fdc-hero__guiones" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      </div>
     </div>
 
     <h1 class="fdc-sr">Festival del Conocimiento 2026 — Ensenada, Baja California</h1>
 
-    <!-- Quiénes lo organizan. Es la misma estructura del pie de página
-         —rótulo, fila de logotipos y líneas— para que el bloque se lea igual
-         en los dos sitios. -->
+    <!-- Quiénes lo organizan, en una caja translúcida. -->
     <div class="fdc-hero__insti">
       <p class="fdc-hero__insti-label">Una iniciativa de</p>
       <div class="fdc-hero__insti-row">
         <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
           <img src="assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" class="fdc-hero__lg fdc-hero__lg--unam">
         </a>
+        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
         <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
           <img src="assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" class="fdc-hero__lg fdc-hero__lg--unam2">
         </a>
+        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
         <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
           <img src="assets/img/logo-unam-475.png" alt="475 años de la UNAM" class="fdc-hero__lg fdc-hero__lg--475">
         </a>
@@ -89,16 +104,20 @@
       </div>
     </div>
 
+    <!-- Tarjetas de actividades del programa. El HTML deja el hueco vacío y
+         oculto; assets/js/programa-portada.js lo llena solo con actividades
+         publicadas que tengan póster. Sin datos o sin red no aparece nada. -->
+    <div class="fdc-hero__prog" id="fdc-hero-prog" hidden></div>
+
     <div class="fdc-hero__cta">
       <a class="fdc-btn fdc-btn--magenta" href="/programa/">Programa 2026</a>
       <a class="fdc-btn fdc-btn--ghost" href="#fdc-festival">Conoce el festival</a>
     </div>
-
-    <div class="fdc-hero__dots" role="tablist" aria-label="Cambiar imagen de fondo"></div>
   </div>
 
-  <a class="fdc-hero__scroll" href="#fdc-festival" aria-label="Bajar al contenido">
-    <span></span>
+  <a class="fdc-hero__scroll" href="#fdc-festival">
+    <span class="fdc-hero__raton" aria-hidden="true"><i></i></span>
+    <span class="fdc-hero__scroll-txt">Desliza para explorar</span>
   </a>
 </header>
 

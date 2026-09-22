@@ -256,11 +256,12 @@
 /* ============================================================== 1. HERO === */
 .fdc-hero {
   position: relative;
-  min-height: min(94vh, 900px);
+  min-height: min(96vh, 980px);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   background: var(--fdc-darker);
-  padding: 96px 0 120px;
+  /* Abajo queda sitio para el indicador de scroll, que es absoluto. */
+  padding: 104px 0 116px;
   text-align: center;
 }
 
@@ -291,135 +292,234 @@
       color-mix(in srgb, var(--marca-oscuro-2) 82%, transparent) 100%);
 }
 
+/* Anillos: arriba a la izquierda y abajo a la derecha, girando despacio en
+   sentidos opuestos. Van vivos a propósito: son los del logotipo. */
 .fdc-hero__rings {
-  position: absolute; right: -6vw; top: -8vh;
-  width: min(60vw, 620px); height: auto;
-  fill: none; stroke-width: 1.2;
-  opacity: .16; pointer-events: none;
-  animation: fdc-spin 70s linear infinite;
+  position: absolute; z-index: 1;
+  width: min(36vw, 420px); height: auto;
+  fill: none; stroke-width: 1.1;
+  opacity: .75; pointer-events: none;
+  animation: fdc-spin 90s linear infinite;
 }
+.fdc-hero__rings--izq { left: -8vw; top: -10vh; }
+.fdc-hero__rings--der { right: -7vw; bottom: -14vh; animation-direction: reverse; }
 .fdc-hero__rings circle:nth-child(1) { stroke: var(--fdc-turquesa); }
 .fdc-hero__rings circle:nth-child(2) { stroke: var(--fdc-verde); }
 .fdc-hero__rings circle:nth-child(3) { stroke: var(--fdc-magenta); }
 .fdc-hero__rings circle:nth-child(4) { stroke: var(--fdc-naranja); }
 @keyframes fdc-spin { to { transform: rotate(360deg); } }
 
-.fdc-hero__inner { position: relative; z-index: 2; width: 100%; max-width: 900px; padding-inline: 24px; }
+/* Frases a mano, con un trazo amarillo debajo (SVG en línea, para no sumar
+   una petición). Solo en pantallas anchas: en las demás pisarían el texto. */
+.fdc-hero__nota {
+  position: absolute; z-index: 2; margin: 0;
+  font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
+  font-size: clamp(1.7em, 2.5vw, 2.5em); font-weight: 600; line-height: 1.02;
+  color: #fff; text-align: center;
+  max-width: 6.2em; padding-bottom: 16px;
+  text-shadow: 0 2px 16px rgba(0,0,0,.65);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M3 9 Q 48 1 97 6' fill='none' stroke='%23F6D20A' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat center bottom / 96% 12px;
+}
+.fdc-hero__nota--izq { left: clamp(16px, 4vw, 80px); top: 42%; transform: rotate(-9deg); }
+.fdc-hero__nota--der { right: clamp(16px, 4vw, 80px); top: 30%; transform: rotate(-8deg); }
 
-/* Logotipo a la izquierda y fecha a su derecha, alineados por la base para que
-   las cifras se apoyen en la misma línea que el logotipo. */
+.fdc-hero__inner { position: relative; z-index: 2; width: 100%; max-width: 1040px; padding-inline: 24px; }
+
+/* ------------------------------------------------------------- cabeza --
+   Logotipo | fecha. La línea vertical la pone el borde izquierdo de la fecha.
+   Alineados por abajo: la base de los guiones de color cae sobre la base del
+   renglón «ciencia-arte-tecnología-humanidades». */
 .fdc-hero__cabeza {
-  display: flex; align-items: center; justify-content: flex-start;
-  gap: clamp(12px, 2.2vw, 26px);
-  margin-bottom: 24px;
-}
-.fdc-hero__logo {
-  width: min(52%, 400px);
-  margin: 0 0 -18px;
-  flex: none;
-  filter: drop-shadow(0 8px 30px rgba(0,0,0,.45));
-}
-
-/* Logotipos institucionales bajo el logo del festival.
-   Los de la UNAM ya vienen en blanco sobre transparente; el del CNyN viene en
-   escala de grises y se fuerza a blanco puro, igual que en el pie. Van algo
-   apagados a propósito: acompañan al logotipo, no compiten con él. */
-/* Bloque «Una iniciativa de»: la misma estructura que el pie de página.
-   Allá la línea de arriba la pone el borde del bloque anterior; aquí, al ir
-   suelto sobre el hero, lleva sus dos líneas propias. */
-.fdc-hero__insti {
-  padding: 34px 0 30px; text-align: center;
-  border-top: 1px solid rgba(255,255,255,.18);
-  border-bottom: 1px solid rgba(255,255,255,.18);
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: clamp(20px, 3.5vw, 48px);
   margin-bottom: 30px;
 }
+.fdc-hero__logo {
+  width: min(50%, 460px); flex: none;
+  /* logo.png trae 127 px transparentes abajo (mide 700 × 705 y el dibujo
+     acaba en 578). Se recorta la caja a lo dibujado para que su borde
+     inferior sea de verdad la base del logotipo y se pueda alinear con él. */
+  aspect-ratio: 700 / 578; object-fit: cover; object-position: top;
+  filter: drop-shadow(0 8px 30px rgba(0,0,0,.45));
+}
+.fdc-hero__fecha {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding-left: clamp(20px, 3.5vw, 48px);
+  border-left: 1px solid rgba(255,255,255,.3);
+  text-align: left; color: #fff; font-family: var(--fdc-f-disp);
+}
+.fdc-hero__fecha p { margin: 0; }
+.fdc-hero__rango { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px); }
+.fdc-hero__rango strong {
+  font-size: clamp(3em, 8.4vw, 6.6em);
+  font-weight: 700; line-height: .95; letter-spacing: -.03em;
+  text-shadow: 0 3px 26px color-mix(in srgb, var(--marca-oscuro-3) 60%, transparent);
+}
+.fdc-hero__dash { width: clamp(26px, 3.6vw, 52px); height: 6px; border-radius: 2px; background: var(--fdc-amarillo); }
+.fdc-hero__mesanio {
+  display: flex; gap: .45em; align-items: baseline; margin-top: 8px;
+  font-size: clamp(1.3em, 3.2vw, 2.45em); font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase; line-height: 1.1;
+}
+.fdc-hero__anio { color: var(--fdc-amarillo); font-weight: 700; letter-spacing: .02em; }
+/* Los cuatro guiones ocupan el ancho de la fecha, como subrayado. */
+.fdc-hero__guiones { display: flex; gap: clamp(8px, 1.2vw, 14px); margin-top: clamp(16px, 2vw, 24px); align-self: stretch; }
+.fdc-hero__guiones i { flex: 1; height: 5px; border-radius: 3px; }
+.fdc-hero__guiones i:nth-child(1) { background: var(--fdc-turquesa); }
+.fdc-hero__guiones i:nth-child(2) { background: var(--fdc-magenta); }
+.fdc-hero__guiones i:nth-child(3) { background: var(--fdc-amarillo); }
+.fdc-hero__guiones i:nth-child(4) { background: var(--fdc-verde); }
+
+/* -------------------------------------------------------------- insti --
+   Caja translúcida con los cuatro logotipos separados por líneas. */
+.fdc-hero__insti {
+  max-width: 800px; margin: 0 auto 28px;
+  padding: 18px 28px 22px;
+  border: 1px solid rgba(255,255,255,.28); border-radius: 16px;
+  background: color-mix(in srgb, var(--marca-oscuro-2) 42%, transparent);
+  backdrop-filter: blur(10px);
+}
 .fdc-hero__insti-label {
-  font-size: .74em; letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(255,255,255,.62); margin-bottom: 24px;
-  text-shadow: 0 2px 10px color-mix(in srgb, var(--marca-oscuro-3) 80%, transparent);
+  font-size: .7em; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.72); margin-bottom: 16px;
 }
 .fdc-hero__insti-row {
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(24px, 5vw, 54px); flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 36px); flex-wrap: wrap;
 }
-/* Sobre el pie, un logotipo blanco basta. Aquí el fondo es una foto y en los
-   tramos claros se desdibuja, así que todos llevan sombra. */
 .fdc-hero__lg {
   width: auto; display: block;
   filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
+  transition: opacity .2s ease;
 }
-.fdc-hero__lg--unam  { height: 88px; }
-.fdc-hero__lg--unam2 { height: 72px; }
-.fdc-hero__lg--475   { height: 78px; }
+.fdc-hero__lg--unam  { height: 62px; }
+.fdc-hero__lg--unam2 { height: 50px; }
+.fdc-hero__lg--475   { height: 58px; }
 /* El del CNyN viene en escala de grises: se fuerza a blanco y se le suma la
    misma sombra en un solo filter, porque el segundo sobreescribiría al primero. */
 .fdc-hero__lg--cnyn {
-  height: 82px;
+  height: 56px;
   filter: brightness(0) invert(1) drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
 }
-.fdc-hero__lgsep {
-  width: 1px; height: 62px; background: rgba(255,255,255,.22); flex: none;
-}
-/* Cada logotipo enlaza a su institución. El enlace no debe añadir caja propia
-   ni alterar la fila: se comporta como el <img> que envuelve. */
+.fdc-hero__lgsep { width: 1px; height: 48px; background: rgba(255,255,255,.25); flex: none; }
 .fdc-hero__lglink { display: block; flex: none; line-height: 0; }
 .fdc-hero__lglink:hover .fdc-hero__lg { opacity: .82; }
-.fdc-hero__lg { transition: opacity .2s ease; }
 
-/* Tres renglones: «17 — 24», «octubre» y «2026». */
-.fdc-hero__dates {
-  font-family: var(--fdc-f-disp);
-  display: flex; flex-direction: column; align-items: flex-start;
-  gap: 2px;
-  color: #fff;
-  /* Va dentro de .fdc-hero__cabeza: la separación la pone el gap de la fila. */
-  margin-bottom: 0;
-  /* Centrada respecto al logotipo y bajada. Se desplaza con «top» y no con
-     margen para no descentrar la fila. */
-  position: relative; top: 63px;
+/* ------------------------------------------------- tarjetas del programa
+   Tres a la vista en escritorio, dos en tableta, una y pico en móvil. Si hay
+   más de las que caben, la tira se desplaza sola y con flechas; si caben
+   todas, se centran y el JS quita flechas y avance (clase is-corto). */
+.fdc-hero__prog { position: relative; margin: 0 0 30px; }
+.fdc-hp__track {
+  --hp-gap: 22px;
+  display: flex; gap: var(--hp-gap);
+  list-style: none; margin: 0; padding: 10px 4px 14px;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding-inline: 4px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
-/* El primer renglón sí es horizontal: los dos números con su guion.
-   Por la línea base, para que el guion no baile entre cifras tan grandes. */
-.fdc-hero__rango { display: flex; align-items: baseline; gap: 14px; }
-.fdc-hero__dates strong {
-  font-size: clamp(2.3em, 7vw, 4.1em);
-  /* Punto intermedio: con .88 la caja quedaba más corta que el glifo y sobraba
-     espacio encima del «17»; con 1 la fecha se soltaba de más. */
-  font-weight: 700; line-height: .94; letter-spacing: -.04em;
-  display: block;
-  text-shadow: 0 3px 26px color-mix(in srgb, var(--marca-oscuro-3) 60%, transparent);
+.fdc-hp__track::-webkit-scrollbar { display: none; }
+.fdc-hero__prog.is-corto .fdc-hp__track { justify-content: center; }
+.fdc-hero__prog.is-corto .fdc-hp__btn { display: none; }
+
+.fdc-hp__item { flex: 0 0 calc((100% - 2 * var(--hp-gap)) / 3); scroll-snap-align: start; display: flex; }
+.fdc-hp__card {
+  --c: var(--fdc-turquesa);
+  display: flex; flex-direction: column; width: 100%;
+  border: 2px solid var(--c); border-radius: 18px; overflow: hidden;
+  background: color-mix(in srgb, var(--marca-oscuro-2) 64%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--c) 38%, transparent),
+    0 14px 34px rgba(0,0,0,.4);
+  color: #fff; text-decoration: none; text-align: left;
+  transition: transform .25s ease, box-shadow .25s ease;
 }
-.fdc-hero__dash { font-size: clamp(1.35em, 3.7vw, 2.1em); color: var(--fdc-amarillo); font-weight: 300; }
-.fdc-hero__mes {
-  font-size: clamp(1em, 2.4vw, 1.45em); font-weight: 600;
-  letter-spacing: .1em; text-transform: uppercase; line-height: 1.1;
+.fdc-hp__card:hover, .fdc-hp__card:focus-visible {
+  transform: translateY(-5px);
+  box-shadow:
+    0 0 38px color-mix(in srgb, var(--c) 55%, transparent),
+    0 22px 44px rgba(0,0,0,.45);
 }
-.fdc-hero__anio {
-  color: var(--fdc-amarillo);
-  font-size: clamp(1.1em, 2.4vw, 1.5em); font-weight: 700;
-  letter-spacing: -.01em; line-height: 1.05;
+.fdc-hp__card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.fdc-hp__img {
+  display: block; width: 100%; aspect-ratio: 1; object-fit: cover;
+  background: rgba(255,255,255,.06);
+}
+.fdc-hp__cuerpo {
+  display: grid; grid-template-columns: 1fr auto; gap: 3px 12px;
+  padding: 14px 16px 16px; flex: 1;
+}
+.fdc-hp__cuando {
+  grid-column: 1 / -1; margin: 0;
+  font-family: var(--fdc-f-disp); font-size: .74em; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--fdc-amarillo);
+}
+.fdc-hp__titulo {
+  grid-column: 1; margin: 0;
+  font-family: var(--fdc-f-disp); font-size: 1em; font-weight: 700; line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fdc-hp__resumen {
+  grid-column: 1; margin: 2px 0 0;
+  font-size: .84em; line-height: 1.4; color: rgba(255,255,255,.72);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.fdc-hp__ir {
+  grid-column: 2; grid-row: 2 / 4; align-self: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.6);
+  display: grid; place-items: center;
+  transition: background .2s ease, border-color .2s ease;
+}
+.fdc-hp__card:hover .fdc-hp__ir { background: #fff; border-color: #fff; color: var(--fdc-dark); }
+.fdc-hp__ir svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.fdc-hp__btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  z-index: 2; width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.3); background: rgba(8,26,30,.6); color: #fff;
+  backdrop-filter: blur(6px); cursor: pointer;
+  display: grid; place-items: center; transition: background .2s ease;
+}
+.fdc-hp__btn:hover { background: rgba(8,26,30,.9); }
+.fdc-hp__btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.fdc-hp__btn--prev { left: -54px; }
+.fdc-hp__btn--next { right: -54px; }
+@media (max-width: 1100px) {
+  .fdc-hp__btn--prev { left: 8px; }
+  .fdc-hp__btn--next { right: 8px; }
+}
+@media (max-width: 900px) {
+  .fdc-hp__item { flex-basis: calc((100% - var(--hp-gap)) / 2); }
 }
 
-.fdc-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-bottom: 44px; }
+.fdc-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 
-.fdc-hero__dots { display: flex; gap: 9px; justify-content: center; }
-.fdc-hero__dots button {
-  width: 32px; height: 4px; border-radius: 4px;
-  background: rgba(255,255,255,.3); transition: background .25s ease, width .25s ease;
-}
-.fdc-hero__dots button[aria-selected="true"] { background: var(--fdc-amarillo); width: 48px; }
-
+/* Indicador de scroll: ratón y rótulo con una línea a cada lado. */
 .fdc-hero__scroll {
-  position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-  z-index: 3; width: 26px; height: 42px;
-  border: 2px solid rgba(255,255,255,.45); border-radius: 20px;
-  display: flex; justify-content: center; padding-top: 8px;
+  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: rgba(255,255,255,.75); text-decoration: none;
 }
-.fdc-hero__scroll span {
-  width: 3px; height: 8px; border-radius: 3px; background: #fff;
+.fdc-hero__raton {
+  width: 22px; height: 36px; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,.5);
+  display: flex; justify-content: center; padding-top: 6px;
+}
+.fdc-hero__raton i {
+  width: 3px; height: 7px; border-radius: 3px; background: #fff;
   animation: fdc-scroll 1.8s ease-in-out infinite;
 }
-@keyframes fdc-scroll { 0%,100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(10px); opacity: .25; } }
+@keyframes fdc-scroll { 0%,100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(9px); opacity: .25; } }
+.fdc-hero__scroll-txt {
+  display: flex; align-items: center; gap: 14px;
+  font-size: .64em; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap;
+}
+.fdc-hero__scroll-txt::before, .fdc-hero__scroll-txt::after {
+  content: ''; width: 44px; height: 1px; background: rgba(255,255,255,.35);
+}
 
 /* ======================================================== 2. NAV DE ANCLAS */
 .fdc-chips { background: var(--fdc-dark); border-bottom: 1px solid rgba(255,255,255,.09); }
@@ -1002,6 +1102,10 @@
 .fdc-rv.is-in { opacity: 1; transform: none; }
 
 /* ========================================================= 17. RESPONSIVE = */
+@media (max-width: 1280px) {
+  .fdc-hero__nota { display: none; }
+}
+
 @media (max-width: 1024px) {
   .fdc-intro { grid-template-columns: 1fr; }
   .fdc-intro__fig img { aspect-ratio: 16/10; }
@@ -1012,23 +1116,31 @@
 
 @media (max-width: 720px) {
   .fdc { font-size: max(16px, 1rem); }
-  .fdc-hero { min-height: auto; padding: 76px 0 96px; }
-  /* En móvil no caben lado a lado: se apilan y vuelven al centro. */
-  .fdc-hero__cabeza { flex-direction: column; align-items: center; gap: 6px; }
-  .fdc-hero__logo { width: min(84%, 320px); margin: 0 auto -14px; }
-  /* Apilada bajo el logotipo, el desplazamiento sobra. */
-  .fdc-hero__dates { align-items: center; top: 0; }
-  .fdc-hero__insti { padding: 26px 0 24px; margin-bottom: 24px; }
-  .fdc-hero__insti-label { margin-bottom: 18px; }
-  .fdc-hero__insti-row { gap: 18px 24px; }
-  .fdc-hero__lg--unam  { height: 62px; }
-  .fdc-hero__lg--unam2 { height: 51px; }
-  .fdc-hero__lg--475   { height: 55px; }
-  .fdc-hero__lg--cnyn  { height: 58px; }
-  .fdc-hero__lgsep { height: 44px; }
-  .fdc-hero__rango { gap: 10px; }
+  .fdc-hero { min-height: auto; padding: 84px 0 136px; }
+  /* Apilados: logotipo arriba, fecha centrada debajo y la línea pasa a ser
+     horizontal. */
+  .fdc-hero__cabeza { flex-direction: column; align-items: center; gap: 18px; }
+  .fdc-hero__logo { width: min(88%, 360px); }
+  .fdc-hero__guiones { align-self: center; width: 78%; }
+  .fdc-hero__fecha {
+    align-items: center; text-align: center;
+    padding: 18px 0 0; border-left: 0; border-top: 1px solid rgba(255,255,255,.3);
+  }
+  .fdc-hero__insti { padding: 16px 16px 18px; }
+  .fdc-hero__insti-row { gap: 14px 18px; }
+  .fdc-hero__lg--unam  { height: 50px; }
+  .fdc-hero__lg--unam2 { height: 40px; }
+  .fdc-hero__lg--475   { height: 46px; }
+  .fdc-hero__lg--cnyn  { height: 44px; }
+  .fdc-hero__lgsep { display: none; }
   .fdc-hero__cta { flex-direction: column; }
   .fdc-hero__cta .fdc-btn { width: 100%; }
+  /* En pantalla táctil la tira se arrastra; las flechas solo estorban. */
+  .fdc-hp__btn { display: none; }
+  .fdc-hp__item { flex-basis: 78%; }
+  .fdc-hero__prog { margin-bottom: 24px; }
+  .fdc-hero__scroll-txt { font-size: .58em; letter-spacing: .2em; }
+  .fdc-hero__scroll-txt::before, .fdc-hero__scroll-txt::after { width: 24px; }
 
   .fdc-disc, .fdc-acts, .fdc-memo, .fdc-part, .fdc-social { grid-template-columns: 1fr; }
   .fdc-soon { grid-template-columns: 1fr; text-align: center; }

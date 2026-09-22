@@ -52,28 +52,14 @@
    * ====================================================================== */
   (function heroSlider() {
     var slides = $$('.fdc-hero__slide');
-    var dotsBox = $('.fdc-hero__dots');
-    if (slides.length < 2 || !dotsBox) return;
+    if (slides.length < 2) return;
 
     var i = 0, timer = null, DELAY = 6000;
 
-    slides.forEach(function (_, n) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', 'Imagen ' + (n + 1) + ' de ' + slides.length);
-      b.setAttribute('aria-selected', n === 0 ? 'true' : 'false');
-      b.addEventListener('click', function () { go(n); restart(); });
-      dotsBox.appendChild(b);
-    });
-    var dots = $$('button', dotsBox);
-
     function go(n) {
       slides[i].classList.remove('is-active');
-      dots[i].setAttribute('aria-selected', 'false');
       i = (n + slides.length) % slides.length;
       slides[i].classList.add('is-active');
-      dots[i].setAttribute('aria-selected', 'true');
     }
     function start() { if (!reduced) timer = setInterval(function () { go(i + 1); }, DELAY); }
     function restart() { clearInterval(timer); start(); }

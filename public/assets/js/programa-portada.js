@@ -1,8 +1,10 @@
 /* ============================================================================
-   ADELANTO DEL PROGRAMA EN LA LANDING · Festival del Conocimiento
+   PROGRAMA EN LA LANDING · Festival del Conocimiento
    ----------------------------------------------------------------------------
-   Sustituye el bloque «Programa · Próximamente» por las tres próximas
-   actividades, en cuanto haya algo publicado.
+   Dos cosas, con la misma fuente de datos (vista_programa):
+   · El carrusel del hero: las actividades publicadas que tienen póster.
+   · El adelanto: sustituye el bloque «Programa · Próximamente» por las tres
+     próximas actividades, en cuanto haya algo publicado.
 
    POR QUÉ NO USA app.js
    La landing es la página más visitada del sitio y hasta ahora no descarga
@@ -25,7 +27,113 @@ import { urlPosterMini } from './archivos.js';
 const CAJA    = document.getElementById('fdc-programa-caja');
 const CUANTAS = 3;
 
+const HERO       = document.getElementById('fdc-hero-prog');
+const HERO_MAX   = 12;     // tarjetas como mucho: es un adelanto, no la cartelera
+const HERO_PAUSA = 4500;   // ms entre un paso y el siguiente
+
+if (HERO) carruselHero();
 if (CAJA) adelanto();
+
+/* ================================================================ hero ==
+   Solo actividades publicadas (la vista ya filtra eso) y con póster: la tira
+   es de imágenes, y una tarjeta sin imagen sería un hueco gris. Primero lo que
+   viene; si el festival ya pasó, desde el principio, igual que el adelanto.
+   ------------------------------------------------------------------------- */
+async function carruselHero() {
+  const campos = 'slug,titulo,resumen,poster,fecha,hora_inicio';
+  const orden  = 'order=fecha.asc,hora_inicio.asc';
+
+  let r = await pedir(`${campos}&poster=not.is.null&fecha=gte.${hoyLocal()}&${orden}&limit=${HERO_MAX}`);
+  if (r && !r.datos.length) {
+    r = await pedir(`${campos}&poster=not.is.null&${orden}&limit=${HERO_MAX}`);
+  }
+  if (!r || !r.datos.length) return;
+
+  pintarHero(r.datos);
+}
+
+/* Cada tarjeta lleva un color de la marca, por turno. No es el color del eje
+   a propósito: tres conciertos seguidos serían tres tarjetas magenta, y la
+   maqueta pide que la fila se lea variada. */
+const HERO_COLORES = ['--fdc-turquesa', '--fdc-magenta', '--fdc-amarillo', '--fdc-verde', '--fdc-naranja'];
+
+function pintarHero(acts) {
+  const flecha = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`;
+
+  HERO.innerHTML = `
+    <button class="fdc-hp__btn fdc-hp__btn--prev" type="button" aria-label="Actividades anteriores">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <ul class="fdc-hp__track" aria-label="Actividades del programa">
+      ${acts.map((a, n) => `
+      <li class="fdc-hp__item">
+        <a class="fdc-hp__card" href="/programa/${encodeURIComponent(a.slug)}/"
+           style="--c:var(${HERO_COLORES[n % HERO_COLORES.length]})">
+          <img class="fdc-hp__img" src="${urlPosterMini(a.poster)}" alt=""
+               width="640" height="640" decoding="async"
+               ${n < 3 ? 'fetchpriority="high"' : 'loading="lazy"'}
+               onerror="this.closest('li').remove()">
+          <div class="fdc-hp__cuerpo">
+            <p class="fdc-hp__cuando">${esc(cuando(a))}</p>
+            <p class="fdc-hp__titulo">${esc(a.titulo)}</p>
+            ${a.resumen ? `<p class="fdc-hp__resumen">${esc(breve(a.resumen))}</p>` : ''}
+            <span class="fdc-hp__ir" aria-hidden="true">${flecha}</span>
+          </div>
+        </a>
+      </li>`).join('')}
+    </ul>
+    <button class="fdc-hp__btn fdc-hp__btn--next" type="button" aria-label="Actividades siguientes">
+      ${flecha}
+    </button>`;
+  HERO.hidden = false;
+
+  const track = HERO.querySelector('.fdc-hp__track');
+  const paso  = () => {
+    const li = track.querySelector('.fdc-hp__item');
+    return li ? li.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0) : 240;
+  };
+
+  // Si cabe entera no hay nada que desplazar: se centra y se quitan flechas
+  // y avance automático. Se vuelve a decidir al cambiar el ancho.
+  const medir = () => HERO.classList.toggle('is-corto', track.scrollWidth <= track.clientWidth + 2);
+  medir();
+  window.addEventListener('resize', medir, { passive: true });
+
+  HERO.querySelector('.fdc-hp__btn--prev').addEventListener('click', () => { mover(-1); reiniciar(); });
+  HERO.querySelector('.fdc-hp__btn--next').addEventListener('click', () => { mover(1);  reiniciar(); });
+
+  function mover(dir) {
+    const fin = track.scrollWidth - track.clientWidth;
+    let x = track.scrollLeft + dir * paso();
+    // En los extremos da la vuelta, para que el avance automático no se
+    // quede clavado en la última tarjeta.
+    if (x > fin + 1) x = 0;
+    else if (x < -1) x = fin;
+    track.scrollTo({ left: x, behavior: 'smooth' });
+  }
+
+  /* Avance automático. Se detiene mientras alguien toca, arrastra, apunta o
+     tiene el foco dentro, y no arranca si el sistema pide menos movimiento. */
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timer = null, pausado = false;
+
+  function arrancar() {
+    if (quieto || timer) return;
+    timer = setInterval(() => {
+      if (!pausado && !document.hidden && !HERO.classList.contains('is-corto')) mover(1);
+    }, HERO_PAUSA);
+  }
+  function reiniciar() { clearInterval(timer); timer = null; arrancar(); }
+
+  HERO.addEventListener('pointerenter', () => { pausado = true; });
+  HERO.addEventListener('pointerleave', () => { pausado = false; });
+  HERO.addEventListener('focusin',      () => { pausado = true; });
+  HERO.addEventListener('focusout',     () => { pausado = false; });
+  track.addEventListener('touchstart',  () => { pausado = true; }, { passive: true });
+  track.addEventListener('touchend',    () => { pausado = false; reiniciar(); }, { passive: true });
+
+  arrancar();
+}
 
 async function adelanto() {
   const campos = 'slug,titulo,poster,eje,eje_color,tipo,sede,fecha,hora_inicio,acceso,estado_boletos,disponibles';
@@ -165,6 +273,16 @@ function hoyLocal() {
 }
 
 function mayuscula(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/** El primer párrafo del resumen, y como mucho «max» caracteres cortados en
+    palabra. La tarjeta lo recorta a dos líneas de todos modos; esto evita
+    mandar al HTML un texto de cinco párrafos para mostrar veinte palabras. */
+function breve(txt, max = 140) {
+  const p = String(txt || '').split(/\n+/).map(t => t.trim()).find(Boolean) || '';
+  if (p.length <= max) return p;
+  const corte = p.lastIndexOf(' ', max);
+  return p.slice(0, corte > 60 ? corte : max).replace(/[,;:.]$/, '') + '…';
+}
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g,
