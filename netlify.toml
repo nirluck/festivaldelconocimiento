@@ -131,6 +131,17 @@
   to   = "/laboratorio-arte-de-comunicar-ciencia/"
   status = 301
 
+# Rutas cortas del taller de cómic.
+[[redirects]]
+  from = "/comic"
+  to   = "/taller-comic-difusion-cientifica/"
+  status = 301
+
+[[redirects]]
+  from = "/fanzine"
+  to   = "/taller-comic-difusion-cientifica/"
+  status = 301
+
 [[redirects]]
   from = "/convocatoria"
   to   = "/laboratorio-arte-de-comunicar-ciencia/"

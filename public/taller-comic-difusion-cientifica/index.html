@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómic para difusión científica · Taller · Festival del Conocimiento</title>
+<meta name="description" content="Taller de elaboración de cómic para difusión científica con Samantha Díaz. Cuatro sesiones de dos horas para crear una tira cómica o un fanzine que explique un tema de ciencia. De 15 años en adelante, en el CNyN, Ensenada.">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="canonical" href="https://festivaldelconocimiento.org/taller-comic-difusion-cientifica/">
+<meta name="theme-color" content="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Mismo sistema que el resto del sitio (DISEÑO.md): programa.css trae los
+     tokens, las fuentes, .pg-wrap, .pg-btn y el pie. taller-comic.css solo
+     añade lo propio del taller: stickers, cinta adhesiva, la tira y la cinta
+     de pasos. -->
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/programa.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+<link rel="stylesheet" href="/assets/css/taller-comic.css">
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     Cómo se ve al compartirse.
+
+     PENDIENTE: este taller aún no tiene imagen propia. Mientras tanto va la
+     general del festival. Cuando exista, hacerla como og-laboratorio.jpg:
+     captura del hero recortada a 1200x630 y con nombre de archivo nuevo
+     (/assets/img/* va con caché immutable a un año).
+     ───────────────────────────────────────────────────────────────────────── -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Festival del Conocimiento">
+<meta property="og:title" content="Cómic para difusión científica · Taller con Samantha Díaz">
+<meta property="og:description" content="Cuatro sesiones para crear una tira cómica o un fanzine que explique un tema de ciencia a quien no es de la ciencia. De 15 años en adelante, en el CNyN, Ensenada.">
+<meta property="og:url" content="https://festivaldelconocimiento.org/taller-comic-difusion-cientifica/">
+<meta property="og:locale" content="es_MX">
+<meta property="og:image" content="https://festivaldelconocimiento.org/assets/img/festival-del-conocimiento.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://festivaldelconocimiento.org/assets/img/festival-del-conocimiento.jpg">
+</head>
+<body class="tc">
+
+<div data-cabecera></div>
+
+<!-- ════════════════════════════════ PORTADA ════════════════════════════════
+     Blanca, como la del sitio. A la izquierda el título y los stickers con los
+     datos; a la derecha la tira de cuatro viñetas pegada con cinta sobre los
+     círculos de la paleta. -->
+<header class="tc-hero">
+  <div class="pg-wrap tc-hero__grid">
+    <div class="tc-hero__txt">
+      <p class="pg-kicker">Taller · Festival del Conocimiento 2026</p>
+      <h1 class="tc-hero__tit">Cómic para<br>difundir <span>ciencia</span></h1>
+
+      <p class="tc-hero__lede">
+        Arte secuencial, fanzine y autopublicación para explicar un tema
+        científico a quien no es de la ciencia. Cuatro sesiones para pasar de
+        una idea a una tira cómica o un fanzine listo para imprimir o compartir.
+      </p>
+      <p class="tc-hero__quien">
+        Lo imparte <b>Samantha Díaz</b>, ilustradora ·
+        <a href="https://www.instagram.com/sayonaradreams/" target="_blank" rel="noopener">@sayonaradreams</a>
+      </p>
+
+      <!-- Los stickers: la información clave, pegada torcida. -->
+      <div class="tc-stickers">
+        <span class="tc-sticker tc-sticker--amarillo" style="--r:-4deg">4 sesiones · 2 h</span>
+        <span class="tc-sticker tc-sticker--magenta"  style="--r:3deg">Desde 15 años</span>
+        <span class="tc-sticker tc-sticker--turquesa" style="--r:-2deg">Sede CNyN</span>
+      </div>
+
+      <!-- PENDIENTE: cuando haya formulario de inscripción, este botón y el de
+           la sección final apuntan a él (target="_blank" rel="noopener", como
+           en el laboratorio) y el texto pasa a «Quiero inscribirme». -->
+      <div class="tc-acciones">
+        <a class="pg-btn pg-btn--lleno"
+           href="mailto:jperalta@ens.cnyn.unam.mx?subject=Taller%20de%20c%C3%B3mic%20para%20difusi%C3%B3n%20cient%C3%ADfica">Pedir informes <span aria-hidden="true">→</span></a>
+        <a class="pg-btn" href="#detalles">Ver la ficha</a>
+      </div>
+    </div>
+
+    <!-- La tira: el taller contado en cuatro viñetas. -->
+    <div class="tc-escena">
+      <span class="tc-escena__circ tc-escena__circ--magenta" aria-hidden="true"></span>
+      <span class="tc-escena__circ tc-escena__circ--amarillo" aria-hidden="true"></span>
+      <span class="tc-escena__aro" aria-hidden="true"></span>
+
+      <div class="tc-tira" role="img"
+           aria-label="Tira cómica de cuatro viñetas: tienes un tema de ciencia; le escribes un guion; lo dibujas viñeta por viñeta; lo fotocopias y lo repartes.">
+        <span class="tc-tape tc-tape--izq" aria-hidden="true"></span>
+        <span class="tc-tape tc-tape--der" aria-hidden="true"></span>
+
+        <div class="tc-vineta">
+          <span class="tc-vineta__cartela">1 · Tienes un tema de ciencia</span>
+          <div class="tc-vineta__dibujo"><span class="tc-signo">?</span></div>
+        </div>
+        <div class="tc-vineta">
+          <span class="tc-vineta__cartela">2 · Le escribes un guion</span>
+          <div class="tc-vineta__dibujo"><span class="tc-globo">…</span></div>
+        </div>
+        <div class="tc-vineta">
+          <span class="tc-vineta__cartela">3 · Lo dibujas, viñeta a viñeta</span>
+          <div class="tc-vineta__dibujo"><span class="tc-zas">¡Zas!</span></div>
+        </div>
+        <div class="tc-vineta tc-vineta--magenta">
+          <span class="tc-vineta__cartela">4 · Lo imprimes y lo repartes</span>
+          <div class="tc-vineta__dibujo"><span class="tc-mini">Fanzine<small>núm. 1 · tiraje de 50</small></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ CINTA ═══════════════════════════════════
+     Los pasos del tema 8 del temario, en una banda que corre. Dos grupos
+     idénticos: la animación desplaza la mitad de la pista y cierra sin salto. -->
+<div class="tc-cinta" aria-hidden="true">
+  <div class="tc-cinta__pista">
+    <div class="tc-cinta__grupo">
+      <span>Guion</span><span>Bocetos</span><span>Páginas</span>
+      <span>Paneles</span><span>Globos</span><span>Fanzine</span>
+    </div>
+    <div class="tc-cinta__grupo">
+      <span>Guion</span><span>Bocetos</span><span>Páginas</span>
+      <span>Paneles</span><span>Globos</span><span>Fanzine</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ EL TALLER ═══════════════════════════════ -->
+<section class="tc-sec tc-sec--marfil">
+  <div class="pg-wrap tc-duo">
+    <div class="revela">
+      <p class="pg-kicker">El taller</p>
+      <h2 class="tc-h2">El cómic también sabe explicar ciencia</h2>
+      <p class="tc-lead">
+        Se ven las bases del arte secuencial, que es como se le llama al cómic:
+        su historia, sus formatos (fanzine, tira cómica, novela gráfica,
+        webcomic) y lo que lo hace funcionar.
+      </p>
+      <p class="tc-lead">
+        Y sobre todo, su fuerza como herramienta didáctica, con ejemplos de
+        autoras y autores que ya lo han usado para enseñar. Para quien se
+        interesa en el arte, la escritura o la ciencia y quiere entrarle a la
+        autopublicación, a los proyectos autogestivos y a los formatos
+        experimentales.
+      </p>
+    </div>
+
+    <div class="tc-recortes">
+      <article class="tc-recorte revela" style="--t:.05s">
+        <span class="tc-tape" aria-hidden="true"></span>
+        <span class="tc-sticker tc-sticker--amarillo tc-sticker--chico" style="--r:-3deg">Objetivo</span>
+        <p>Crear una tira cómica o un fanzine que explique <strong>de manera
+          concisa y clara</strong> un tema científico, y que lo entienda
+          alguien de fuera de la comunidad científica.</p>
+      </article>
+      <article class="tc-recorte revela" style="--t:.15s">
+        <span class="tc-tape" aria-hidden="true"></span>
+        <span class="tc-sticker tc-sticker--turquesa tc-sticker--chico" style="--r:2deg">Requisito</span>
+        <p>Llegar con <strong>una idea o un tema</strong> que te interese
+          desarrollar, y su información en digital, impresa o escrita, con sus
+          fuentes.</p>
+      </article>
+      <article class="tc-recorte revela" style="--t:.25s">
+        <span class="tc-tape" aria-hidden="true"></span>
+        <span class="tc-sticker tc-sticker--magenta tc-sticker--chico" style="--r:-2deg">Te llevas</span>
+        <p>Una tira cómica o una pequeña autopublicación <strong>lista para
+          distribuirse</strong>, impresa o en digital para redes.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FICHA TÉCNICA ═══════════════════════════
+     Sección de color: magenta con tarjetas blancas.
+     PENDIENTE: fechas, horario y costo. El documento del taller no los trae.
+     Al tenerlos, quitar los dos stickers «Por confirmar» y poner el dato. Si
+     es gratuito, añadir una tarjeta «Costo · Gratuito» y un sticker en la
+     portada. -->
+<section class="tc-sec tc-sec--magenta" id="detalles">
+  <div class="pg-wrap">
+    <div class="tc-cabeza revela">
+      <div>
+        <p class="pg-kicker">Ficha técnica</p>
+        <h2 class="tc-h2">Lo que necesitas saber</h2>
+      </div>
+      <p class="tc-lead">Las fechas y el horario se publican aquí mismo en cuanto se confirmen.</p>
+    </div>
+
+    <dl class="tc-ficha revela" style="--t:.1s">
+      <div><dt>Duración</dt><dd>4 sesiones<small>De 2 horas cada una, 8 en total</small></dd></div>
+      <div><dt>Sede</dt><dd>CNyN<small>Centro de Nanociencias y Nanotecnología, Ensenada</small></dd></div>
+      <div><dt>Fechas</dt><dd><span class="tc-sticker tc-sticker--amarillo tc-sticker--chico" style="--r:-3deg">Por confirmar</span></dd></div>
+      <div><dt>Público</dt><dd>Desde 15 años<small>Con interés en el arte, la escritura o la ciencia</small></dd></div>
+      <div><dt>Horario</dt><dd><span class="tc-sticker tc-sticker--amarillo tc-sticker--chico" style="--r:2deg">Por confirmar</span></dd></div>
+      <div><dt>Experiencia</dt><dd>No hace falta<small>Basta con un tema que quieras contar</small></dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ TEMARIO ═════════════════════════════════
+     Nueve temas como nueve viñetas: tarjetas de borde grueso, el número
+     grande en color. El último grita. -->
+<section class="tc-sec">
+  <div class="pg-wrap">
+    <div class="tc-cabeza revela">
+      <div>
+        <p class="pg-kicker">Temario</p>
+        <h2 class="tc-h2">De la historia del cómic al archivo para imprenta</h2>
+      </div>
+      <p class="tc-lead">Nueve temas en cuatro sesiones, del por qué al cómo.</p>
+    </div>
+
+    <ol class="tc-temario revela" style="--t:.1s">
+      <li class="tc-tema">¿Qué es la narrativa gráfica? Un poco de su historia</li>
+      <li class="tc-tema">Características del medio</li>
+      <li class="tc-tema">El cómic como herramienta didáctica</li>
+      <li class="tc-tema">La importancia de la difusión científica</li>
+      <li class="tc-tema">Cómics con impacto: <i>Persépolis</i>, <i>Maus</i>, Pictoline</li>
+      <li class="tc-tema">Diversos formatos: fanzine, novela gráfica, webcomic</li>
+      <li class="tc-tema">¿Qué quieres contar y por qué?</li>
+      <li class="tc-tema">Paso por paso: guion, bocetos, páginas, paneles y globos</li>
+      <li class="tc-tema tc-tema--grito">
+        <span class="tc-sticker tc-sticker--amarillo" style="--r:-5deg">¡A imprenta!</span>
+        Preparar tu archivo para impresión
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ MATERIALES ══════════════════════════════
+     Sección de color: amarillo, con la lista en una hoja pegada con cinta. -->
+<section class="tc-sec tc-sec--amarillo">
+  <div class="pg-wrap tc-duo">
+    <div class="revela">
+      <p class="pg-kicker">Materiales opcionales</p>
+      <h2 class="tc-h2">Si quieres, trae lo tuyo</h2>
+      <p class="tc-lead">
+        Nada de esto es obligatorio. Sirve para quien quiera trabajar con
+        recortes y color, o dibujar directo en digital.
+      </p>
+    </div>
+    <div class="tc-hoja revela" style="--t:.1s">
+      <span class="tc-tape" aria-hidden="true"></span>
+      <p class="tc-hoja__tit">Para el taller, si gustas</p>
+      <ul>
+        <li>Periódicos</li>
+        <li>Revistas para recortar</li>
+        <li>Pegamento</li>
+        <li>Hojas de colores</li>
+        <li>Acuarelas y papel para acuarela</li>
+        <li>Tableta o laptop con programa de dibujo</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!--
+  ─────────────────────────────────────────────────────────────────────────
+  SEMBLANZA DE LA TALLERISTA
+  Cuando llegue la información de Samantha Díaz va aquí, antes del cierre:
+  una .tc-sec con .tc-duo, su foto como un .tc-recorte con cinta y el texto
+  al lado.
+  ─────────────────────────────────────────────────────────────────────────
+-->
+
+<!-- ═══════════════════════════════ INSCRIPCIÓN ═════════════════════════════
+     PENDIENTE: con formulario, «Inscripciones», título sobre el cupo y botón
+     «Ir al formulario», como en el laboratorio. -->
+<section class="tc-sec tc-sec--marfil">
+  <div class="pg-wrap tc-duo">
+    <div class="revela">
+      <p class="pg-kicker">Y termina en papel</p>
+      <h2 class="tc-h2">Sales con tu fanzine en la mano</h2>
+      <p class="tc-lead">
+        La última parte del taller es preparar el archivo para imprenta. Lo que
+        hagas en estas cuatro sesiones queda listo para repartirse, fotocopiarse
+        o publicarse en redes.
+      </p>
+    </div>
+
+    <div class="tc-cierre revela" style="--t:.12s">
+      <span class="tc-tape tc-tape--izq" aria-hidden="true"></span>
+      <span class="tc-tape tc-tape--der" aria-hidden="true"></span>
+      <span class="tc-sticker tc-sticker--magenta tc-sticker--chico" style="--r:-3deg">Inscripciones</span>
+      <h3>Muy pronto abrimos el registro</h3>
+      <p>
+        Las fechas y el formulario se publican en esta página. Si quieres
+        apartar tu interés o tienes dudas, escribe a la coordinación.
+      </p>
+      <a class="pg-btn pg-btn--lleno"
+         href="mailto:jperalta@ens.cnyn.unam.mx?subject=Taller%20de%20c%C3%B3mic%20para%20difusi%C3%B3n%20cient%C3%ADfica">Escribir a la coordinación <span aria-hidden="true">→</span></a>
+      <p class="tc-cierre__nota">
+        El trabajo de Samantha está en
+        <a href="https://www.instagram.com/sayonaradreams/" target="_blank" rel="noopener">Instagram</a>
+        y <a href="https://www.facebook.com/sayonaradreamsart" target="_blank" rel="noopener">Facebook</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ PLECA ═══════════════════════════════════
+     La pleca institucional 2026, la misma de la portada: veinte marcas a color
+     sobre blanco. -->
+<section class="tc-pleca">
+  <div class="pg-wrap">
+    <p class="tc-pleca__eti">Con el apoyo de</p>
+    <div class="tc-pleca__fila">
+      <img src="/assets/img/logo-unam-escudo.png" alt="Universidad Nacional Autónoma de México" style="--f:1.04" loading="lazy">
+      <img src="/assets/img/logo-cic.png" alt="Coordinación de la Investigación Científica, UNAM" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-uabc.png" alt="Universidad Autónoma de Baja California" style="--f:1.08" loading="lazy">
+      <img src="/assets/img/logo-uabc-cultura.png" alt="Cultura UABC" style="--f:.78" loading="lazy">
+      <img src="/assets/img/logo-cnyn-color.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" style="--f:.88" loading="lazy">
+      <img src="/assets/img/logo-ia-unam.png" alt="Instituto de Astronomía, UNAM" style="--f:1" loading="lazy">
+      <img src="/assets/img/logo-tecnm.png" alt="Tecnológico Nacional de México" style="--f:.73" loading="lazy">
+      <img src="/assets/img/logo-ite.png" alt="Instituto Tecnológico de Ensenada" style="--f:.77" loading="lazy">
+      <img src="/assets/img/logo-cetys-cevit.png" alt="CETYS Universidad · Centro de Estudios Vitivinícolas" style="--f:.68" loading="lazy">
+      <img src="/assets/img/logo-cicese.png" alt="CICESE" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-alcoholes-academicos.png" alt="Alcoholes Académicos" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-centro-historico.png" alt="Patronato Centro Histórico, Turístico y Cultural de Ensenada A.C." style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-secretaria-cultura.png" alt="Secretaría de Cultura" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-icbc.png" alt="Instituto de Cultura de Baja California, Gobierno del Estado" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-ceart.png" alt="CEART Ensenada" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-imcudhe.png" alt="Instituto Municipal de Cultura y Desarrollo Humano de Ensenada" style="--f:.65" loading="lazy">
+      <img src="/assets/img/logo-gob-ensenada-amor.png" alt="Gobierno de Ensenada 2024-2027 · ¡Amor en grande!" style="--f:.72" loading="lazy">
+      <img src="/assets/img/logo-riviera.png" alt="Riviera de Ensenada, centro social, cívico y cultural" style="--f:1.04" loading="lazy">
+      <img src="/assets/img/logo-unam-475-color.png" alt="475 años de la Universidad de México" style="--f:.8" loading="lazy">
+      <img src="/assets/img/logo-cnyn-43.png" alt="43 aniversario del Centro de Nanociencias y Nanotecnología" style="--f:1.04" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<footer class="pg-pie">
+  <div class="pg-wrap">
+    <p class="pg-pie__frase">El conocimiento nos une.</p>
+    <nav class="pg-pie__nav" aria-label="Pie de página">
+      <a href="/">Sitio del festival</a>
+      <a href="/programa/">Programa 2026</a>
+      <a href="/mis-boletos/">Mis boletos</a>
+      <a href="/#fdc-contacto">Contacto</a>
+      <a href="/privacidad/">Aviso de privacidad</a>
+    </nav>
+    <div class="pg-pie__logos">
+      <span>Una iniciativa de</span>
+      <img src="/assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" style="height:52px" loading="lazy">
+      <img src="/assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" style="height:42px" loading="lazy">
+      <img src="/assets/img/logo-unam-475.png" alt="475 años de la UNAM" style="height:46px" loading="lazy">
+      <img class="pg-pie__cnyn" src="/assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" style="height:46px" loading="lazy">
+    </div>
+    <p class="pg-pie__legal">© 2026 Festival del Conocimiento · Centro de Nanociencias y Nanotecnología, UNAM · Ensenada, Baja California, México.</p>
+  </div>
+</footer>
+
+<script type="module">
+  import { montarCabecera } from '/assets/js/cabecera.js';
+  montarCabecera();
+</script>
+
+<script>
+/* Aparición al entrar en pantalla. Script clásico para que el contenido no
+   dependa de que la cabecera cargue bien. Sin observador o con movimiento
+   reducido, todo se ve desde el principio. */
+(function () {
+  var piezas = document.querySelectorAll('.revela');
+  if (!piezas.length) return;
+  if (!('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.body.classList.add('sin-observador');
+    return;
+  }
+  var ojo = new IntersectionObserver(function (entradas) {
+    entradas.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      en.target.classList.add('visible');
+      ojo.unobserve(en.target);
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: .1 });
+  piezas.forEach(function (p) { ojo.observe(p); });
+})();
+</script>
+</body>
+</html>

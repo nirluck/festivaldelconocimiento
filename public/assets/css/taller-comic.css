@@ -1,0 +1,282 @@
+/* ============================================================================
+   TALLER DE CÓMIC · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   Desde el 27 de septiembre de 2026 la página usa el sistema del sitio
+   (DISEÑO.md): programa.css pone los tokens, League Spartan e Inter, .pg-wrap,
+   .pg-btn, .pg-kicker y el pie. Antes era un fanzine con paleta, tipografías
+   y textura propias, y se veía como otro sitio.
+
+   De aquel diseño se quedan los rasgos del taller, porque cuentan de qué va:
+     · stickers torcidos con la información clave (.tc-sticker)
+     · cinta adhesiva sujetando hojas y tarjetas (.tc-tape)
+     · la tira de cuatro viñetas de la portada (.tc-tira)
+     · la cinta con los pasos del proceso (.tc-cinta)
+   Todo lo demás es el sistema: secciones blancas, marfil y de color pleno,
+   tarjetas blancas y el círculo como forma principal.
+   ========================================================================== */
+
+/* La cinta de pasos va inclinada y más ancha que la ventana para que no se le
+   vean las esquinas. clip y no hidden: hidden en html convierte la raíz en
+   contenedor de desplazamiento y rompe position: sticky de la cabecera. Esta
+   hoja solo la carga esta página, así que tocar html aquí no afecta a otras. */
+html{ overflow-x: clip; }
+.tc{ overflow-x: clip; }
+
+/* ------------------------------------------------------------ sticker ----
+   Una pastilla de color, torcida (--r), con borde oscuro y una sombra dura,
+   como un sticker pegado a mano. Al pasar el ratón se endereza un poco. */
+.tc-sticker{
+  --r: -3deg;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 10px;
+  border: 2px solid var(--dark);
+  box-shadow: 3px 3px 0 var(--dark);
+  font-family: var(--f-disp); font-weight: 800; font-size: 1rem;
+  letter-spacing: .04em; text-transform: uppercase; line-height: 1;
+  transform: rotate(var(--r));
+  transition: transform .2s ease;
+  white-space: nowrap;
+}
+.tc-sticker:hover{ transform: rotate(calc(var(--r) * .3)) scale(1.04); }
+.tc-sticker--amarillo{ background: var(--amarillo); color: var(--dark); }
+/* Sobre magenta el texto va blanco con el tono que pasa AA. */
+.tc-sticker--magenta { background: #D4116F; color: #fff; }
+.tc-sticker--turquesa{ background: var(--turquesa); color: var(--dark); }
+.tc-sticker--verde   { background: var(--verde); color: var(--dark); }
+.tc-sticker--chico{ padding: 7px 12px; font-size: .78rem; box-shadow: 2px 2px 0 var(--dark); }
+
+/* ---------------------------------------------------------- cinta adhesiva
+   Tira amarilla semitransparente con los extremos rasgados. */
+.tc-tape{
+  position: absolute; z-index: 3; left: 50%; top: -13px;
+  width: 96px; height: 26px; margin-left: -48px;
+  background: rgba(246, 210, 10, .8);
+  clip-path: polygon(2% 0, 98% 4%, 100% 100%, 0 96%);
+  transform: rotate(-3deg);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+.tc-tape--izq{ left: 14%; transform: rotate(-8deg); }
+.tc-tape--der{ left: auto; right: 14%; margin-left: 0; transform: rotate(7deg); }
+
+/* ------------------------------------------------------------ secciones -- */
+.tc-sec{ position: relative; padding: clamp(64px, 8vw, 120px) 0; background: var(--bg); }
+.tc-sec--marfil  { background: var(--marfil); }
+.tc-sec--magenta { background: #D4116F; color: #fff; }
+.tc-sec--amarillo{ background: var(--amarillo); color: var(--tx); }
+.tc-sec--magenta .pg-kicker,
+.tc-sec--magenta .tc-lead{ color: rgba(255,255,255,.88); }
+.tc-sec--amarillo .pg-kicker,
+.tc-sec--amarillo .tc-lead{ color: var(--tx); }
+
+.tc-h2{
+  font-family: var(--f-disp); font-weight: 800; letter-spacing: -.02em;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem); line-height: .98; text-wrap: balance;
+  margin-bottom: 22px;
+}
+.tc-lead{ font-size: clamp(1rem, 1.35vw, 1.12rem); line-height: 1.65; color: var(--tx-2); max-width: 56ch; }
+.tc-lead + .tc-lead{ margin-top: 1em; }
+
+.tc-duo{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 88px); align-items: center; }
+.tc-cabeza{
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 72px); align-items: end; margin-bottom: clamp(36px, 5vw, 56px);
+}
+.tc-cabeza .tc-h2{ margin-bottom: 0; }
+
+/* ================================================================ PORTADA == */
+.tc-hero{ position: relative; overflow: hidden; background: var(--bg); padding: clamp(40px, 6vw, 88px) 0 clamp(56px, 7vw, 104px); }
+.tc-hero__grid{ display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+.tc-hero__tit{
+  font-family: var(--f-disp); font-weight: 900; letter-spacing: -.03em;
+  font-size: clamp(3rem, 7vw, 6.2rem); line-height: .9; margin: 4px 0 26px;
+}
+.tc-hero__tit span{ color: #D4116F; }
+.tc-hero__lede{ font-size: clamp(1.02rem, 1.4vw, 1.18rem); line-height: 1.6; color: var(--tx-2); max-width: 48ch; }
+.tc-hero__quien{ margin-top: 14px; font-size: .95rem; color: var(--tx-2); }
+.tc-hero__quien b{ color: var(--tx); }
+.tc-hero__quien a{ color: var(--magenta-tx); }
+.tc-stickers{ display: flex; flex-wrap: wrap; gap: 16px 14px; margin: 30px 0 34px; }
+.tc-acciones{ display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---- la escena: círculos de la paleta y la tira encima ---- */
+.tc-escena{ position: relative; padding: 6% 4%; }
+.tc-escena__circ, .tc-escena__aro{ position: absolute; border-radius: 50%; aspect-ratio: 1; z-index: 0; }
+.tc-escena__circ--magenta { width: 72%; right: -6%; top: -4%; background: var(--magenta); }
+.tc-escena__circ--amarillo{ width: 34%; left: -4%; bottom: -6%; background: var(--amarillo); }
+.tc-escena__aro{ width: 50%; left: 8%; top: 2%; border: 1.5px solid var(--dark); opacity: .7; }
+
+/* La tira: cuatro viñetas de 2 × 2, en una hoja blanca un poco torcida. */
+.tc-tira{
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  padding: 16px; background: #fff; border-radius: 14px;
+  box-shadow: 0 24px 50px rgba(23,32,51,.22);
+  transform: rotate(-2deg);
+}
+.tc-vineta{
+  display: flex; flex-direction: column; min-height: 170px;
+  border: 2.5px solid var(--dark); border-radius: 10px; overflow: hidden; background: #fff;
+}
+.tc-vineta__cartela{
+  padding: 7px 10px; background: var(--amarillo); border-bottom: 2.5px solid var(--dark);
+  font-family: var(--f-body); font-size: .72rem; font-weight: 700; letter-spacing: .04em; line-height: 1.25; color: var(--dark);
+}
+.tc-vineta__dibujo{ flex: 1; display: grid; place-items: center; padding: 12px; }
+.tc-vineta--magenta{ background: #D4116F; }
+.tc-signo{ font-family: var(--f-disp); font-weight: 900; font-size: 4.4rem; line-height: 1; color: #D4116F; }
+.tc-globo{
+  position: relative; padding: 10px 22px 6px; border: 2.5px solid var(--dark); border-radius: 50%;
+  font-family: var(--f-disp); font-weight: 900; font-size: 2rem; line-height: 1; background: #fff;
+}
+.tc-globo::after{
+  content: ''; position: absolute; left: 22%; bottom: -14px; width: 16px; height: 16px;
+  background: #fff; border-right: 2.5px solid var(--dark); border-bottom: 2.5px solid var(--dark);
+  transform: skewX(-30deg) rotate(45deg);
+}
+/* El «¡Zas!» dentro de un estallido amarillo de doce puntas. */
+.tc-zas{
+  display: grid; place-items: center; width: 118px; aspect-ratio: 1;
+  background: var(--amarillo);
+  clip-path: polygon(50% 0, 60% 22%, 83% 10%, 76% 34%, 100% 38%, 80% 54%, 96% 76%, 71% 72%, 66% 98%, 50% 78%, 33% 98%, 29% 72%, 4% 78%, 20% 54%, 0 38%, 24% 34%, 17% 10%, 40% 22%);
+  font-family: var(--f-disp); font-weight: 900; font-size: 1.4rem; color: var(--dark); transform: rotate(-8deg);
+}
+.tc-mini{
+  display: grid; justify-items: center; gap: 2px; padding: 12px 14px;
+  background: #fff; border: 2.5px solid var(--dark); border-radius: 6px; transform: rotate(4deg);
+  font-family: var(--f-disp); font-weight: 900; font-size: 1.2rem; text-transform: uppercase; color: var(--dark);
+}
+.tc-mini small{ font-family: var(--f-body); font-weight: 600; font-size: .62rem; letter-spacing: .06em; text-transform: none; color: var(--tx-3); }
+
+/* ================================================================= CINTA ==
+   Banda azul negro con los pasos del proceso corriendo, separados por
+   círculos de color. Un poco inclinada: rompe el orden a propósito. */
+.tc-cinta{
+  position: relative; z-index: 2; overflow: hidden;
+  background: var(--dark); color: #fff;
+  transform: rotate(-1.2deg); margin: -8px -2vw 0;
+  padding: 18px 0;
+}
+.tc-cinta__pista{ display: flex; width: max-content; animation: tc-corre 32s linear infinite; }
+.tc-cinta__grupo{ display: flex; }
+.tc-cinta__grupo span{
+  display: inline-flex; align-items: center; gap: 28px; padding-right: 28px;
+  font-family: var(--f-disp); font-weight: 800; font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+  text-transform: uppercase; letter-spacing: .02em; line-height: 1;
+}
+.tc-cinta__grupo span::after{ content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--amarillo); }
+.tc-cinta__grupo span:nth-child(3n+2)::after{ background: var(--magenta); }
+.tc-cinta__grupo span:nth-child(3n)::after{ background: var(--turquesa); }
+@keyframes tc-corre{ to { transform: translateX(-50%); } }
+
+/* ============================================================ EL TALLER == */
+.tc-recortes{ display: grid; gap: 30px; }
+.tc-recorte{
+  position: relative; padding: 30px 28px 26px; background: #fff; border-radius: 16px;
+  border: 1px solid var(--line);
+}
+.tc-recorte:nth-child(2){ transform: rotate(.8deg); margin-left: 6%; }
+.tc-recorte:nth-child(3){ transform: rotate(-.6deg); }
+.tc-recorte .tc-sticker{ margin-bottom: 14px; }
+.tc-recorte p{ color: var(--tx-2); line-height: 1.6; }
+.tc-recorte strong{ color: var(--tx); }
+
+/* ================================================================ FICHA == */
+.tc-ficha{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.tc-ficha > div{ padding: 26px 26px 24px; background: #fff; border-radius: 16px; color: var(--tx); }
+.tc-ficha dt{ font-size: .7rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--tx-3); margin-bottom: 10px; }
+.tc-ficha dd{ font-family: var(--f-disp); font-weight: 800; font-size: 1.7rem; line-height: 1.05; letter-spacing: -.01em; }
+.tc-ficha dd small{ display: block; margin-top: 8px; font-family: var(--f-body); font-weight: 400; font-size: .9rem; line-height: 1.45; letter-spacing: 0; color: var(--tx-2); }
+
+/* ============================================================== TEMARIO ==
+   Nueve viñetas: borde grueso oscuro, número grande en color por turno. */
+.tc-temario{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); counter-reset: tema; }
+.tc-tema{
+  counter-increment: tema;
+  position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 170px;
+  padding: 22px 24px 24px; background: #fff; border: 2.5px solid var(--dark); border-radius: 14px;
+  font-family: var(--f-disp); font-weight: 700; font-size: 1.28rem; line-height: 1.18; letter-spacing: -.01em; color: var(--tx);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.tc-tema:hover{ transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--dark); }
+.tc-tema::before{
+  content: counter(tema, decimal-leading-zero);
+  font-weight: 900; font-size: 2.6rem; line-height: 1; letter-spacing: -.03em;
+}
+.tc-tema:nth-child(4n+1)::before{ color: var(--magenta-tx); }
+.tc-tema:nth-child(4n+2)::before{ color: var(--turquesa-tx); }
+.tc-tema:nth-child(4n+3)::before{ color: var(--naranja-tx); }
+.tc-tema:nth-child(4n+4)::before{ color: var(--verde-tx); }
+.tc-tema i{ font-style: italic; }
+/* El último grita: magenta, con su sticker. */
+.tc-tema--grito{ background: #D4116F; color: #fff; }
+.tc-tema--grito::before{ color: #fff !important; }
+.tc-tema--grito .tc-sticker{ align-self: flex-start; }
+
+/* ================================================================ HOJA ==== */
+.tc-hoja{
+  position: relative; padding: 38px 34px 32px; background: #fff; border-radius: 16px;
+  box-shadow: 0 20px 44px rgba(23,32,51,.16); transform: rotate(1.4deg);
+}
+.tc-hoja__tit{ font-family: var(--f-disp); font-weight: 800; font-size: 1.5rem; margin-bottom: 16px; }
+.tc-hoja ul{ list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tc-hoja li{ position: relative; padding: 10px 0 10px 32px; border-bottom: 1px dashed var(--line); font-size: 1.02rem; }
+.tc-hoja li:last-child{ border-bottom: 0; }
+.tc-hoja li::before{
+  content: ''; position: absolute; left: 2px; top: 50%; width: 16px; height: 16px; margin-top: -8px;
+  border: 2px solid var(--dark); border-radius: 50%;
+}
+
+/* ============================================================== CIERRE ==== */
+.tc-cierre{
+  position: relative; padding: 42px 36px 34px; background: #fff; border-radius: 18px;
+  border: 1px solid var(--line); transform: rotate(-.8deg);
+}
+.tc-cierre h3{ font-family: var(--f-disp); font-weight: 800; font-size: clamp(1.6rem, 2.6vw, 2.2rem); line-height: 1.05; letter-spacing: -.02em; margin: 18px 0 12px; }
+.tc-cierre > p{ color: var(--tx-2); line-height: 1.6; margin-bottom: 22px; }
+.tc-cierre__nota{ margin: 18px 0 0 !important; font-size: .9rem; color: var(--tx-3) !important; }
+.tc-cierre__nota a{ color: var(--magenta-tx); }
+
+/* =============================================================== PLECA ==== */
+.tc-pleca{ background: #fff; padding: clamp(40px, 5vw, 64px) 0; border-top: 1px solid var(--line); }
+.tc-pleca__eti{ text-align: center; margin-bottom: 24px; font-size: .72rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--tx-3); }
+.tc-pleca__fila{
+  --pl: clamp(30px, 4vw, 54px);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(14px, 2vw, 26px);
+}
+.tc-pleca__fila img{ height: calc(var(--pl) * var(--f, 1)); width: auto; }
+
+/* ======================================================== APARICIÓN ====== */
+.revela{ opacity: 0; transform: translateY(22px); transition: opacity .6s ease var(--t, 0s), transform .6s ease var(--t, 0s); }
+.revela.visible, .sin-observador .revela{ opacity: 1; transform: none; }
+/* Los recortes y la hoja conservan su giro al aparecer. */
+.tc-recorte.revela.visible:nth-child(2){ transform: rotate(.8deg); }
+.tc-recorte.revela.visible:nth-child(3){ transform: rotate(-.6deg); }
+.tc-hoja.revela.visible{ transform: rotate(1.4deg); }
+.tc-cierre.revela.visible{ transform: rotate(-.8deg); }
+
+/* ========================================================== RESPONSIVE ==== */
+@media (max-width: 1024px){
+  .tc-hero__grid, .tc-duo, .tc-cabeza{ grid-template-columns: 1fr; }
+  .tc-cabeza{ align-items: start; }
+  .tc-escena{ max-width: 560px; }
+  .tc-ficha, .tc-temario{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px){
+  .tc-ficha, .tc-temario{ grid-template-columns: 1fr; }
+  .tc-tema{ min-height: 0; }
+  .tc-vineta{ min-height: 130px; }
+  .tc-signo{ font-size: 3.2rem; }
+  .tc-zas{ width: 90px; font-size: 1.1rem; }
+  .tc-recorte:nth-child(2){ margin-left: 0; }
+  .tc-acciones .pg-btn{ width: 100%; }
+  .tc-pleca__fila{ --pl: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .tc-cinta__pista{ animation: none; }
+  .revela{ opacity: 1; transform: none; transition: none; }
+}
+@media print{
+  .tc-cinta, .tc-escena__circ, .tc-escena__aro{ display: none; }
+  .tc-sec--magenta, .tc-sec--amarillo{ background: #fff; color: #000; }
+}
