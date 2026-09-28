@@ -38,11 +38,12 @@ import { sincronizarColorNavegador } from './marca.js';
    menú lleva a la cartelera completa y no a la sección de adelanto. La portada
    conserva esa sección, con su botón, para quien baja leyendo. */
 const PUBLICO = [
-  ['#fdc-festival',  'El festival'],
-  ['#fdc-2026',      'Edición 2026'],
-  ['/programa/',     'Programa'],
-  ['#fdc-memoria',   'Memoria 2025'],
-  ['#fdc-participa', 'Participa'],
+  ['/programa/',    'Programa'],
+  ['#fdc-ejes',     'El festival'],
+  ['#fdc-sedes',    'Sedes'],
+  ['#fdc-boletos',  'Cómo asistir'],
+  ['#fdc-memoria',  'Memoria 2025'],
+  ['#fdc-contacto', 'Contacto'],
 ];
 
 /* Talleres y laboratorios publicados. Van en un desplegable justo después de
@@ -55,6 +56,9 @@ const TALLERES = [
   ['/laboratorio-arte-de-comunicar-ciencia/',
    'El arte de comunicar ciencia',
    'Laboratorio escénico · Convocatoria abierta'],
+  ['/taller-comic-difusion-cientifica/',
+   'Cómic para difusión científica',
+   'Taller · Fanzine y tira cómica'],
 ];
 
 /* ============================================================= SISTEMA === */
@@ -265,7 +269,9 @@ function cabeceraSistema(quien) {
 
 /* ------------------------------------------------------------ montaje ---- */
 function plantilla({ sistema, marcaHref, nav, auth }) {
-  const clases = ['cab', sistema ? 'cab--sistema' : 'cab--publica'];
+  // El sitio público lleva la cabecera clara del sistema editorial (blanca,
+  // translúcida al bajar); el sistema interno conserva la oscura.
+  const clases = ['cab', sistema ? 'cab--sistema' : 'cab--publica cab--clara'];
   if (!sistema && esLanding) clases.push('cab--flotante');
 
   return `
@@ -460,7 +466,7 @@ function conectar(cab) {
   }
 
   /* ------------------------- fondo sólido al bajar (solo landing) -------- */
-  if (cab.classList.contains('cab--flotante')) {
+  if (cab.classList.contains('cab--flotante') || cab.classList.contains('cab--clara')) {
     // Se comprueba directamente y no dentro de requestAnimationFrame: hay
     // entornos donde rAF no dispara (pestaña en segundo plano, webviews
     // embebidos, ahorro de energía) y la cabecera se quedaría transparente

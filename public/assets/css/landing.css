@@ -1,75 +1,58 @@
 /* ==========================================================================
-   FESTIVAL DEL CONOCIMIENTO 2026 — Hoja de estilo
+   FESTIVAL DEL CONOCIMIENTO 2026 — Landing · hoja de estilo
    --------------------------------------------------------------------------
-   TODO está encapsulado bajo la clase raíz  .fdc
-   para que no interfiera con el tema de WordPress del CNyN (ni al revés).
-   --------------------------------------------------------------------------
+   Sistema editorial claro (ver DISEÑO.md): base neutra, titulares grandes,
+   fotografía y círculos de la paleta, tarjetas sencillas, mucho aire.
+
+   TODO sigue encapsulado bajo la clase raíz .fdc: la landing nació para
+   incrustarse en el WordPress del CNyN y ese blindaje no cuesta nada.
+
    Paleta anclada al logotipo:
      Ciencia      Turquesa  #10ABC4
      Arte         Magenta   #E91587
      Tecnología   Naranja   #F5821F
      Humanidades  Verde     #99CA3C
-     Conocimiento Amarillo  #F6D20A   (la mano que sostiene los anillos)
-   ========================================================================== */
+     Conocimiento Amarillo  #F6D20A
 
-/* Las tipografías NO se importan aquí: el plugin las encola aparte
-   (wp_register_style 'festival-conocimiento-fuentes'), que es lo correcto en
-   WordPress y evita cargarlas dos veces. Si las desactivas con el filtro
-   'fdc_usar_google_fonts', la pila de respaldo del sistema toma el relevo. */
+   REGLA DE COLOR: color puro del logotipo para la GRÁFICA (círculos, bordes,
+   rellenos); variante oscurecida (-tx) para las LETRAS sobre fondo claro.
+   El turquesa puro da 2.75:1 sobre blanco y no pasa AA.
+   ========================================================================== */
 
 /* ---------------------------------------------------------------- TOKENS -- */
 .fdc {
-  /* Marca — para GRÁFICA: anillos, bordes, rellenos, iconos y fondos.
-     Sobre fondo oscuro también funcionan como texto (todos pasan AA). */
   --fdc-turquesa:  #10ABC4;
   --fdc-magenta:   #E91587;
   --fdc-verde:     #99CA3C;
   --fdc-naranja:   #F5821F;
   --fdc-amarillo:  #F6D20A;
 
-  /* Marca — versiones para TEXTO sobre fondo claro.
-     Los colores del logo son muy luminosos y sobre blanco no alcanzan el
-     contraste AA (turquesa 2.75:1, naranja 2.59:1). Estas variantes conservan
-     el tono pero llegan a 4.5:1 o más, incluso sobre el fondo hielo.
-     Regla: color de marca para la gráfica, variante -tx para las letras. */
   --fdc-turquesa-tx: #0A7285;   /* 5.59:1 sobre blanco */
   --fdc-magenta-tx:  #C90D70;   /* 5.56:1 */
   --fdc-verde-tx:    #587A17;   /* 4.99:1 */
   --fdc-naranja-tx:  #B85800;   /* 4.74:1 */
 
-  /* Oscuros estructurales */
+  /* Neutros del sistema editorial. El oscuro viene de marca.css (azul negro). */
   --fdc-dark:      var(--marca-oscuro);
   --fdc-darker:    var(--marca-oscuro-2);
-
-  /* Fondos */
   --fdc-bg:        #FFFFFF;
-  --fdc-bg-soft:   #F7F9F8;
-  --fdc-bg-ice:    #EEF7F6;
-
-  /* Tintes suaves */
-  --fdc-t-turquesa:#E7F7FA;
-  --fdc-t-magenta: #FCE7F2;
-  --fdc-t-verde:   #F2F8E4;
-  --fdc-t-naranja: #FFF0E5;
-  --fdc-t-amarillo:#FFF9D9;
-
-  /* Texto */
+  --fdc-marfil:    #F7F5F0;
+  --fdc-gris:      #ECEBE7;
   --fdc-tx:        var(--marca-oscuro);
   --fdc-tx-2:      var(--marca-texto-2);
-  /* El #939598 del logo y un terciario claro no llegan a 4.5:1 en textos
-     pequeños; este tono conserva la jerarquía y sí cumple AA (5.02:1). */
-  --fdc-tx-3:      var(--marca-texto-3);
-  --fdc-border:    #DCE4E4;
+  --fdc-tx-3:      #667085;
+  --fdc-border:    #E4E4E0;
 
   /* Métrica */
-  --fdc-wrap:      1180px;
-  --fdc-r:         18px;
-  --fdc-r-s:       12px;
-  --fdc-shadow:    0 2px 6px color-mix(in srgb, var(--marca-oscuro) 5%, transparent), 0 12px 32px color-mix(in srgb, var(--marca-oscuro) 8%, transparent);
-  --fdc-shadow-h:  0 4px 10px color-mix(in srgb, var(--marca-oscuro) 8%, transparent), 0 20px 48px color-mix(in srgb, var(--marca-oscuro) 14%, transparent);
+  --fdc-wrap:       1180px;
+  --fdc-wrap-ancho: 1440px;
+  --fdc-r:          18px;
+  --fdc-r-s:        12px;
+  --fdc-shadow:     0 1px 2px rgba(23,32,51,.04), 0 8px 24px rgba(23,32,51,.06);
+  --fdc-shadow-h:   0 4px 10px rgba(23,32,51,.06), 0 18px 44px rgba(23,32,51,.12);
 
-  --fdc-f-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --fdc-f-disp:    'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --fdc-f-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fdc-f-disp: 'League Spartan', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Base */
   font-family: var(--fdc-f-body);
@@ -85,42 +68,24 @@
 }
 
 /* --------------------------------------------------------------- RESET ---
-   Blindaje frente al tema de WordPress. La especificidad está calibrada a
-   propósito en (0,1,0): la aporta «.fdc» y :where() no suma nada.
-
-     tema:        h2 { ... }            (0,0,1)  ← PIERDE contra el reset
-     reset:       .fdc :where(h2)       (0,1,0)
-     componente:  .fdc-h2 { ... }       (0,1,0)  ← GANA por ir después
-
-   Así el reset neutraliza los selectores de etiqueta del tema (que sí llegan
-   hasta aquí) pero nunca estorba a los estilos propios. Un reset de
-   especificidad cero no bastaría: el tema le ganaría. Uno de (0,1,1) —como
-   «.fdc h2»— sería demasiado y aplastaría a los componentes. */
+   Blindaje frente a un tema anfitrión. Especificidad (0,1,0): la aporta «.fdc»
+   y :where() no suma nada, así que los componentes (.fdc-*) siempre ganan. */
 .fdc *, .fdc *::before, .fdc *::after { box-sizing: border-box; }
-
-.fdc :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li,
-            figure, figcaption, blockquote, dl, dt, dd) {
+.fdc :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, figcaption, blockquote, dl, dt, dd) {
   margin: 0; padding: 0; border: 0;
   font: inherit; color: inherit;
   text-indent: 0; text-align: inherit;
   letter-spacing: normal; text-transform: none;
   background: none; box-shadow: none; list-style: none;
 }
-
 .fdc :where(img, svg, iframe, video) {
   display: block; max-width: 100%;
   margin: 0; padding: 0; border: 0; border-radius: 0;
   background: none; box-shadow: none; vertical-align: middle;
 }
 .fdc :where(img) { height: auto; }
-
-.fdc :where(a) {
-  color: inherit; text-decoration: none;
-  background: none; border: 0; box-shadow: none;
-}
-/* Muchos temas añaden un icono a los enlaces externos vía ::after */
+.fdc :where(a) { color: inherit; text-decoration: none; background: none; border: 0; box-shadow: none; }
 .fdc :where(a)::before, .fdc :where(a)::after { content: none; }
-
 .fdc :where(button) {
   font: inherit; color: inherit; cursor: pointer;
   margin: 0; padding: 0; border: 0; border-radius: 0;
@@ -128,17 +93,10 @@
   text-align: inherit; text-transform: none; letter-spacing: normal;
   -webkit-appearance: none; appearance: none;
 }
-
-/* Se normalizan sin perder su significado semántico */
 .fdc :where(strong, b) { font-weight: 700; color: inherit; }
 .fdc :where(em, i)     { font-style: italic; color: inherit; }
 .fdc :where(small)     { font-size: .85em; }
-
-.fdc :focus-visible {
-  outline: 3px solid var(--fdc-turquesa);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
+.fdc :focus-visible { outline: 3px solid var(--fdc-turquesa); outline-offset: 3px; border-radius: 4px; }
 
 .fdc-sr {
   position: absolute !important; width: 1px; height: 1px;
@@ -146,874 +104,509 @@
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ------------------------------------------------------------ ESTRUCTURA -- */
-.fdc-wrap { width: 100%; max-width: var(--fdc-wrap); margin-inline: auto; padding-inline: 24px; }
+/* ------------------------------------------------------------ ESTRUCTURA --
+   Retícula editorial: contenido hasta 1360 px con márgenes generosos. */
+.fdc-wrap { width: 100%; max-width: var(--fdc-wrap); margin-inline: auto; padding-inline: clamp(20px, 5vw, 120px); }
+.fdc-wrap--ancho { max-width: var(--fdc-wrap-ancho); }
 
-.fdc-sec { padding: clamp(64px, 9vw, 112px) 0; position: relative; background: var(--fdc-bg); }
-.fdc-sec--soft { background: var(--fdc-bg-soft); }
-.fdc-sec--dark { background: var(--fdc-dark); color: #fff; overflow: hidden; }
+.fdc-sec { padding: clamp(64px, 8vw, 120px) 0; position: relative; background: var(--fdc-bg); }
+/* ---- secciones de color ------------------------------------------------
+   La identidad como fondo de sección: un color pleno del logotipo y, si se
+   pide, una foto propia detrás en blanco y negro que se multiplica con el
+   color (efecto de dos tintas). Sobre magenta el texto va blanco; sobre
+   turquesa y amarillo va oscuro, que es lo que pasa AA. Las tarjetas dentro
+   siguen blancas: la información con orden, la identidad alrededor. */
+.fdc-sec--marfil { background: var(--fdc-marfil); }
+.fdc-sec--color { isolation: isolate; }
+.fdc-sec--magenta  { background: #D4116F; color: #fff; }
+.fdc-sec--turquesa { background: var(--fdc-turquesa); color: var(--fdc-tx); }
+.fdc-sec--amarillo { background: var(--fdc-amarillo); color: var(--fdc-tx); }
+.fdc-sec--foto::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--foto) center / cover no-repeat;
+  filter: grayscale(1) contrast(1.1);
+  opacity: .26; mix-blend-mode: multiply;
+}
+.fdc-sec--color .fdc-eyebrow { color: currentColor; opacity: .75; }
+.fdc-sec--color .fdc-lead,
+.fdc-sec--color .fdc-nota,
+.fdc-sec--color .fdc-nota a { color: currentColor; }
+.fdc-sec--color .fdc-lead { opacity: .92; }
+.fdc-sec--color .fdc-lead b { color: currentColor; }
+.fdc-sec--color .fdc-enlace { color: currentColor; }
+.fdc-sec--color .fdc-enlace:hover { color: currentColor; opacity: .8; }
+/* Botón de línea y separadores toman el color del texto de la sección. */
+.fdc-sec--color .fdc-btn--linea { border-color: currentColor; color: currentColor; }
+.fdc-sec--magenta .fdc-btn--linea:hover { background: #fff; color: #D4116F; border-color: #fff; }
+.fdc-sec--turquesa .fdc-btn--linea:hover,
+.fdc-sec--amarillo .fdc-btn--linea:hover { background: var(--fdc-dark); color: #fff; }
+/* Sobre amarillo, el magenta del primario ya destaca; sobre magenta se
+   vuelve blanco con texto magenta. */
+.fdc-sec--magenta .fdc-btn--magenta { background: #fff; color: #D4116F; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
+.fdc-sec--magenta .fdc-btn--magenta:hover { background: var(--fdc-amarillo); color: var(--fdc-dark); }
+.fdc-sec[hidden] { display: none; }
 
-/* Sangrado completo: saca las bandas del contenedor estrecho de la entrada
-   para que ocupen todo el ancho de la ventana.
-   Opcional — quita  fdc--bleed  del <div> raíz si tu plantilla ya usa
-   contenedores de ancho completo.
-
-   Se usa --fdc-vw en lugar de 100vw porque 100vw incluye el ancho de la barra
-   de desplazamiento: con ella visible, el bloque sobresaldría unos píxeles por
-   cada lado. El script fija --fdc-vw al ancho real; si el JS no llega a
-   ejecutarse, el respaldo 100vw mantiene el diseño correcto igualmente. */
+/* Sangrado completo, por si la landing vive dentro de un contenedor ajeno.
+   --fdc-vw es el ancho real de la ventana (landing.js); 100vw es el respaldo. */
 .fdc { --fdc-vw: 100vw; }
-
-.fdc--bleed .fdc-hero,
-.fdc--bleed .fdc-chips,
-.fdc--bleed .fdc-sec,
-.fdc--bleed .fdc-foot {
+.fdc--bleed .fdc-hero, .fdc--bleed .fdc-sec, .fdc--bleed .fdc-foot {
   width: var(--fdc-vw);
   margin-left: calc(50% - var(--fdc-vw) / 2);
   margin-right: calc(50% - var(--fdc-vw) / 2);
 }
 
-/* ------------------------------------------------------------ TIPOGRAFÍA -- */
-.fdc-kicker {
-  font-family: var(--fdc-f-disp);
-  font-size: .78em; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase;
-  color: var(--fdc-magenta-tx);
-  margin-bottom: 14px;
-  display: flex; align-items: center; gap: 10px;
+/* Cabeza de sección: rótulo y título a la izquierda, párrafo a la derecha. */
+.fdc-cabeza-sec {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 72px); align-items: end;
+  margin-bottom: clamp(36px, 5vw, 64px);
 }
-.fdc-kicker::after {
-  content: ''; flex: 1; height: 2px; max-width: 60px;
-  background: linear-gradient(90deg, var(--fdc-magenta), transparent);
-}
-.fdc-kicker--light { color: var(--fdc-amarillo); }
-.fdc-kicker--light::after { background: linear-gradient(90deg, var(--fdc-amarillo), transparent); }
+.fdc-cabeza-sec .fdc-lead { max-width: 52ch; }
+.fdc-cabeza-sub { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: clamp(56px, 7vw, 96px) 0 20px; }
 
+/* ------------------------------------------------------------ TIPOGRAFÍA -- */
+.fdc-eyebrow {
+  font-family: var(--fdc-f-body); font-size: .74em; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--fdc-tx-3);
+  margin-bottom: 18px;
+}
 .fdc-h2 {
-  font-family: var(--fdc-f-disp);
-  font-size: clamp(2em, 4.6vw, 3.15em);
-  line-height: 1.08; font-weight: 700;
-  letter-spacing: -.025em;
-  margin-bottom: 22px;
+  font-family: var(--fdc-f-disp); font-weight: 800;
+  font-size: clamp(2.2em, 4.4vw, 3.6em); line-height: .98; letter-spacing: -.02em;
   text-wrap: balance;
 }
-.fdc-h2--light { color: #fff; }
-
 .fdc-h3 {
-  font-family: var(--fdc-f-disp);
-  font-size: clamp(1.4em, 2.6vw, 1.85em);
-  font-weight: 700; letter-spacing: -.015em;
-  text-align: center; margin-bottom: 6px;
+  font-family: var(--fdc-f-disp); font-weight: 800;
+  font-size: clamp(1.4em, 2.4vw, 1.9em); letter-spacing: -.015em; line-height: 1.05;
 }
-
-.fdc-lead { font-size: clamp(1.06em, 1.7vw, 1.22em); color: var(--fdc-tx-2); line-height: 1.62; }
-.fdc-lead--light { color: rgba(255,255,255,.82); max-width: 68ch; }
-/* Descripción bajo el título de una sección. Alineada a la izquierda, igual
-   que el rótulo y el título que la preceden: centrada quedaba desfasada de
-   ellos. Conserva el ancho máximo para que los renglones no se alarguen. */
-.fdc-lead--medida { max-width: 66ch; }
-
-.fdc-sec p + p { margin-top: 1.05em; }
-.fdc-muted { color: var(--fdc-tx-3); font-size: .95em; }
+.fdc-lead { font-size: clamp(1em, 1.4vw, 1.14em); color: var(--fdc-tx-2); line-height: 1.6; }
+.fdc-lead b { color: var(--fdc-tx); font-weight: 600; }
+.fdc-nota { font-size: .92em; color: var(--fdc-tx-3); }
+.fdc-nota a { color: var(--fdc-tx-2); text-decoration: underline; text-underline-offset: 3px; }
 .fdc-center { text-align: center; }
 .fdc-mt { margin-top: 26px; }
-.fdc-mt-l { margin-top: 68px; }
 
-/* Sobre fondo claro se usan las variantes de texto (ver tokens) */
-.c-ciencia { color: var(--fdc-turquesa-tx); }
-.c-arte    { color: var(--fdc-magenta-tx); }
-.c-tecno   { color: var(--fdc-naranja-tx); }
-.c-human   { color: var(--fdc-verde-tx); }
+/* Enlace terciario: texto + flecha, sin contenedor. */
+.fdc-enlace {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--fdc-f-body); font-size: .8em; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--fdc-tx);
+  text-decoration: none !important;
+  transition: color .2s ease, gap .2s ease;
+}
+.fdc-enlace:hover { color: var(--fdc-magenta-tx); gap: 12px; }
 
-/* --------------------------------------------------------------- BOTONES -- */
+/* Los cuatro guiones de color: el subrayado de la identidad. */
+.fdc-guiones { display: flex; gap: 6px; }
+.fdc-guiones b { width: 30px; height: 3px; border-radius: 2px; }
+.fdc-guiones b:nth-child(1) { background: var(--fdc-turquesa); }
+.fdc-guiones b:nth-child(2) { background: var(--fdc-magenta); }
+.fdc-guiones b:nth-child(3) { background: var(--fdc-amarillo); }
+.fdc-guiones b:nth-child(4) { background: var(--fdc-verde); }
+
+/* --------------------------------------------------------------- BOTONES --
+   Cápsulas de 48–56 px. Primario magenta; secundario con borde oscuro. */
 .fdc-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  font-family: var(--fdc-f-disp);
-  font-weight: 600; font-size: .96em; letter-spacing: .01em;
-  padding: 15px 30px; border-radius: 100px;
-  transition: transform .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--fdc-f-body); font-weight: 600; font-size: .96em; letter-spacing: .01em;
+  min-height: 52px; padding: 14px 28px; border-radius: 999px;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease, border-color .18s ease;
   text-align: center; line-height: 1.2;
 }
 .fdc-btn:hover { transform: translateY(-2px); }
+/* El magenta puro con texto blanco da 4.27:1; este tono llega a 5.11:1. */
+.fdc-btn--magenta { background: #D4116F; color: #fff; box-shadow: 0 8px 22px rgba(233,21,135,.22); }
+.fdc-btn--magenta:hover { background: #B80A63; box-shadow: 0 12px 30px rgba(233,21,135,.32); }
+.fdc-btn--linea { border: 1.5px solid var(--fdc-dark); color: var(--fdc-dark); background: transparent; }
+.fdc-btn--linea:hover { background: var(--fdc-dark); color: #fff; }
+.fdc-btn--blanco { background: #fff; color: var(--fdc-dark); }
+.fdc-btn--blanco:hover { background: var(--fdc-amarillo); }
+.fdc-acciones { display: flex; flex-wrap: wrap; gap: 14px; margin-top: clamp(32px, 4vw, 48px); }
 
-/* El magenta puro del logo con texto blanco da 4.27:1 y se queda a un pelo
-   de AA. Se oscurece lo justo (5.11:1) sin salirse del tono de la marca. */
-.fdc-btn--magenta { background: #D4116F; color: #fff; box-shadow: 0 8px 22px rgba(233,21,135,.3); }
-.fdc-btn--magenta:hover { background: #B80A63; box-shadow: 0 12px 30px rgba(233,21,135,.42); }
-
-.fdc-btn--yellow { background: var(--fdc-amarillo); color: var(--fdc-dark); box-shadow: 0 8px 22px rgba(246,210,10,.3); }
-.fdc-btn--yellow:hover { background: #FFE23F; }
-
-.fdc-btn--outline { border: 2px solid var(--fdc-dark); color: var(--fdc-dark); }
-.fdc-btn--outline:hover { background: var(--fdc-dark); color: #fff; }
-
-.fdc-btn--ghost {
-  border: 2px solid rgba(255,255,255,.7); color: #fff;
-  background: color-mix(in srgb, var(--marca-oscuro-2) 35%, transparent); backdrop-filter: blur(6px);
-}
-.fdc-btn--ghost:hover { background: #fff; color: var(--fdc-dark); border-color: #fff; }
-
-/* ============================================================== 1. HERO === */
+/* ============================================================ 1. PORTADA ===
+   Blanco. Logotipo y fecha a la izquierda, collage a la derecha, banda
+   institucional y tres tarjetas debajo. Los aros giran en trazo fino. */
 .fdc-hero {
-  position: relative;
-  min-height: min(96vh, 980px);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-  background: var(--fdc-darker);
-  /* Abajo queda sitio para el indicador de scroll, que es absoluto. */
-  padding: 104px 0 116px;
-  text-align: center;
+  position: relative; overflow: hidden;
+  background: var(--fdc-bg); color: var(--fdc-tx);
+  padding: calc(var(--cab-alto, 64px) + clamp(40px, 5vw, 72px)) 0 clamp(56px, 7vw, 88px);
+  text-align: left;
 }
-
-.fdc-hero__slides { position: absolute; inset: 0; }
-.fdc-hero__slide {
-  position: absolute; inset: 0;
-  background-size: cover; background-position: center;
-  opacity: 0; transition: opacity 1.5s ease;
-  transform: scale(1.06);
-}
-.fdc-hero__slide.is-active { opacity: 1; animation: fdc-kb 9s ease-out forwards; }
-@keyframes fdc-kb { from { transform: scale(1.10); } to { transform: scale(1.00); } }
-
-/* El scrim debe garantizar legibilidad sobre CUALQUIER fotografía del
-   carrusel, incluidas las más claras (escenarios con fondo blanco o cielo).
-   Por eso combina un degradado vertical con uno radial: el centro —donde
-   vive el texto— queda siempre por debajo de ~30 % de luminancia. */
-.fdc-hero__scrim {
-  position: absolute; inset: 0;
-  background:
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--marca-oscuro-2) 86%, transparent) 0%,
-      color-mix(in srgb, var(--marca-oscuro-2) 60%, transparent) 30%,
-      color-mix(in srgb, var(--marca-oscuro-2) 72%, transparent) 66%,
-      color-mix(in srgb, var(--marca-oscuro-2) 95%, transparent) 100%),
-    radial-gradient(105% 80% at 50% 48%,
-      color-mix(in srgb, var(--marca-oscuro-2) 28%, transparent) 0%,
-      color-mix(in srgb, var(--marca-oscuro-2) 82%, transparent) 100%);
-}
-
-/* Anillos: arriba a la izquierda y abajo a la derecha, girando despacio en
-   sentidos opuestos. Van vivos a propósito: son los del logotipo. */
 .fdc-hero__rings {
-  position: absolute; z-index: 1;
-  width: min(36vw, 420px); height: auto;
-  fill: none; stroke-width: 1.1;
-  opacity: .75; pointer-events: none;
-  animation: fdc-spin 90s linear infinite;
+  position: absolute; z-index: 0; pointer-events: none;
+  fill: none; stroke-width: 1; opacity: .45;
+  animation: fdc-spin 100s linear infinite;
 }
-.fdc-hero__rings--izq { left: -8vw; top: -10vh; }
-.fdc-hero__rings--der { right: -7vw; bottom: -14vh; animation-direction: reverse; }
+.fdc-hero__rings--izq { width: min(34vw, 460px); left: -9vw; bottom: -12vw; }
+.fdc-hero__rings--der { width: min(22vw, 300px); right: -5vw; top: -2vw; animation-direction: reverse; }
 .fdc-hero__rings circle:nth-child(1) { stroke: var(--fdc-turquesa); }
 .fdc-hero__rings circle:nth-child(2) { stroke: var(--fdc-verde); }
 .fdc-hero__rings circle:nth-child(3) { stroke: var(--fdc-magenta); }
 .fdc-hero__rings circle:nth-child(4) { stroke: var(--fdc-naranja); }
 @keyframes fdc-spin { to { transform: rotate(360deg); } }
 
-/* Frases a mano, con un trazo amarillo debajo (SVG en línea, para no sumar
-   una petición). Solo en pantallas anchas: en las demás pisarían el texto. */
-.fdc-hero__nota {
-  position: absolute; z-index: 2; margin: 0;
-  font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
-  font-size: clamp(1.7em, 2.5vw, 2.5em); font-weight: 600; line-height: 1.02;
-  color: #fff; text-align: center;
-  max-width: 6.2em; padding-bottom: 16px;
-  text-shadow: 0 2px 16px rgba(0,0,0,.65);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M3 9 Q 48 1 97 6' fill='none' stroke='%23F6D20A' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")
-    no-repeat center bottom / 96% 12px;
+.fdc-hero .fdc-wrap { position: relative; z-index: 1; }
+.fdc-hero__grid {
+  display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  align-items: center; gap: clamp(28px, 5vw, 88px);
+  margin-bottom: clamp(32px, 4vw, 56px);
 }
-.fdc-hero__nota--izq { left: clamp(16px, 4vw, 80px); top: 42%; transform: rotate(-9deg); }
-.fdc-hero__nota--der { right: clamp(16px, 4vw, 80px); top: 30%; transform: rotate(-8deg); }
 
-.fdc-hero__inner { position: relative; z-index: 2; width: 100%; max-width: 1040px; padding-inline: 24px; }
-
-/* ------------------------------------------------------------- cabeza --
-   Logotipo | fecha. La línea vertical la pone el borde izquierdo de la fecha.
-   Alineados por abajo: la base de los guiones de color cae sobre la base del
-   renglón «ciencia-arte-tecnología-humanidades». */
-.fdc-hero__cabeza {
-  display: flex; align-items: flex-end; justify-content: center;
-  gap: clamp(20px, 3.5vw, 48px);
-  margin-bottom: 30px;
-}
+/* ---- texto ---- */
+.fdc-hero__marca { display: flex; align-items: flex-end; gap: clamp(20px, 2.8vw, 44px); margin-bottom: clamp(32px, 3.4vw, 48px); }
 .fdc-hero__logo {
-  width: min(50%, 460px); flex: none;
-  /* logo.png trae 127 px transparentes abajo (mide 700 × 705 y el dibujo
-     acaba en 578). Se recorta la caja a lo dibujado para que su borde
-     inferior sea de verdad la base del logotipo y se pueda alinear con él. */
+  /* Ocupa todo lo que deja la fecha, hasta 680 px. */
+  flex: 1 1 0; min-width: 0; width: 100%; max-width: 680px;
+  /* logo.png mide 700 × 705 y el dibujo acaba en 578: se recorta el margen
+     transparente para que el borde inferior sea la base real del logotipo. */
   aspect-ratio: 700 / 578; object-fit: cover; object-position: top;
-  filter: drop-shadow(0 8px 30px rgba(0,0,0,.45));
 }
 .fdc-hero__fecha {
-  display: flex; flex-direction: column; align-items: flex-start;
-  padding-left: clamp(20px, 3.5vw, 48px);
-  border-left: 1px solid rgba(255,255,255,.3);
-  text-align: left; color: #fff; font-family: var(--fdc-f-disp);
+  display: flex; flex-direction: column; align-items: flex-start; flex: none;
+  padding-left: clamp(20px, 2.8vw, 44px); border-left: 1px solid var(--fdc-border);
+  font-family: var(--fdc-f-disp); color: var(--fdc-tx);
 }
 .fdc-hero__fecha p { margin: 0; }
-.fdc-hero__rango { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px); }
-.fdc-hero__rango strong {
-  font-size: clamp(3em, 8.4vw, 6.6em);
-  font-weight: 700; line-height: .95; letter-spacing: -.03em;
-  text-shadow: 0 3px 26px color-mix(in srgb, var(--marca-oscuro-3) 60%, transparent);
-}
-.fdc-hero__dash { width: clamp(26px, 3.6vw, 52px); height: 6px; border-radius: 2px; background: var(--fdc-amarillo); }
-.fdc-hero__mesanio {
-  display: flex; gap: .45em; align-items: baseline; margin-top: 8px;
-  font-size: clamp(1.3em, 3.2vw, 2.45em); font-weight: 600;
-  letter-spacing: .12em; text-transform: uppercase; line-height: 1.1;
-}
-.fdc-hero__anio { color: var(--fdc-amarillo); font-weight: 700; letter-spacing: .02em; }
-/* Los cuatro guiones ocupan el ancho de la fecha, como subrayado. */
-.fdc-hero__guiones { display: flex; gap: clamp(8px, 1.2vw, 14px); margin-top: clamp(16px, 2vw, 24px); align-self: stretch; }
-.fdc-hero__guiones i { flex: 1; height: 5px; border-radius: 3px; }
-.fdc-hero__guiones i:nth-child(1) { background: var(--fdc-turquesa); }
-.fdc-hero__guiones i:nth-child(2) { background: var(--fdc-magenta); }
-.fdc-hero__guiones i:nth-child(3) { background: var(--fdc-amarillo); }
-.fdc-hero__guiones i:nth-child(4) { background: var(--fdc-verde); }
+.fdc-hero__rango { display: flex; align-items: center; gap: clamp(8px, 1.2vw, 16px); }
+.fdc-hero__rango strong { font-size: clamp(3em, 5.8vw, 7em); font-weight: 800; line-height: .9; letter-spacing: -.03em; }
+.fdc-hero__dash { width: clamp(20px, 2.8vw, 48px); height: 6px; border-radius: 3px; background: var(--fdc-amarillo); }
+.fdc-hero__mes  { margin-top: 10px !important; font-size: clamp(1.1em, 2.2vw, 2.2em); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-tx-2); }
+.fdc-hero__anio { font-size: clamp(1.3em, 2.6vw, 2.6em); font-weight: 800; color: var(--fdc-magenta); letter-spacing: .02em; }
 
-/* -------------------------------------------------------------- insti --
-   Caja translúcida con los cuatro logotipos separados por líneas. */
-.fdc-hero__insti {
-  max-width: 800px; margin: 0 auto 28px;
-  padding: 18px 28px 22px;
-  border: 1px solid rgba(255,255,255,.28); border-radius: 16px;
-  background: color-mix(in srgb, var(--marca-oscuro-2) 42%, transparent);
-  backdrop-filter: blur(10px);
+.fdc-hero__cta { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 26px; }
+.fdc-hero__video {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: var(--fdc-f-body); font-weight: 600; font-size: .96em; color: var(--fdc-tx);
 }
-.fdc-hero__insti-label {
-  font-size: .7em; letter-spacing: .22em; text-transform: uppercase;
-  color: rgba(255,255,255,.72); margin-bottom: 16px;
+.fdc-hero__play {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--fdc-border);
+  display: grid; place-items: center; transition: border-color .2s ease, background .2s ease;
 }
-.fdc-hero__insti-row {
-  display: flex; align-items: center; justify-content: center;
-  gap: clamp(16px, 3vw, 36px); flex-wrap: wrap;
+.fdc-hero__play::before {
+  content: ''; width: 0; height: 0; margin-left: 3px;
+  border-style: solid; border-width: 7px 0 7px 11px; border-color: transparent transparent transparent var(--fdc-tx);
 }
-.fdc-hero__lg {
-  width: auto; display: block;
-  filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
-  transition: opacity .2s ease;
-}
-.fdc-hero__lg--unam  { height: 62px; }
-.fdc-hero__lg--unam2 { height: 50px; }
-.fdc-hero__lg--475   { height: 58px; }
-/* El del CNyN viene en escala de grises: se fuerza a blanco y se le suma la
-   misma sombra en un solo filter, porque el segundo sobreescribiría al primero. */
-.fdc-hero__lg--cnyn {
-  height: 56px;
-  filter: brightness(0) invert(1) drop-shadow(0 3px 12px color-mix(in srgb, var(--marca-oscuro-3) 85%, transparent));
-}
-.fdc-hero__lgsep { width: 1px; height: 48px; background: rgba(255,255,255,.25); flex: none; }
-.fdc-hero__lglink { display: block; flex: none; line-height: 0; }
-.fdc-hero__lglink:hover .fdc-hero__lg { opacity: .82; }
+.fdc-hero__video:hover .fdc-hero__play { border-color: var(--fdc-tx); background: var(--fdc-marfil); }
 
-/* ------------------------------------------------- tarjetas del programa
-   Tres a la vista en escritorio, dos en tableta, una y pico en móvil. Si hay
-   más de las que caben, la tira se desplaza sola y con flechas; si caben
-   todas, se centran y el JS quita flechas y avance (clase is-corto). */
-.fdc-hero__prog { position: relative; margin: 0 0 30px; }
-.fdc-hp__track {
-  --hp-gap: 22px;
-  display: flex; gap: var(--hp-gap);
-  list-style: none; margin: 0; padding: 10px 4px 14px;
-  overflow-x: auto; overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory; scroll-padding-inline: 4px;
-  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+/* ---- collage ---- */
+.fdc-hero__collage { position: relative; aspect-ratio: 1; max-width: 680px; width: 100%; justify-self: end; }
+.fdc-hero__blob, .fdc-hero__punto, .fdc-hero__anillo, .fdc-hero__foto {
+  position: absolute; border-radius: 50%; aspect-ratio: 1;
+  animation: fdc-entra .6s cubic-bezier(.2,.7,.2,1) both;
 }
-.fdc-hp__track::-webkit-scrollbar { display: none; }
-.fdc-hero__prog.is-corto .fdc-hp__track { justify-content: center; }
-.fdc-hero__prog.is-corto .fdc-hp__btn { display: none; }
+.fdc-hero__blob--magenta  { width: 52%; right: 2%; top: 2%;   background: var(--fdc-magenta);  animation-delay: .15s; }
+.fdc-hero__blob--amarillo { width: 42%; left: 4%; bottom: 2%; background: var(--fdc-amarillo); animation-delay: .25s; }
+.fdc-hero__blob--turquesa { width: 14%; left: 0;  top: 36%;   background: var(--fdc-turquesa); animation-delay: .45s; }
+.fdc-hero__foto {
+  object-fit: cover; display: block;
+  filter: grayscale(1) contrast(1.08);
+  box-shadow: 0 0 0 5px #fff, var(--fdc-shadow);
+}
+.fdc-hero__foto--musica { width: 54%; left: 10%; top: 6%;     object-position: 50% 35%; animation-delay: 0s; }
+.fdc-hero__foto--danza  { width: 40%; right: 0;  bottom: 16%; object-position: 50% 30%; animation-delay: .3s; }
+.fdc-hero__foto--charla { width: 28%; left: 34%; bottom: 0;   object-position: 50% 45%; animation-delay: .4s; }
+.fdc-hero__anillo { width: 62%; left: 24%; top: 24%; border: 1.5px solid var(--fdc-tx); opacity: .75; animation-delay: .55s; }
+.fdc-hero__punto--verde   { width: 7%; background: var(--fdc-verde);   right: 14%; top: -2%; animation-delay: .6s; }
+.fdc-hero__punto--naranja { width: 5%; background: var(--fdc-naranja); left: 6%;   top: 14%; animation-delay: .65s; }
+@keyframes fdc-entra { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
 
-.fdc-hp__item { flex: 0 0 calc((100% - 2 * var(--hp-gap)) / 3); scroll-snap-align: start; display: flex; }
-.fdc-hp__card {
-  --c: var(--fdc-turquesa);
-  display: flex; flex-direction: column; width: 100%;
-  border: 2px solid var(--c); border-radius: 18px; overflow: hidden;
-  background: color-mix(in srgb, var(--marca-oscuro-2) 64%, transparent);
-  backdrop-filter: blur(8px);
-  box-shadow:
-    0 0 26px color-mix(in srgb, var(--c) 38%, transparent),
-    0 14px 34px rgba(0,0,0,.4);
-  color: #fff; text-decoration: none; text-align: left;
-  transition: transform .25s ease, box-shadow .25s ease;
+/* ---- banda institucional ---- */
+.fdc-insti {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 18px 32px;
+  padding: 22px clamp(20px, 3vw, 40px);
+  background: #fff; border: 1px solid var(--fdc-border); border-radius: var(--fdc-r);
+  margin-bottom: clamp(32px, 4vw, 56px);
 }
-.fdc-hp__card:hover, .fdc-hp__card:focus-visible {
-  transform: translateY(-5px);
-  box-shadow:
-    0 0 38px color-mix(in srgb, var(--c) 55%, transparent),
-    0 22px 44px rgba(0,0,0,.45);
+.fdc-insti__label { margin: 0; font-size: .72em; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--fdc-tx-3); }
+.fdc-insti__row { display: flex; align-items: center; gap: clamp(20px, 3.4vw, 48px); flex-wrap: wrap; }
+.fdc-insti__row a { display: block; line-height: 0; }
+.fdc-insti__lg { width: auto; display: block; opacity: .9; transition: opacity .2s ease; }
+.fdc-insti__lg--blanco { filter: brightness(0); }
+.fdc-insti__row a:hover .fdc-insti__lg { opacity: .6; }
+.fdc-insti__lema {
+  display: flex; flex-direction: column; gap: 10px;
+  padding-left: 32px; border-left: 1px solid var(--fdc-border);
+  font-size: .72em; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--fdc-tx-2);
 }
-.fdc-hp__card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-.fdc-hp__img {
-  display: block; width: 100%; aspect-ratio: 1; object-fit: cover;
-  background: rgba(255,255,255,.06);
+
+/* ---- tarjetas destacadas ---- */
+.fdc-hero__prog[hidden] { display: none; }
+.fdc-destacadas {
+  display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 72px); align-items: start;
 }
-.fdc-hp__cuerpo {
-  display: grid; grid-template-columns: 1fr auto; gap: 3px 12px;
-  padding: 14px 16px 16px; flex: 1;
+.fdc-destacadas__tit {
+  font-family: var(--fdc-f-body); font-size: clamp(1.15em, 1.5vw, 1.45em); font-weight: 700;
+  letter-spacing: .2em; text-transform: uppercase; line-height: 1.5; color: var(--fdc-tx);
 }
-.fdc-hp__cuando {
-  grid-column: 1 / -1; margin: 0;
-  font-family: var(--fdc-f-disp); font-size: .74em; font-weight: 700;
-  letter-spacing: .1em; text-transform: uppercase; color: var(--fdc-amarillo);
+.fdc-destacadas__raya { display: block; width: 56px; height: 4px; border-radius: 2px; background: var(--fdc-amarillo); margin: 20px 0 16px; }
+.fdc-destacadas__txt { font-size: .95em; line-height: 1.55; color: var(--fdc-tx-2); max-width: 30ch; margin-bottom: 22px; }
+
+/* ================================================================ TARJETA ==
+   La tarjeta de actividad del sistema: imagen arriba (50–60 %), etiqueta de
+   fecha en color, título, dato secundario y flecha. Fondo blanco, borde de
+   1 px, sombra casi nula. */
+.fdc-cards-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 26px); }
+.fdc-card {
+  --c: var(--fdc-turquesa); --c-tx: #fff;
+  display: flex; flex-direction: column; height: 100%;
+  background: #fff; border: 1px solid var(--fdc-border); border-radius: 16px; overflow: hidden;
+  color: var(--fdc-tx); text-decoration: none;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
-.fdc-hp__titulo {
+.fdc-card:hover { transform: translateY(-4px); box-shadow: var(--fdc-shadow-h); border-color: transparent; }
+/* El póster es cuadrado y la ventana apaisada: va completo sobre una copia
+   suya desenfocada. Recortarlo perdería la fecha y la sede que llevan abajo. */
+.fdc-card__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--fdc-marfil); }
+.fdc-card__fondo { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(18px) saturate(1.2); opacity: .8; }
+.fdc-card__img   { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; transition: transform .4s ease; }
+.fdc-card:hover .fdc-card__img { transform: scale(1.03); }
+.fdc-card__badge {
+  position: absolute; left: 14px; top: 14px; z-index: 1;
+  width: 60px; padding: 8px 4px 7px; border-radius: 10px;
+  background: var(--c); color: var(--c-tx); text-align: center;
+  font-family: var(--fdc-f-disp); line-height: 1;
+}
+.fdc-card__badge small { display: block; font-size: .62em; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.fdc-card__badge b     { display: block; font-size: 1.6em; font-weight: 800; margin: 3px 0; }
+.fdc-card__cuerpo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; align-items: start; padding: 18px 20px 20px; flex: 1; }
+.fdc-card__titulo {
   grid-column: 1; margin: 0;
-  font-family: var(--fdc-f-disp); font-size: 1em; font-weight: 700; line-height: 1.25;
+  font-family: var(--fdc-f-disp); font-size: 1.18em; font-weight: 700; line-height: 1.15; letter-spacing: -.01em;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.fdc-hp__resumen {
-  grid-column: 1; margin: 2px 0 0;
-  font-size: .84em; line-height: 1.4; color: rgba(255,255,255,.72);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+.fdc-card__cuando  { grid-column: 1; margin: 0; font-size: .72em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--fdc-tx-3); }
+.fdc-card__resumen { grid-column: 1; margin: 2px 0 0; font-size: .92em; line-height: 1.45; color: var(--fdc-tx-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.fdc-card__ir {
+  grid-column: 2; grid-row: 1 / 4; align-self: center;
+  width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--fdc-border);
+  display: grid; place-items: center; color: var(--fdc-tx);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
 }
-.fdc-hp__ir {
-  grid-column: 2; grid-row: 2 / 4; align-self: center;
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,.6);
-  display: grid; place-items: center;
-  transition: background .2s ease, border-color .2s ease;
-}
-.fdc-hp__card:hover .fdc-hp__ir { background: #fff; border-color: #fff; color: var(--fdc-dark); }
-.fdc-hp__ir svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.fdc-card:hover .fdc-card__ir { background: var(--fdc-tx); border-color: var(--fdc-tx); color: #fff; }
+.fdc-card__ir svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-.fdc-hp__btn {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  z-index: 2; width: 42px; height: 42px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.3); background: rgba(8,26,30,.6); color: #fff;
-  backdrop-filter: blur(6px); cursor: pointer;
-  display: grid; place-items: center; transition: background .2s ease;
+/* ========================================================= 2. ESTA SEMANA ==
+   Lista cronológica: la fecha como gran separador editorial a la izquierda y
+   las actividades del día a la derecha. */
+.fdc-dias { display: grid; gap: clamp(28px, 4vw, 48px); }
+.fdc-dia {
+  display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 64px); align-items: start;
+  padding-top: clamp(24px, 3vw, 36px); border-top: 1px solid rgba(255,255,255,.35);
 }
-.fdc-hp__btn:hover { background: rgba(8,26,30,.9); }
-.fdc-hp__btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.fdc-hp__btn--prev { left: -54px; }
-.fdc-hp__btn--next { right: -54px; }
-@media (max-width: 1100px) {
-  .fdc-hp__btn--prev { left: 8px; }
-  .fdc-hp__btn--next { right: 8px; }
-}
-@media (max-width: 900px) {
-  .fdc-hp__item { flex-basis: calc((100% - var(--hp-gap)) / 2); }
-}
+.fdc-dia__fecha { font-family: var(--fdc-f-disp); line-height: .9; color: currentColor; }
+.fdc-dia__fecha small { display: block; font-family: var(--fdc-f-body); font-size: .74em; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: currentColor; opacity: .75; margin-bottom: 8px; }
+.fdc-dia__fecha b { display: block; font-size: clamp(3.4em, 6vw, 5.6em); font-weight: 900; letter-spacing: -.04em; }
+.fdc-dia__fecha span { display: block; font-size: clamp(1em, 1.4vw, 1.2em); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-top: 6px; }
+.fdc-dia__fecha.is-hoy b { color: var(--fdc-amarillo); }
+.fdc-dia__hoy { display: inline-block; margin-top: 10px; padding: 4px 10px; border-radius: 999px; background: var(--fdc-amarillo); color: var(--fdc-dark); font-family: var(--fdc-f-body); font-size: .66em; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 
-.fdc-hero__cta { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.fdc-dia__lista { display: grid; gap: 12px; }
+/* Una fila por actividad: hora, miniatura del póster, texto y el botón de
+   boleto. Toda la fila lleva a la actividad (el enlace del título se estira
+   sobre ella); el botón queda por encima y hace lo suyo. */
+.fdc-fila {
+  --c: var(--fdc-turquesa);
+  position: relative;
+  display: grid; grid-template-columns: 84px 96px minmax(0, 1fr) auto;
+  gap: 8px 22px; align-items: center;
+  padding: 14px 16px 14px 22px; background: #fff; border-radius: 16px;
+  color: var(--fdc-tx); transition: transform .2s ease, box-shadow .2s ease;
+}
+.fdc-fila:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(23,32,51,.22); }
+.fdc-fila__hora { font-family: var(--fdc-f-disp); font-size: 1.45em; font-weight: 800; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--fdc-tx); }
+.fdc-fila__hora small { display: block; margin-top: 6px; font-family: var(--fdc-f-body); font-size: .5em; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--fdc-tx-3); }
+.fdc-fila__mini { position: relative; display: block; width: 96px; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--c); }
+.fdc-fila__mini img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+.fdc-fila:hover .fdc-fila__mini img { transform: scale(1.06); }
+/* Sin póster: el color del eje con un aro blanco, como los del logotipo. */
+.fdc-fila__mini--vacia::after { content: ''; position: absolute; inset: 26%; border-radius: 50%; border: 2px solid rgba(255,255,255,.85); }
+.fdc-fila__txt { min-width: 0; }
+.fdc-fila__eje { display: flex; align-items: center; gap: 8px; font-size: .7em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--fdc-tx-3); margin-bottom: 5px; }
+.fdc-fila__eje i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.fdc-fila__tit { font-family: var(--fdc-f-disp); font-size: 1.2em; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
+.fdc-fila__tit a { color: inherit; }
+.fdc-fila__tit a::after { content: ''; position: absolute; inset: 0; border-radius: 16px; z-index: 1; }
+.fdc-fila__sede { font-size: .88em; color: var(--fdc-tx-2); margin-top: 4px; }
+.fdc-fila__estado { display: inline-block; margin-top: 8px; font-size: .68em; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-magenta-tx); }
+.fdc-fila__accion { position: relative; z-index: 2; }
 
-/* Indicador de scroll: ratón y rótulo con una línea a cada lado. */
-.fdc-hero__scroll {
-  position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
-  z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 10px;
-  color: rgba(255,255,255,.75); text-decoration: none;
+/* Botón de la fila: magenta; con el ratón encima se oscurece, sube un poco
+   y la flecha se adelanta. */
+.fdc-fila__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 12px 22px; border-radius: 999px;
+  background: #D4116F; color: #fff; border: 1.5px solid #D4116F;
+  font-family: var(--fdc-f-body); font-size: .88em; font-weight: 600; white-space: nowrap;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease, gap .2s ease;
 }
-.fdc-hero__raton {
-  width: 22px; height: 36px; border-radius: 14px;
-  border: 2px solid rgba(255,255,255,.5);
-  display: flex; justify-content: center; padding-top: 6px;
-}
-.fdc-hero__raton i {
-  width: 3px; height: 7px; border-radius: 3px; background: #fff;
-  animation: fdc-scroll 1.8s ease-in-out infinite;
-}
-@keyframes fdc-scroll { 0%,100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(9px); opacity: .25; } }
-.fdc-hero__scroll-txt {
-  display: flex; align-items: center; gap: 14px;
-  font-size: .64em; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap;
-}
-.fdc-hero__scroll-txt::before, .fdc-hero__scroll-txt::after {
-  content: ''; width: 44px; height: 1px; background: rgba(255,255,255,.35);
-}
+.fdc-fila__btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+.fdc-fila__btn:hover { background: var(--fdc-dark); border-color: var(--fdc-dark); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(23,32,51,.25); }
+.fdc-fila__btn:hover svg { transform: translateX(4px); }
+.fdc-fila__btn--linea { background: transparent; color: var(--fdc-tx); border-color: var(--fdc-tx); }
+.fdc-fila__btn--linea:hover { background: var(--fdc-tx); color: #fff; }
+.fdc-fila__btn--tuyo { background: var(--fdc-verde); border-color: var(--fdc-verde); color: var(--fdc-dark); }
+.fdc-fila__btn--tuyo:hover { color: #fff; }
+.fdc-fila__btn--off { background: var(--fdc-gris); border-color: var(--fdc-gris); color: var(--fdc-tx-3); cursor: default; }
+.fdc-fila__btn--off:hover { background: var(--fdc-gris); border-color: var(--fdc-gris); transform: none; box-shadow: none; }
+.fdc-proximas__pie { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: clamp(32px, 4vw, 48px); padding-top: 24px; border-top: 1px solid rgba(255,255,255,.35); }
+.fdc-proximas__pie p { margin: 0; font-size: .92em; opacity: .85; }
 
-/* ======================================================== 2. NAV DE ANCLAS */
-.fdc-chips { background: var(--fdc-dark); border-bottom: 1px solid rgba(255,255,255,.09); }
-.fdc-chips__track {
-  max-width: var(--fdc-wrap); margin-inline: auto;
-  display: flex; gap: 6px; padding: 12px 24px;
-  overflow-x: auto; scrollbar-width: none;
+/* ============================================================== 3. EJES ====
+   Cuatro tarjetas de color pleno, una por eje, con texto oscuro (pasa AA sobre
+   los cuatro colores; el blanco no). Un círculo blanco asoma por la esquina. */
+.fdc-ejes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
+.fdc-eje {
+  --c: var(--fdc-turquesa);
+  position: relative; display: flex; flex-direction: column; height: 100%;
+  padding: 30px 28px 28px; background: var(--c); border-radius: 22px;
+  color: var(--fdc-tx); overflow: hidden;
+  transition: transform .22s ease, box-shadow .22s ease;
 }
-.fdc-chips__track::-webkit-scrollbar { display: none; }
-.fdc-chips__track a {
-  flex: none;
-  font-family: var(--fdc-f-disp); font-size: .87em; font-weight: 600;
-  color: rgba(255,255,255,.72);
-  padding: 8px 16px; border-radius: 100px;
-  transition: background .18s ease, color .18s ease;
-  white-space: nowrap;
+.fdc-eje::before {
+  content: ''; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px;
+  border-radius: 50%; background: #fff; opacity: .28; transition: transform .35s ease;
 }
-.fdc-chips__track a:hover { background: rgba(255,255,255,.12); color: #fff; }
+.fdc-eje::after {
+  content: ''; position: absolute; right: 26px; bottom: -70px; width: 120px; height: 120px;
+  border-radius: 50%; border: 1.5px solid rgba(23,32,51,.35);
+}
+.fdc-eje:hover { transform: translateY(-5px); box-shadow: 0 22px 44px rgba(23,32,51,.16); }
+.fdc-eje:hover::before { transform: scale(1.5); }
+.fdc-eje--ciencia     { --c: var(--fdc-turquesa); }
+.fdc-eje--arte        { --c: var(--fdc-magenta); }
+.fdc-eje--tecnologia  { --c: var(--fdc-naranja); }
+.fdc-eje--humanidades { --c: var(--fdc-verde); }
+.fdc-eje__ico { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--fdc-tx); display: grid; place-items: center; color: var(--fdc-tx); margin-bottom: 26px; position: relative; }
+.fdc-eje__ico svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.fdc-eje__n { display: block; font-family: var(--fdc-f-disp); font-size: 3em; font-weight: 900; line-height: 1; letter-spacing: -.03em; color: var(--fdc-tx); min-height: 1em; margin-bottom: 6px; position: relative; }
+.fdc-eje__n:empty { display: none; }
+.fdc-eje h3 { font-family: var(--fdc-f-disp); font-size: 1.6em; font-weight: 800; letter-spacing: -.01em; margin-bottom: 10px; position: relative; }
+.fdc-eje p { font-size: .94em; line-height: 1.5; color: rgba(23,32,51,.82); flex: 1; position: relative; }
+.fdc-eje__ir { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-size: .74em; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--fdc-tx); position: relative; }
+.fdc-eje:hover .fdc-eje__ir { gap: 12px; }
 
-/* ============================================================= 4. INTRO === */
-.fdc-intro {
-  display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 5vw, 68px);
-  align-items: start; margin-bottom: clamp(52px, 7vw, 84px);
+/* ============================================================= 4. SEDES ==== */
+.fdc-sedes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.fdc-sede {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: start;
+  padding: 22px 24px; background: #fff; border: 1px solid transparent; border-radius: 16px;
+  color: var(--fdc-tx); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
-.fdc-intro__fig { position: relative; }
-.fdc-intro__fig img {
-  width: 100%; aspect-ratio: 4/5; object-fit: cover;
-  border-radius: var(--fdc-r); box-shadow: var(--fdc-shadow);
-}
-.fdc-intro__fig figcaption {
-  margin-top: 12px; font-size: .82em; color: var(--fdc-tx-3);
-  letter-spacing: .04em; text-transform: uppercase; font-weight: 500;
-}
-.fdc-intro__fig::before {
-  content: ''; position: absolute; inset: auto -14px -14px auto;
-  width: 120px; height: 120px; border-radius: 50%;
-  border: 3px solid var(--fdc-amarillo); z-index: -1;
-}
+.fdc-sede:hover { transform: translateY(-3px); box-shadow: var(--fdc-shadow-h); border-color: transparent; }
+.fdc-sede__n { grid-column: 2; grid-row: 1 / 3; font-family: var(--fdc-f-disp); font-size: 2.2em; font-weight: 900; line-height: 1; letter-spacing: -.03em; color: var(--fdc-tx); text-align: right; }
+.fdc-sede__n small { display: block; font-family: var(--fdc-f-body); font-size: .3em; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-tx-3); margin-top: 4px; }
+.fdc-sede h3 { font-family: var(--fdc-f-disp); font-size: 1.12em; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+.fdc-sede p { font-size: .86em; color: var(--fdc-tx-3); line-height: 1.45; }
+.fdc-sedes__nota { margin-top: 20px; }
+.fdc-sedes li:nth-child(4n+1) .fdc-sede { border-top: 4px solid var(--fdc-turquesa); }
+.fdc-sedes li:nth-child(4n+2) .fdc-sede { border-top: 4px solid var(--fdc-magenta); }
+.fdc-sedes li:nth-child(4n+3) .fdc-sede { border-top: 4px solid var(--fdc-amarillo); }
+.fdc-sedes li:nth-child(4n+4) .fdc-sede { border-top: 4px solid var(--fdc-verde); }
 
-/* Cuatro disciplinas */
-.fdc-disc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.fdc-disc__card {
-  padding: 32px 26px 30px;
-  border-radius: var(--fdc-r);
-  background: #fff; border: 1px solid var(--fdc-border);
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-}
-.fdc-disc__card:hover { transform: translateY(-5px); box-shadow: var(--fdc-shadow-h); }
-/* El anillo lleva el color puro del logotipo; el título, la variante legible */
-/* El anillo lleva dentro el icono de su disciplina. «color» alimenta el
-   currentColor del SVG, así el trazo sigue al color del círculo sin repetirlo. */
-.fdc-disc__ring {
-  display: flex; align-items: center; justify-content: center;
-  width: 56px; height: 56px; border-radius: 50%;
-  border: 4px solid var(--ring); margin-bottom: 20px;
-  color: var(--ring);
-}
-.fdc-disc__ring svg { width: 26px; height: 26px; }
-.fdc-disc__card h3 {
-  font-family: var(--fdc-f-disp); font-size: 1.28em; font-weight: 700;
-  margin-bottom: 8px; letter-spacing: -.01em;
-}
-.fdc-disc__card p { font-size: .95em; color: var(--fdc-tx-2); line-height: 1.55; }
+/* ======================================================= 5. CÓMO ASISTIR === */
+.fdc-pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 40px); }
+.fdc-paso { position: relative; padding-top: 22px; border-top: 2px solid var(--fdc-dark); }
+.fdc-paso__n { display: block; font-family: var(--fdc-f-disp); font-size: clamp(3em, 5vw, 4.6em); font-weight: 900; line-height: .9; letter-spacing: -.04em; color: var(--fdc-tx); margin-bottom: 14px; }
+.fdc-paso:nth-child(1) .fdc-paso__n { color: var(--fdc-turquesa-tx); }
+.fdc-paso:nth-child(2) .fdc-paso__n { color: var(--fdc-magenta-tx); }
+.fdc-paso:nth-child(3) .fdc-paso__n { color: var(--fdc-tx); }
+.fdc-paso h3 { font-family: var(--fdc-f-disp); font-size: 1.35em; font-weight: 800; letter-spacing: -.01em; margin-bottom: 8px; }
+.fdc-paso p { font-size: .95em; line-height: 1.55; color: rgba(23,32,51,.82); }
 
-.fdc-disc__card[data-disc="ciencia"] {
-  --ring: var(--fdc-turquesa); --titulo: var(--fdc-turquesa-tx);
-  background: var(--fdc-t-turquesa); border-color: #c9ecf3;
-}
-.fdc-disc__card[data-disc="arte"] {
-  --ring: var(--fdc-magenta); --titulo: var(--fdc-magenta-tx);
-  background: var(--fdc-t-magenta); border-color: #f8cee2;
-}
-.fdc-disc__card[data-disc="tecnologia"] {
-  --ring: var(--fdc-naranja); --titulo: var(--fdc-naranja-tx);
-  background: var(--fdc-t-naranja); border-color: #fbdcc4;
-}
-.fdc-disc__card[data-disc="humanidades"] {
-  --ring: var(--fdc-verde); --titulo: var(--fdc-verde-tx);
-  background: var(--fdc-t-verde); border-color: #dcebbc;
-}
-.fdc-disc__card h3 { color: var(--titulo); }
-.fdc-disc__card p  { color: var(--fdc-tx-2); }
-
-/* =========================================================== 5. EDICIÓN 2026 */
-.fdc-watermark {
-  position: absolute; left: -110px; bottom: -110px;
-  width: 420px; height: 420px;
-  fill: none; stroke: #fff; stroke-width: 1;
-  opacity: .07; pointer-events: none;
-}
-.fdc-watermark--right { left: auto; right: -110px; top: -110px; bottom: auto; }
-
-.fdc-sec--dark .fdc-wrap { position: relative; z-index: 1; }
-
-.fdc-datebar {
-  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
-  margin-top: 34px; padding: 26px 30px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: var(--fdc-r);
-}
-.fdc-datebar__item { flex: 1; min-width: 150px; }
-.fdc-datebar__item b {
-  display: block; font-family: var(--fdc-f-disp);
-  font-size: 1.5em; font-weight: 700; color: var(--fdc-amarillo); line-height: 1.15;
-}
-.fdc-datebar__item span { font-size: .9em; color: rgba(255,255,255,.7); }
-.fdc-datebar__line { flex: none; width: 40px; height: 2px; background: rgba(255,255,255,.2); }
-
-.fdc-acts {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
-  margin-top: 34px;
-}
-.fdc-acts li {
-  padding: 22px 20px; border-radius: var(--fdc-r-s);
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.12);
-  border-left: 4px solid var(--fdc-turquesa);
-  transition: background .2s ease, transform .2s ease;
-}
-.fdc-acts li:hover { background: rgba(255,255,255,.1); transform: translateY(-3px); }
-.fdc-acts li[data-c="arte"]        { border-left-color: var(--fdc-magenta); }
-.fdc-acts li[data-c="tecnologia"]  { border-left-color: var(--fdc-naranja); }
-.fdc-acts li[data-c="humanidades"] { border-left-color: var(--fdc-verde); }
-.fdc-acts b {
-  display: block; font-family: var(--fdc-f-disp);
-  font-size: 1.02em; font-weight: 600; color: #fff; margin-bottom: 3px;
-}
-.fdc-acts span { font-size: .86em; color: rgba(255,255,255,.62); line-height: 1.45; }
-
-.fdc-note {
-  margin-top: 34px; padding: 20px 24px;
-  border-radius: var(--fdc-r-s);
-  background: rgba(246,210,10,.1);
-  border: 1px solid rgba(246,210,10,.3);
-  color: rgba(255,255,255,.85); font-size: .96em;
-}
-.fdc-note b { color: var(--fdc-amarillo); }
-.fdc-note--light {
-  background: var(--fdc-t-amarillo); border-color: #f0e0a0;
-  color: var(--fdc-tx-2); margin-top: 30px;
-}
-.fdc-note--light b { color: var(--fdc-dark); }
-
-/* ========================================================== 6. PRÓXIMAMENTE */
-.fdc-soon {
-  display: grid; grid-template-columns: 200px 1fr; gap: clamp(26px, 4vw, 52px);
-  align-items: center;
-  margin-top: 34px; padding: clamp(32px, 5vw, 56px);
-  border-radius: var(--fdc-r);
-  background: var(--fdc-bg-ice);
-  border: 2px dashed #b9d9dd;
-}
-.fdc-soon__badge svg {
-  width: 100%; height: auto; fill: none; stroke-width: 3;
-  animation: fdc-spin 40s linear infinite;
-}
-.fdc-soon__badge circle:nth-child(1) { stroke: var(--fdc-turquesa); }
-.fdc-soon__badge circle:nth-child(2) { stroke: var(--fdc-verde); }
-.fdc-soon__badge circle:nth-child(3) { stroke: var(--fdc-magenta); }
-.fdc-soon__badge circle:nth-child(4) { stroke: var(--fdc-naranja); }
-
-/* Color base de los párrafos del bloque. Va PRIMERO y con :where() para que
-   no le gane a las reglas de .fdc-soon__tag y .fdc-soon__foot que vienen
-   después: ambas son <p> y con «.fdc-soon__body p» (0,1,1) quedaban anuladas. */
-.fdc-soon__body :where(p) { color: var(--fdc-tx-2); }
-
-.fdc-soon__body h3 {
-  font-family: var(--fdc-f-disp);
-  font-size: clamp(1.35em, 2.8vw, 1.9em);
-  font-weight: 700; letter-spacing: -.02em; margin-bottom: 12px; line-height: 1.2;
-}
-.fdc-soon__tag {
-  display: inline-block;
-  font-family: var(--fdc-f-disp); font-size: .74em; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase;
-  /* Texto oscuro sobre el naranja del logo: en blanco daría 2.6:1 (falla) */
-  color: var(--fdc-dark); background: var(--fdc-naranja);
-  padding: 6px 15px; border-radius: 100px; margin-bottom: 14px;
-}
-.fdc-soon__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-.fdc-soon__foot { margin-top: 22px; font-size: .9em; color: var(--fdc-tx-3); }
-.fdc-soon__foot a { color: var(--fdc-magenta-tx); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-
-/* --------------------------------------------------------------------------
-   ADELANTO DEL PROGRAMA
-
-   Sustituye al bloque «Próximamente» en cuanto haya actividades publicadas,
-   y solo entonces: lo cambia programa-portada.js. Mientras no haya nada,
-   «Próximamente» es la verdad y se queda.
-
-   Tres actividades y un botón. La cartelera completa vive en /programa/: esto
-   es el anzuelo, no el programa.
--------------------------------------------------------------------------- */
-.fdc-prog { margin-top: 34px; }
-
-.fdc-prog__lista { display: grid; gap: 12px; }
-@media (min-width: 900px) { .fdc-prog__lista { grid-template-columns: repeat(3, 1fr); } }
-
-.fdc-prog__item {
-  display: flex; flex-direction: column; gap: 9px;
-  padding: 20px 22px;
-  background: var(--fdc-bg); border: 1px solid var(--fdc-border);
-  border-left: 5px solid var(--fdc-eje, var(--fdc-turquesa));
-  border-radius: var(--fdc-r-s);
-  text-decoration: none; color: inherit;
-  box-shadow: var(--fdc-shadow);
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.fdc-prog__item:hover { transform: translateY(-3px); box-shadow: var(--fdc-shadow-h); }
-
-/* Con póster: texto a la izquierda, miniatura cuadrada a la derecha, el
-   mismo recorte que en la cartelera. */
-.fdc-prog__txt { display: flex; flex-direction: column; gap: 9px; min-width: 0; flex: 1; }
-.fdc-prog__item--poster { flex-direction: row; align-items: flex-start; gap: 16px; }
-.fdc-prog__poster {
-  width: 84px; height: auto; aspect-ratio: 1 / 1; object-fit: cover; flex: 0 0 auto;
-  border-radius: 8px; background: var(--fdc-bg-ice);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--marca-oscuro) 12%, transparent), 0 6px 14px color-mix(in srgb, var(--marca-oscuro) 12%, transparent);
-}
-
-.fdc-prog__cuando {
-  font-family: var(--fdc-f-disp); font-size: .78em; font-weight: 700;
-  letter-spacing: .07em; text-transform: uppercase;
-  /* Variante oscura del color del eje: la calcula el script, porque el color
-     puro del logotipo no pasa AA como texto sobre fondo claro. */
-  color: var(--fdc-eje-tx, var(--fdc-turquesa-tx));
-  font-variant-numeric: tabular-nums;
-}
-.fdc-prog__item h4 {
-  font-family: var(--fdc-f-disp); font-size: 1.06em; font-weight: 700;
-  line-height: 1.28; letter-spacing: -.015em; color: var(--fdc-tx);
-  text-wrap: pretty;
-}
-.fdc-prog__donde {
-  font-size: .88em; color: var(--fdc-tx-3); margin-top: auto;
-  display: flex; align-items: center; gap: 7px;
-}
-.fdc-prog__donde svg {
-  width: 14px; height: 14px; flex: 0 0 auto;
-  stroke: currentColor; fill: none; stroke-width: 1.8;
-  stroke-linecap: round; stroke-linejoin: round; opacity: .8;
-}
-
-.fdc-prog__pie {
-  display: flex; flex-wrap: wrap; gap: 14px 20px;
-  align-items: center; margin-top: 26px;
-}
-.fdc-prog__cuenta { font-size: .92em; color: var(--fdc-tx-3); }
-.fdc-prog__cuenta b { color: var(--fdc-tx); font-weight: 700; }
-
-/* ============================================================== 7. VIDEO === */
+/* ============================================================ 6. MEMORIA === */
+.fdc-memoria { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.fdc-memoria .fdc-lead { margin-bottom: 22px; }
 .fdc-video {
-  position: relative; margin-top: 40px;
-  aspect-ratio: 16/9; border-radius: var(--fdc-r); overflow: hidden;
-  box-shadow: var(--fdc-shadow-h); background: var(--fdc-darker);
+  position: relative; aspect-ratio: 16/9; border-radius: var(--fdc-r); overflow: hidden;
+  background: var(--fdc-darker); box-shadow: var(--fdc-shadow-h);
 }
 .fdc-video__play { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.fdc-video__play img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform .5s ease, filter .35s ease;
-  filter: brightness(.62);
-}
-.fdc-video__play:hover img { transform: scale(1.04); filter: brightness(.5); }
+.fdc-video__play img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease, filter .35s ease; filter: brightness(.66); }
+.fdc-video__play:hover img { transform: scale(1.04); filter: brightness(.55); }
 .fdc-video__btn {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  width: 84px; height: 84px; border-radius: 50%;
-  background: var(--fdc-magenta);
-  box-shadow: 0 10px 34px rgba(233,21,135,.5);
+  width: 84px; height: 84px; border-radius: 50%; background: #fff;
   transition: transform .25s ease, background .25s ease;
 }
 .fdc-video__btn::after {
   content: ''; position: absolute; top: 50%; left: 54%; transform: translate(-50%,-50%);
-  border-style: solid; border-width: 15px 0 15px 25px;
-  border-color: transparent transparent transparent #fff;
+  border-style: solid; border-width: 14px 0 14px 23px;
+  border-color: transparent transparent transparent var(--fdc-dark);
 }
-.fdc-video__play:hover .fdc-video__btn { transform: translate(-50%,-50%) scale(1.1); background: #C90D70; }
+.fdc-video__play:hover .fdc-video__btn { transform: translate(-50%,-50%) scale(1.08); background: var(--fdc-amarillo); }
 .fdc-video__label {
-  position: absolute; left: 26px; bottom: 24px;
-  font-family: var(--fdc-f-disp); font-weight: 600; font-size: 1em; color: #fff;
-  background: color-mix(in srgb, var(--marca-oscuro-2) 60%, transparent); padding: 8px 18px; border-radius: 100px;
-  backdrop-filter: blur(6px);
+  position: absolute; left: 22px; bottom: 20px;
+  font-size: .74em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #fff;
+  background: rgba(23,32,51,.55); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(6px);
 }
 .fdc-video iframe { width: 100%; height: 100%; border: 0; }
 
-/* =========================================================== 8. MEMORIA === */
-.fdc-memo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 44px; }
-.fdc-memo__card {
-  padding: 26px 24px; border-radius: var(--fdc-r);
-  background: #fff; border: 1px solid var(--fdc-border);
-  box-shadow: var(--fdc-shadow);
-}
-.fdc-memo__card h3 {
-  font-family: var(--fdc-f-disp); font-size: 1.08em; font-weight: 700;
-  margin-bottom: 8px; line-height: 1.25;
-}
-.fdc-memo__card p { font-size: .93em; color: var(--fdc-tx-2); line-height: 1.55; }
-
-/* Cartelera 2025 */
-.fdc-cards {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
-  gap: 16px; margin-top: 28px;
-}
+.fdc-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
 .fdc-cards button {
-  display: block; width: 100%; overflow: hidden;
-  border-radius: var(--fdc-r-s); background: var(--fdc-bg-ice);
-  aspect-ratio: 5/4; box-shadow: var(--fdc-shadow);
+  display: block; width: 100%; overflow: hidden; border-radius: var(--fdc-r-s);
+  background: var(--fdc-gris); aspect-ratio: 5/4; border: 1px solid var(--fdc-border);
   transition: transform .22s ease, box-shadow .22s ease;
 }
 .fdc-cards button:hover { transform: translateY(-4px) scale(1.015); box-shadow: var(--fdc-shadow-h); }
 .fdc-cards img { width: 100%; height: 100%; object-fit: cover; }
 .fdc-cards .is-hidden { display: none; }
 
-/* =========================================================== 9. GALERÍA === */
 .fdc-gal {
-  margin-top: 46px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 200px;
-  gap: 14px;
-  max-width: 1440px; margin-inline: auto; padding-inline: 24px;
+  margin-top: clamp(48px, 6vw, 80px);
+  display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; gap: 14px;
+  max-width: 1440px; margin-inline: auto; padding-inline: clamp(16px, 3vw, 40px);
 }
-.fdc-gal button {
-  overflow: hidden; border-radius: var(--fdc-r-s);
-  background: var(--fdc-bg-ice); position: relative;
-  box-shadow: var(--fdc-shadow);
-}
-.fdc-gal img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform .5s ease;
-}
-.fdc-gal button:hover img { transform: scale(1.07); }
-.fdc-gal button::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--marca-oscuro) 55%, transparent));
-  opacity: 0; transition: opacity .3s ease;
-}
-.fdc-gal button:hover::after { opacity: 1; }
+.fdc-gal button { overflow: hidden; border-radius: var(--fdc-r-s); background: var(--fdc-gris); position: relative; }
+.fdc-gal img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.fdc-gal button:hover img { transform: scale(1.06); }
 .fdc-gal .g-tall { grid-row: span 2; }
 .fdc-gal .g-wide { grid-column: span 2; }
 
-/* ============================================================ 10. SEDES === */
-.fdc-sedes {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 0 40px; margin-top: 38px;
-  max-width: 900px; margin-inline: auto;
+/* =============================================================== 7. PIE ====
+   Azul negro, círculos de identidad recortados por los bordes, frase grande. */
+.fdc-foot { position: relative; overflow: hidden; background: var(--fdc-dark); color: #fff; padding: clamp(72px, 9vw, 128px) 0 34px; }
+.fdc-foot__circ { position: absolute; border-radius: 50%; pointer-events: none; opacity: .9; }
+.fdc-foot__circ--magenta  { width: 34vw; height: 34vw; right: -12vw; top: -14vw; background: var(--fdc-magenta); opacity: .85; }
+.fdc-foot__circ--turquesa { width: 16vw; height: 16vw; right: 14vw; top: 10vw; border: 2px solid var(--fdc-turquesa); }
+.fdc-foot__circ--amarillo { width: 22vw; height: 22vw; left: -9vw; bottom: 12vw; background: var(--fdc-amarillo); opacity: .9; }
+.fdc-foot .fdc-wrap { position: relative; z-index: 1; }
+.fdc-foot__frase {
+  font-family: var(--fdc-f-disp); font-weight: 900;
+  font-size: clamp(2.8em, 7vw, 6.4em); line-height: .92; letter-spacing: -.03em;
+  margin-bottom: clamp(48px, 6vw, 88px); max-width: 12ch;
 }
-.fdc-sedes li {
-  display: flex; align-items: center; gap: 14px;
-  padding: 15px 0; border-bottom: 1px solid var(--fdc-border);
-  font-size: 1em; color: var(--fdc-tx-2);
-}
-.fdc-sedes li::before {
-  content: ''; flex: none;
-  width: 13px; height: 13px; border-radius: 50%;
-  border: 3px solid var(--fdc-turquesa);
-}
-.fdc-sedes li:nth-child(4n+2)::before { border-color: var(--fdc-magenta); }
-.fdc-sedes li:nth-child(4n+3)::before { border-color: var(--fdc-naranja); }
-.fdc-sedes li:nth-child(4n+4)::before { border-color: var(--fdc-verde); }
-
-/* ========================================================= 11. PARTICIPA == */
-.fdc-part { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 42px; }
-.fdc-part__card {
-  padding: 28px 24px; border-radius: var(--fdc-r);
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  transition: background .2s ease, transform .2s ease;
-}
-.fdc-part__card:hover { background: rgba(255,255,255,.11); transform: translateY(-4px); }
-.fdc-part__card h3 {
-  font-family: var(--fdc-f-disp); font-size: 1.08em; font-weight: 700;
-  color: var(--fdc-amarillo); margin-bottom: 9px; line-height: 1.25;
-}
-.fdc-part__card p { font-size: .92em; color: rgba(255,255,255,.72); line-height: 1.55; }
-
-.fdc-contact {
-  margin-top: 46px; padding: clamp(30px, 4vw, 44px);
-  border-radius: var(--fdc-r); text-align: center;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.14);
-}
-.fdc-contact__label {
-  font-size: .74em; letter-spacing: .16em; text-transform: uppercase;
-  color: rgba(255,255,255,.55); margin-bottom: 8px;
-}
-.fdc-contact__name {
-  font-family: var(--fdc-f-disp); font-size: 1.4em; font-weight: 700;
-  color: #fff; margin-bottom: 18px;
-}
-.fdc-contact__org { margin-top: 18px; font-size: .88em; color: rgba(255,255,255,.55); }
-
-/* ============================================================ 12. REDES === */
-.fdc-social { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 42px; }
-.fdc-social__card {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 34px 22px; border-radius: var(--fdc-r);
-  background: #fff; border: 1px solid var(--fdc-border);
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  text-align: center;
-}
-.fdc-social__card:hover { transform: translateY(-5px); box-shadow: var(--fdc-shadow-h); }
-.fdc-social__ico {
-  width: 56px; height: 56px; border-radius: 16px;
-  display: grid; place-items: center; margin-bottom: 10px;
-  transition: transform .25s ease;
-}
-.fdc-social__ico svg { width: 30px; height: 30px; fill: #fff; }
-.fdc-social__card:hover .fdc-social__ico { transform: scale(1.1) rotate(-5deg); }
-.fdc-social__card b { font-family: var(--fdc-f-disp); font-size: 1.1em; font-weight: 700; }
-.fdc-social__card span { font-size: .88em; color: var(--fdc-tx-3); }
-.fdc-social__card[data-net="fb"] .fdc-social__ico { background: #1877F2; }
-.fdc-social__card[data-net="ig"] .fdc-social__ico { background: linear-gradient(45deg,#f9ce34,#ee2a7b 50%,#6228d7); }
-.fdc-social__card[data-net="yt"] .fdc-social__ico { background: #FF0000; }
-.fdc-social__card[data-net="fb"]:hover { border-color: #1877F2; }
-.fdc-social__card[data-net="ig"]:hover { border-color: #ee2a7b; }
-.fdc-social__card[data-net="yt"]:hover { border-color: #FF0000; }
-
-/* =========================================================== 13. FOOTER === */
-.fdc-foot { background: var(--fdc-darker); color: #fff; padding: clamp(56px, 7vw, 84px) 0 34px; }
-
-.fdc-foot__top {
-  display: grid; grid-template-columns: 1fr 2fr; gap: clamp(32px, 5vw, 70px);
-  padding-bottom: 44px; border-bottom: 1px solid rgba(255,255,255,.12);
-}
-.fdc-foot__icon { width: 62px; margin-bottom: 16px; }
-.fdc-foot__name {
-  font-family: var(--fdc-f-disp); font-size: 1.5em; font-weight: 700;
-  line-height: 1.1; letter-spacing: -.02em; margin-bottom: 10px;
-}
-.fdc-foot__tag { font-size: .82em; color: rgba(255,255,255,.55); letter-spacing: .04em; }
-
-.fdc-foot__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-.fdc-foot__cols h4 {
-  font-family: var(--fdc-f-disp); font-size: .78em; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase;
-  color: var(--fdc-amarillo); margin-bottom: 14px;
-}
-.fdc-foot__cols p { font-size: .93em; color: rgba(255,255,255,.7); line-height: 1.85; }
+.fdc-foot__cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,.14); }
+.fdc-foot__cols h4 { font-size: .72em; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 16px; }
+.fdc-foot__cols p { font-size: .95em; color: rgba(255,255,255,.82); line-height: 1.9; }
 .fdc-foot__cols a { transition: color .18s ease; }
-.fdc-foot__cols a:hover { color: var(--fdc-turquesa); }
+.fdc-foot__cols a:hover { color: var(--fdc-amarillo); }
 
-.fdc-foot__logos { padding: 42px 0 34px; text-align: center; border-bottom: 1px solid rgba(255,255,255,.12); }
-.fdc-foot__logos-label {
-  font-size: .74em; letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(255,255,255,.45); margin-bottom: 26px;
-}
+.fdc-foot__logos { padding: 44px 0 36px; text-align: center; border-bottom: 1px solid rgba(255,255,255,.14); }
+.fdc-foot__logos-label { font-size: .72em; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 26px; }
 .fdc-foot__logos-row { display: flex; align-items: center; justify-content: center; gap: clamp(24px, 5vw, 54px); flex-wrap: wrap; }
-/* Los dos archivos de la UNAM ya vienen en blanco sobre fondo transparente,
-   por eso funcionan tal cual sobre el pie de página oscuro. */
 .fdc-lg-unam  { height: 66px; width: auto; }
 .fdc-lg-unam2 { height: 54px; width: auto; }
-/* El del 475 ya viene en blanco sobre fondo transparente. Es apaisado, así que
-   una altura algo menor lo deja del mismo peso visual que los de la UNAM. */
 .fdc-lg-475   { height: 58px; width: auto; }
-/* El del CNyN viene en escala de grises: lo convertimos a blanco puro
-   para que conserve su forma sobre el fondo oscuro. */
+/* El del CNyN viene en gris: se fuerza a blanco para el fondo oscuro. */
 .fdc-lg-cnyn  { height: 62px; width: auto; filter: brightness(0) invert(1); opacity: .94; }
 .fdc-foot__sep { width: 1px; height: 48px; background: rgba(255,255,255,.22); }
 
-/* ------------------------------------------------------- pleca institucional
-   Banda clara metida dentro del pie oscuro. Los logotipos de aquí llegaron a
-   color y, a diferencia de los de «Una iniciativa de», no se pueden pasar a
-   blanco con brightness(0) invert(1): los que llevan ilustración dentro del
-   escudo (UABC, Gobierno de Ensenada) quedan en una silueta ilegible.
-   ------------------------------------------------------------------------- */
-.fdc-pleca {
-  margin-top: 34px;
-  background: #fff;
-  border-radius: 18px;
-  padding: 26px clamp(16px, 3vw, 30px) 28px;
-}
-.fdc-pleca__label {
-  text-align: center; margin-bottom: 22px;
-  font-size: .72em; letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(0,0,0,.46);
-}
+/* Pleca institucional: banda blanca dentro del pie. Los logotipos llegaron a
+   color y con ilustración; no se pueden pasar a blanco con un filtro. */
+.fdc-pleca { margin-top: 34px; background: #fff; border-radius: 18px; padding: 26px clamp(16px, 3vw, 30px) 28px; }
+.fdc-pleca__label { text-align: center; margin-bottom: 22px; font-size: .72em; letter-spacing: .18em; text-transform: uppercase; color: rgba(0,0,0,.46); }
 .fdc-pleca__row {
-  /* Veinte marcas: en escritorio caben en dos renglones de unas diez. La
-     altura sigue al ancho de pantalla en vez de ir por saltos: con saltos
-     siempre queda un tramo intermedio donde una se cae sola al renglón de
-     abajo. */
+  /* Veinte marcas en dos renglones de escritorio. La altura sigue al ancho
+     de pantalla para que ninguna se caiga sola al renglón de abajo. */
   --pl: clamp(30px, 4.4vw, 56px);
-  display: flex; flex-wrap: wrap;
-  align-items: center; justify-content: center;
-  gap: clamp(14px, 2vw, 26px);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(14px, 2vw, 26px);
 }
-
-/* Con una sola altura para todos, los apaisados (CIC, CICESE, TecNM) pesan el
-   doble que los verticales, porque ocupan mucha más superficie. El factor los
-   iguala a ojo, que es como se mira una pleca, y no matemáticamente. */
+/* Factor ≈ 1/√(ancho/alto), acotado entre .65 y 1.08: iguala a ojo el peso
+   de las apaisadas con el de las verticales. */
 .fdc-pl { height: calc(var(--pl) * var(--f, 1)); width: auto; display: block; }
-
-/* Factor ≈ 1/√(ancho/alto), acotado entre .65 y 1.08, redondeado a ojo. */
 .fdc-pl--unam         { --f: 1.04; }
 .fdc-pl--cic          { --f: .65;  }
 .fdc-pl--uabc         { --f: 1.08; }
@@ -1035,142 +628,108 @@
 .fdc-pl--c475         { --f: .80;  }
 .fdc-pl--c43          { --f: 1.04; }
 
-/* Por debajo de aquí la fila ya no cabe por mucho que se encoja. Envuelve, pero
-   con las marcas a un tamaño legible en vez de dejarlas en 24px con tal de que
-   quepan en un renglón. */
-@media (max-width: 620px) {
-  .fdc-pleca__row { --pl: 38px; gap: 14px 18px; }
-  .fdc-pleca { padding: 22px 14px 24px; border-radius: 14px; }
-}
-.fdc-foot__legal {
-  margin-top: 26px; padding-top: 22px;
-  border-top: 1px solid rgba(255,255,255,.1);
-  text-align: center; font-size: .8em; color: rgba(255,255,255,.4);
-}
+.fdc-foot__legal { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: .8em; color: rgba(255,255,255,.45); }
+.fdc-foot__legal a { text-decoration: underline; text-underline-offset: 3px; }
 
-/* ========================================================== 14. LIGHTBOX == */
+/* =========================================================== 8. LIGHTBOX == */
 .fdc-lb {
   position: fixed; inset: 0; z-index: 99999;
-  background: rgba(8,26,30,.95);
+  background: rgba(23,32,51,.95);
   display: grid; place-items: center; padding: 4vh 4vw;
-  backdrop-filter: blur(6px);
-  animation: fdc-fade .22s ease;
+  backdrop-filter: blur(6px); animation: fdc-fade .22s ease;
 }
 .fdc-lb[hidden] { display: none; }
 @keyframes fdc-fade { from { opacity: 0; } to { opacity: 1; } }
-
 .fdc-lb__fig { max-width: 100%; max-height: 100%; text-align: center; }
-.fdc-lb__fig img {
-  max-width: 100%; max-height: 84vh; width: auto; margin-inline: auto;
-  border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6);
-}
-.fdc-lb__fig figcaption {
-  margin-top: 16px; color: rgba(255,255,255,.8); font-size: .92em;
-  max-width: 62ch; margin-inline: auto;
-}
-.fdc-lb__close {
-  position: absolute; top: 18px; right: 22px;
-  width: 48px; height: 48px; border-radius: 50%;
-  font-size: 2em; line-height: 1; color: #fff;
-  background: rgba(255,255,255,.12); transition: background .2s ease;
-}
+.fdc-lb__fig img { max-width: 100%; max-height: 84vh; width: auto; margin-inline: auto; border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.fdc-lb__fig figcaption { margin-top: 16px; color: rgba(255,255,255,.8); font-size: .92em; max-width: 62ch; margin-inline: auto; }
+.fdc-lb__close { position: absolute; top: 18px; right: 22px; width: 48px; height: 48px; border-radius: 50%; font-size: 2em; line-height: 1; color: #fff; background: rgba(255,255,255,.12); transition: background .2s ease; }
 .fdc-lb__close:hover { background: var(--fdc-magenta); }
-.fdc-lb__nav {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 54px; height: 54px; border-radius: 50%;
-  font-size: 2.2em; line-height: 1; color: #fff;
-  background: rgba(255,255,255,.12); transition: background .2s ease;
-}
+.fdc-lb__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 54px; height: 54px; border-radius: 50%; font-size: 2.2em; line-height: 1; color: #fff; background: rgba(255,255,255,.12); transition: background .2s ease; }
 .fdc-lb__nav:hover { background: var(--fdc-turquesa); }
 .fdc-lb__nav--prev { left: 16px; }
 .fdc-lb__nav--next { right: 16px; }
 
-/* ======================================================= 15. VOLVER ARRIBA */
+/* ======================================================= 9. VOLVER ARRIBA == */
 .fdc-top {
   position: fixed; right: 22px; bottom: 22px; z-index: 9998;
   width: 48px; height: 48px; border-radius: 50%;
   background: var(--fdc-dark); color: #fff; font-size: 1.3em;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--marca-oscuro) 35%, transparent);
+  box-shadow: 0 8px 24px rgba(23,32,51,.3);
   opacity: 0; visibility: hidden;
   transition: opacity .25s ease, visibility .25s ease, transform .25s ease, background .2s ease;
 }
 .fdc-top.is-on { opacity: 1; visibility: visible; }
 .fdc-top:hover { background: var(--fdc-magenta); transform: translateY(-3px); }
 
-/* ======================================================== 16. ANIMACIONES = */
-.fdc-rv { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+/* ========================================================= 10. ANIMACIONES =
+   Aparición al hacer scroll: fundido y un deslizamiento leve. */
+.fdc-rv { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
 .fdc-rv.is-in { opacity: 1; transform: none; }
 
-/* ========================================================= 17. RESPONSIVE = */
-@media (max-width: 1280px) {
-  .fdc-hero__nota { display: none; }
+/* ========================================================== 11. RESPONSIVE = */
+@media (max-width: 1100px) {
+  .fdc-ejes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fdc-foot__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
 @media (max-width: 1024px) {
-  .fdc-intro { grid-template-columns: 1fr; }
-  .fdc-intro__fig img { aspect-ratio: 16/10; }
-  .fdc-disc, .fdc-acts, .fdc-memo, .fdc-part { grid-template-columns: repeat(2, 1fr); }
+  .fdc-hero__grid { grid-template-columns: 1fr; }
+  .fdc-destacadas { grid-template-columns: 1fr; gap: 20px; }
+  .fdc-destacadas__txt { max-width: 52ch; }
+  .fdc-hero__collage { max-width: 520px; margin-inline: auto; width: 100%; }
+  .fdc-insti { justify-content: center; text-align: center; }
+  .fdc-insti__lema { align-items: center; }
+  .fdc-cabeza-sec { grid-template-columns: 1fr; align-items: start; }
+  .fdc-memoria { grid-template-columns: 1fr; }
+  .fdc-sedes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fdc-gal { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 176px; }
-  .fdc-foot__top { grid-template-columns: 1fr; }
 }
-
+@media (max-width: 900px) {
+  .fdc-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fdc-dia { grid-template-columns: 1fr; gap: 18px; }
+  .fdc-dia__fecha { display: flex; align-items: baseline; gap: 14px; }
+  .fdc-dia__fecha small { margin: 0; }
+  .fdc-dia__fecha b { font-size: 2.6em; }
+  .fdc-dia__fecha span { margin: 0; }
+  .fdc-pasos { grid-template-columns: 1fr; }
+}
 @media (max-width: 720px) {
   .fdc { font-size: max(16px, 1rem); }
-  .fdc-hero { min-height: auto; padding: 84px 0 136px; }
-  /* Apilados: logotipo arriba, fecha centrada debajo y la línea pasa a ser
-     horizontal. */
-  .fdc-hero__cabeza { flex-direction: column; align-items: center; gap: 18px; }
-  .fdc-hero__logo { width: min(88%, 360px); }
-  .fdc-hero__guiones { align-self: center; width: 78%; }
-  .fdc-hero__fecha {
-    align-items: center; text-align: center;
-    padding: 18px 0 0; border-left: 0; border-top: 1px solid rgba(255,255,255,.3);
-  }
-  .fdc-hero__insti { padding: 16px 16px 18px; }
-  .fdc-hero__insti-row { gap: 14px 18px; }
-  .fdc-hero__lg--unam  { height: 50px; }
-  .fdc-hero__lg--unam2 { height: 40px; }
-  .fdc-hero__lg--475   { height: 46px; }
-  .fdc-hero__lg--cnyn  { height: 44px; }
-  .fdc-hero__lgsep { display: none; }
-  .fdc-hero__cta { flex-direction: column; }
+  .fdc-hero { padding-bottom: 48px; }
+  .fdc-hero__marca { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .fdc-hero__logo { flex: none; width: min(100%, 400px); }
+  .fdc-hero__fecha { padding-left: 0; border-left: 0; }
   .fdc-hero__cta .fdc-btn { width: 100%; }
-  /* En pantalla táctil la tira se arrastra; las flechas solo estorban. */
-  .fdc-hp__btn { display: none; }
-  .fdc-hp__item { flex-basis: 78%; }
-  .fdc-hero__prog { margin-bottom: 24px; }
-  .fdc-hero__scroll-txt { font-size: .58em; letter-spacing: .2em; }
-  .fdc-hero__scroll-txt::before, .fdc-hero__scroll-txt::after { width: 24px; }
-
-  .fdc-disc, .fdc-acts, .fdc-memo, .fdc-part, .fdc-social { grid-template-columns: 1fr; }
-  .fdc-soon { grid-template-columns: 1fr; text-align: center; }
-  .fdc-soon__badge { width: 130px; margin-inline: auto; }
-  .fdc-soon__cta { justify-content: center; }
-  .fdc-soon__kicker { justify-content: center; }
+  .fdc-hero__rings--izq { display: none; }
+  .fdc-insti__lema { padding-left: 0; border-left: 0; }
+  .fdc-cards-grid { grid-template-columns: 1fr; }
+  .fdc-ejes { grid-template-columns: 1fr; }
   .fdc-sedes { grid-template-columns: 1fr; }
+  .fdc-fila {
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-areas: "mini hora" "mini txt" "accion accion";
+    gap: 6px 16px; padding: 14px;
+  }
+  .fdc-fila__mini { grid-area: mini; width: 76px; align-self: start; }
+  .fdc-fila__hora { grid-area: hora; display: flex; align-items: baseline; gap: 8px; font-size: 1.15em; }
+  .fdc-fila__hora small { margin: 0; }
+  .fdc-fila__txt { grid-area: txt; }
+  .fdc-fila__accion { grid-area: accion; margin-top: 8px; }
+  .fdc-fila__btn { width: 100%; }
+  .fdc-acciones .fdc-btn { width: 100%; }
   .fdc-gal { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 10px; }
   .fdc-gal .g-wide { grid-column: span 2; }
   .fdc-foot__cols { grid-template-columns: 1fr; gap: 24px; }
-  .fdc-datebar { gap: 14px; }
-  .fdc-datebar__line { display: none; }
+  .fdc-foot__frase { max-width: none; }
+  .fdc-foot__circ--turquesa { display: none; }
+  .fdc-pleca__row { --pl: 38px; gap: 14px 18px; }
+  .fdc-pleca { padding: 22px 14px 24px; border-radius: 14px; }
   .fdc-lb__nav { width: 44px; height: 44px; font-size: 1.7em; }
   .fdc-lb__nav--prev { left: 6px; }
   .fdc-lb__nav--next { right: 6px; }
 }
 
-/* Por debajo de 380px los cuatro logotipos ya no caben en una línea y el
-   bloque se parte en dos. Se encogen lo justo para que siga siendo una sola
-   fila, que es como se lee el conjunto. */
-@media (max-width: 380px) {
-  .fdc-hero__insti-row { gap: 14px; }
-  .fdc-hero__lg--unam  { height: 44px; }
-  .fdc-hero__lg--unam2 { height: 36px; }
-  .fdc-hero__lg--475   { height: 39px; }
-  .fdc-hero__lg--cnyn  { height: 41px; }
-  .fdc-hero__lgsep { height: 30px; }
-}
-
-/* ================================================= 18. PREFERENCIAS DE USO */
+/* =================================================== 12. PREFERENCIAS DE USO */
 @media (prefers-reduced-motion: reduce) {
   .fdc *, .fdc *::before, .fdc *::after {
     animation-duration: .001ms !important;
@@ -1178,11 +737,8 @@
     transition-duration: .001ms !important;
   }
   .fdc-rv { opacity: 1; transform: none; }
-  .fdc-hero__slide.is-active { animation: none; transform: none; }
 }
-
-/* --------------------------------------------------------------- IMPRESIÓN */
 @media print {
-  .fdc-hero__slides, .fdc-hero__scrim, .fdc-top, .fdc-lb, .fdc-chips { display: none !important; }
-  .fdc-sec--dark, .fdc-foot { background: #fff !important; color: #000 !important; }
+  .fdc-top, .fdc-lb, .fdc-hero__rings, .fdc-foot__circ { display: none !important; }
+  .fdc-foot { background: #fff !important; color: #000 !important; }
 }

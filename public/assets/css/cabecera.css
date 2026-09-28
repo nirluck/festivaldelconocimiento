@@ -101,6 +101,75 @@ body{ margin: 0; }
 .cab__nav a:hover{ background: rgba(255,255,255,.13); color: #fff; }
 .cab__nav a[aria-current]{ background: rgba(255,255,255,.15); color: #fff; }
 
+/* ============================================================================
+   VARIANTE CLARA · sitio público (DISEÑO.md, «Navegación»)
+   Blanca y limpia; al bajar se vuelve translúcida con desenfoque y gana una
+   línea. El estado activo es una línea cyan bajo el texto. En la landing va
+   flotante sobre la portada, que también es blanca, así que arranca sólida.
+   ========================================================================== */
+.cab--clara{
+  background: #fff;
+  border-bottom-color: transparent;
+}
+.cab--clara.cab--flotante{ background: rgba(255,255,255,.92); }
+.cab--clara.is-solida{
+  background: rgba(255,255,255,.86);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: #E4E4E0;
+}
+.cab--clara .cab__in{ height: 72px; }
+/* En todo el sitio público la barra sigue la retícula de 1440 px del
+   contenido, con los mismos márgenes: el logotipo del menú cae en la misma
+   vertical que el contenido de la página. */
+.cab--clara .cab__in{ max-width: 1440px; padding: 0 clamp(20px, 5vw, 120px); box-sizing: border-box; }
+.cab--clara .cab__marca{ color: var(--marca-oscuro); }
+.cab--clara .cab__marca b{ font-family: 'Inter', sans-serif; font-weight: 700; }
+.cab--clara .cab__nav{ gap: 6px; }
+.cab--clara .cab__nav a,
+.cab--clara .cab__grupo-btn,
+.cab--clara .cab__discreto{
+  font-family: 'Inter', sans-serif; font-weight: 500; font-size: .9rem;
+  color: #3B4457; border-radius: 0; padding: 8px 10px; position: relative;
+}
+.cab--clara .cab__nav a:hover,
+.cab--clara .cab__grupo-btn:hover,
+.cab--clara .cab__discreto:hover{ background: none; color: var(--marca-oscuro); }
+.cab--clara .cab__nav a[aria-current],
+.cab--clara .cab__grupo-btn[data-actual],
+.cab--clara .cab__grupo.is-abierto .cab__grupo-btn{ background: none; color: var(--marca-oscuro); }
+.cab--clara .cab__nav a[aria-current]::after,
+.cab--clara .cab__grupo-btn[data-actual]::after{
+  content: ''; position: absolute; left: 10px; right: 10px; bottom: 2px;
+  height: 2px; border-radius: 2px; background: #10ABC4;
+}
+.cab--clara .cab__panel{
+  background: #fff; border-color: #E4E4E0;
+  box-shadow: 0 22px 48px rgba(23,32,51,.14);
+}
+.cab--clara .cab__panel a:hover{ background: #F7F5F0; }
+.cab--clara .cab__panel a[aria-current]{ background: #F7F5F0; }
+.cab--clara .cab__panel b{ color: var(--marca-oscuro); }
+.cab--clara .cab__panel small{ color: #667085; }
+.cab--clara .cab__btn--linea{ color: var(--marca-oscuro); border-color: var(--marca-oscuro); }
+.cab--clara .cab__btn--linea:hover{ background: var(--marca-oscuro); color: #fff; }
+.cab--clara .cab__toggle{ background: #F7F5F0; }
+.cab--clara .cab__toggle span{ background: var(--marca-oscuro); }
+.cab--clara :focus-visible{ outline-color: #10ABC4; }
+/* Menú plegado: panel blanco. */
+.cab--clara.cab--compacta .cab__menu{
+  background: #fff; border-bottom-color: #E4E4E0;
+  box-shadow: 0 20px 40px rgba(23,32,51,.12);
+  max-height: calc(100dvh - 72px);
+}
+.cab--clara.cab--compacta .cab__nav a,
+.cab--clara.cab--compacta .cab__grupo-btn{ color: var(--marca-oscuro); border-bottom-color: #ECEBE7; }
+.cab--clara.cab--compacta .cab__nav a:hover,
+.cab--clara.cab--compacta .cab__grupo-btn:hover,
+.cab--clara.cab--compacta .cab__grupo.is-abierto .cab__grupo-btn{ color: #C90D70; }
+.cab--clara.cab--compacta .cab__nav a[aria-current]::after{ display: none; }
+.cab--clara.cab--compacta .cab__panel{ border-left-color: #E4E4E0; box-shadow: none; }
+.cab--clara.cab--compacta.cab--flotante:has(.cab__menu.is-abierto){ background: #fff; }
+
 /* ------------------------------------------------- desplegable de talleres */
 .cab__grupo{ position: relative; display: flex; }
 

@@ -55,13 +55,14 @@ function diaLargo(isoTexto) {
   );
 }
 
-/** «sáb» y «18» · las pastillas de la barra de días. */
+/** «sáb», «18» y «octubre» · las pastillas de la barra y las cabeceras de día. */
 function diaCorto(isoTexto) {
   const f = aFecha(isoTexto);
-  if (!f) return { semana: '', numero: '' };
+  if (!f) return { semana: '', numero: '', mes: '' };
   return {
     semana: f.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', ''),
     numero: String(f.getDate()),
+    mes:    f.toLocaleDateString('es-MX', { month: 'long' }),
   };
 }
 
@@ -166,6 +167,15 @@ async function pintarCartelera() {
 
   if (!ACTS.length) { pintarSinPrograma(ed); return; }
 
+  // Filtros que llegan en la dirección: la portada enlaza «/programa/?eje=Arte»
+  // desde las tarjetas de eje y «?sede=…» desde las de sede. Solo se aceptan
+  // valores que existan en el programa; lo demás se ignora sin ruido.
+  const q = new URLSearchParams(location.search);
+  const qEje = q.get('eje'), qSede = q.get('sede'), qTipo = q.get('tipo');
+  if (qEje  && ACTS.some(a => a.eje  === qEje))  ejesOn.add(qEje);
+  if (qSede && ACTS.some(a => a.sede === qSede)) sedeOn = qSede;
+  if (qTipo && ACTS.some(a => a.tipo === qTipo)) tipoOn = qTipo;
+
   // Con qué día abrir: si el festival está ocurriendo, el de hoy. Si no, todo.
   // Quien entra un miércoles de festival quiere ver el miércoles, no bajar ocho
   // encabezados buscándolo.
@@ -197,15 +207,19 @@ function cabeceraCartelera(ed) {
   const sedes = new Set(ACTS.map(a => a.sede).filter(Boolean)).size;
 
   return `
-  <header class="pg-hero">
+  <header class="pg-hero pg-hero--color" style="--foto:url(/assets/img/concierto.jpg)">
     <div class="pg-wrap pg-hero__in">
-      <p class="pg-kicker">Programa</p>
-      <h1>${escapar(ed.nombre || 'Programa ' + ed.anio)}</h1>
-      <p class="pg-hero__lede">
-        Ocho días de ciencia, arte, tecnología y humanidades en Ensenada.
-        Todas las actividades son gratuitas; las que tienen cupo piden boleto,
-        que puedes conseguir aquí mismo.
-      </p>
+      <div class="pg-hero__rejilla-top">
+        <div>
+          <p class="pg-kicker">Programa · Ciencia · Arte · Tecnología · Humanidades</p>
+          <h1>${escapar(ed.nombre || 'Programa ' + ed.anio)}</h1>
+        </div>
+        <p class="pg-hero__lede">
+          Ocho días de ciencia, arte, tecnología y humanidades en Ensenada.
+          Todas las actividades son gratuitas; las que tienen cupo piden boleto,
+          también gratuito, que puedes conseguir aquí mismo.
+        </p>
+      </div>
       <div class="pg-cifras">
         <div class="pg-cifra"><b>${ACTS.length}</b><span>Actividades</span></div>
         <div class="pg-cifra"><b>${dias}</b><span>${dias === 1 ? 'Día' : 'Días'} con programa</span></div>
@@ -387,14 +401,27 @@ function pintarLista() {
     grupos.get(k).push(a);
   });
 
-  document.getElementById('lista').innerHTML = [...grupos.entries()].map(([k, acts]) => `
-    <section class="pg-dia${k === 'abierto' ? ' pg-dia--abierto' : ''}" id="dia-${escapar(k)}">
+  const hoy = iso(new Date());
+  document.getElementById('lista').innerHTML = [...grupos.entries()].map(([k, acts]) => {
+    const abierto = k === 'abierto';
+    const { semana, numero, mes } = abierto ? {} : diaCorto(k);
+    const cuenta = `${acts.length} ${acts.length === 1 ? 'actividad' : 'actividades'}`;
+    return `
+    <section class="pg-dia${abierto ? ' pg-dia--abierto' : ''}" id="dia-${escapar(k)}"
+             aria-label="${abierto ? 'Fecha por confirmar' : escapar(diaLargo(k))}">
       <div class="pg-dia__tit">
-        <h2>${k === 'abierto' ? 'Fecha por confirmar' : escapar(diaLargo(k))}</h2>
-        <span>${acts.length} ${acts.length === 1 ? 'actividad' : 'actividades'}</span>
+        <div class="pg-dia__fecha${k === hoy ? ' is-hoy' : ''}">
+          ${abierto
+            ? `<b>Fecha por confirmar</b>`
+            : `<small>${escapar(semana)}</small><b>${escapar(numero)}</b><span>${escapar(mes)}</span>
+               ${k === hoy ? '<em class="pg-dia__hoy">Hoy</em>' : ''}`}
+          <span class="pg-dia__cuenta">${cuenta}</span>
+        </div>
+        <h2 class="sr">${abierto ? 'Fecha por confirmar' : escapar(diaLargo(k))}</h2>
       </div>
       <div class="pg-lista">${acts.map(tarjeta).join('')}</div>
-    </section>`).join('');
+    </section>`;
+  }).join('');
 }
 
 function tarjeta(a) {
@@ -694,19 +721,24 @@ async function pintarFicha(slug) {
   const lede = (resumen.length && esEntradilla(resumen[0])) ? resumen.shift() : '';
   const cuerpo = formato([...resumen, ...bloquesDe(a.descripcion)].join('\n\n'));
 
+  // El número del día, enorme y en el color del eje, detrás del texto: la
+  // fecha como gráfica (DISEÑO.md, «Página de evento»).
+  const piezas = a.fecha ? diaCorto(a.fecha) : null;
+
   pagina.innerHTML = `
   <header class="pg-hero pg-hero--act${poster ? ' pg-hero--poster' : ''}" style="${estiloEje(a.eje_color)}">
-    ${poster ? `
-    <div class="pg-hero__fondo" aria-hidden="true"></div>
-    <div class="pg-hero__velo" aria-hidden="true"></div>` : ''}
+    ${piezas ? `<div class="pg-hero__num" aria-hidden="true">${escapar(piezas.numero)}<small>${escapar(piezas.mes.slice(0, 3))}</small></div>` : ''}
     <div class="pg-wrap pg-hero__in pg-hero__rejilla">
       <div class="pg-hero__txt">
         <a class="pg-volver" href="/programa/${location.hash === '#boleto' ? '' : location.hash}">${ICO.flecha} Todo el programa</a>
-        ${a.tipo || a.eje ? `
-        <p class="pg-hero__tipo"><i></i>${escapar(a.tipo || a.eje)}</p>` : ''}
-        <p class="pg-kicker">${escapar(a.eje || 'Festival del Conocimiento')}</p>
+        <p class="pg-kicker">${escapar(a.eje || 'Festival del Conocimiento')}${a.tipo ? ` · ${escapar(a.tipo)}` : ''}</p>
         <h1>${escapar(a.titulo)}</h1>
         ${lede ? `<p class="pg-hero__lede">${enLinea(escapar(lede))}</p>` : ''}
+        <p class="pg-hero__datos">
+          <span>${ICO.calend}<b>${cuandoDia ? escapar(cuandoDia) : 'Fecha por confirmar'}</b></span>
+          <span>${ICO.reloj}${escapar(rangoHoras(a))}</span>
+          ${a.sede ? `<span>${ICO.pin}${escapar(a.sede)}</span>` : ''}
+        </p>
         <div class="pg-hero__cta" id="hero-boleto">${ctaHero(a)}</div>
       </div>
       ${poster ? `
@@ -771,12 +803,6 @@ async function pintarFicha(slug) {
       <div class="pg-lista" id="mismo-lista"></div>
     </section>
   </div></div>`;
-
-  // El fondo desenfocado se pone desde aquí y no en un atributo style: la ruta
-  // viene de la base, y JSON.stringify la deja como cadena CSS bien cerrada
-  // aunque trajera comillas o paréntesis.
-  const fondo = pagina.querySelector('.pg-hero__fondo');
-  if (fondo) fondo.style.backgroundImage = `url(${JSON.stringify(poster)})`;
 
   document.querySelectorAll('.pg-btn[data-copiar]').forEach(b =>
     b.addEventListener('click', copiarLiga));

@@ -8,45 +8,50 @@
 <link rel="icon" href="assets/img/icono-festcon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600;700&display=swap">
+<!-- Dos voces: League Spartan para titulares y cifras, Inter para todo lo
+     funcional. Ver DISEÑO.md. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@600;700;800;900&display=swap">
 <link rel="stylesheet" href="/assets/css/marca.css">
 <link rel="stylesheet" href="assets/css/landing.css">
 <link rel="stylesheet" href="/assets/css/cabecera.css">
+<link rel="canonical" href="https://festivaldelconocimiento.org/">
+
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Festival del Conocimiento 2026 · Ensenada">
+<meta property="og:description" content="Ocho días de ciencia, arte, tecnología y humanidades en Ensenada. Del 17 al 24 de octubre de 2026. Entrada libre.">
+<meta property="og:url"         content="https://festivaldelconocimiento.org/">
+<meta property="og:image"       content="https://festivaldelconocimiento.org/assets/img/festival-del-conocimiento.jpg">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="theme-color" content="">
 </head>
 <body>
 
-<!--
-  ============================================================================
-  FESTIVAL DEL CONOCIMIENTO 2026 — Landing page
-  ============================================================================
-  PARA INSERTAR EN WORDPRESS (CNyN):
-  1. Usa el archivo  festival-embed.html  (tiene CSS y JS ya incrustados).
-  2. Sube la carpeta /img a la Biblioteca de Medios.
-  3. Reemplaza todas las apariciones de   img/   por la URL de tus medios,
-     por ejemplo:  https://cnyn.unam.mx/wp-content/uploads/festival/
-  4. Pega todo dentro de un bloque "HTML personalizado".
-  Todo el CSS está encapsulado bajo la clase .fdc para no afectar al tema.
-  ============================================================================
--->
-
+<!-- La cabecera la monta assets/js/cabecera.js (al final de la página). -->
 <div data-cabecera></div>
 
+<!-- ============================================================================
+     LANDING · Festival del Conocimiento 2026
+     ----------------------------------------------------------------------------
+     Pensada para un festival ACTIVO: hay programa publicado, sedes confirmadas y
+     boletos por abrirse. El orden responde a lo que busca quien llega:
+
+       1. Portada          qué es, cuándo, tres actividades destacadas
+       2. Esta semana      lo próximo, en orden, con acceso a boletos
+       3. El festival      qué es y sus cuatro ejes, como entrada al programa
+       4. Sedes            dónde ocurre, con cuántas actividades por sede
+       5. Cómo asistir     entrada libre, boleto gratuito, confirmación
+       6. Memoria          video y lo que fue la edición 2025
+       7. Pie              contacto, instituciones, redes
+
+     Todo lo que viene de la base de datos (portada, esta semana, cifras por eje,
+     sedes) lo pinta assets/js/programa-portada.js. Los huecos van vacíos y
+     ocultos con «hidden»: si falla la red, la página sigue completa sin ellos.
+============================================================================= -->
 <div class="fdc fdc--bleed">
 
-<!-- ══════════════════════════════════ HERO ══════════════════════════════════ -->
+<!-- ═══════════════════════════════════ PORTADA ═══════════════════════════════════ -->
 <header class="fdc-hero" id="fdc-inicio">
-
-  <div class="fdc-hero__slides" aria-hidden="true">
-    <div class="fdc-hero__slide is-active" style="background-image:url('assets/img/480806028_1154935316226158_277435804462500065_n.jpg')"></div>
-    <div class="fdc-hero__slide" style="background-image:url('assets/img/festival-del-conocimiento.jpg')"></div>
-    <div class="fdc-hero__slide" style="background-image:url('assets/img/desfile.jpg')"></div>
-    <div class="fdc-hero__slide" style="background-image:url('assets/img/556889478_1329700475416307_7284762312387271769_n.jpg')"></div>
-    <div class="fdc-hero__slide" style="background-image:url('assets/img/552305890_1319497169769971_9170207779982222089_n.jpg')"></div>
-    <div class="fdc-hero__slide" style="background-image:url('assets/img/571331896_1351780023208352_3292280999866211490_n.jpg')"></div>
-  </div>
-  <div class="fdc-hero__scrim"></div>
-
-  <!-- Anillos decorativos: uno en cada esquina, como los del logotipo. -->
+  <!-- Los aros del logotipo, en trazo fino y girando despacio. -->
   <svg class="fdc-hero__rings fdc-hero__rings--izq" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
     <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
     <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
@@ -56,467 +61,310 @@
     <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
   </svg>
 
-  <!-- Dos frases a mano, a los lados. Solo decoran: en pantallas angostas se
-       ocultan y para lectores de pantalla no existen. -->
-  <p class="fdc-hero__nota fdc-hero__nota--izq" aria-hidden="true">Ideas que transforman realidades</p>
-  <p class="fdc-hero__nota fdc-hero__nota--der" aria-hidden="true">La ciencia también se vive</p>
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <div class="fdc-hero__grid">
+      <div class="fdc-hero__txt">
+        <!-- Logotipo y fecha alineados por la base. logo.png trae margen
+             transparente abajo; el CSS lo recorta para que la base sea real. -->
+        <div class="fdc-hero__marca">
+          <img class="fdc-hero__logo" src="assets/img/logo.png"
+               alt="Festival del Conocimiento — ciencia, arte, tecnología y humanidades">
+          <div class="fdc-hero__fecha">
+            <p class="fdc-hero__rango"><strong>17</strong><span class="fdc-hero__dash" aria-hidden="true"></span><strong>24</strong></p>
+            <p class="fdc-hero__mes">octubre</p>
+            <p class="fdc-hero__anio">2026</p>
+          </div>
+        </div>
 
-  <div class="fdc-hero__inner">
-    <!-- Logotipo a la izquierda y, tras una línea vertical, la fecha con los
-         guiones de color. En móvil se apilan y la línea pasa a ser horizontal. -->
-    <div class="fdc-hero__cabeza">
-      <img class="fdc-hero__logo" src="assets/img/logo.png"
-           alt="Festival del Conocimiento — ciencia, arte, tecnología y humanidades">
+        <h1 class="fdc-sr">Festival del Conocimiento 2026 — Ensenada, Baja California</h1>
 
-      <div class="fdc-hero__fecha">
-        <p class="fdc-hero__rango">
-          <strong>17</strong><span class="fdc-hero__dash" aria-hidden="true"></span><strong>24</strong>
-        </p>
-        <p class="fdc-hero__mesanio">
-          <span class="fdc-hero__mes">octubre</span>
-          <span class="fdc-hero__anio">2026</span>
-        </p>
-        <span class="fdc-hero__guiones" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div class="fdc-hero__cta">
+          <a class="fdc-btn fdc-btn--magenta" href="/programa/">Explora el programa <span aria-hidden="true">→</span></a>
+          <a class="fdc-hero__video" href="#fdc-memoria">
+            <span class="fdc-hero__play" aria-hidden="true"></span>
+            Ver video del festival
+          </a>
+        </div>
+      </div>
+
+      <!-- Collage: tres fotos propias en blanco y negro, en círculo, sobre
+           formas de la paleta. Música, danza y una charla. Entran una tras
+           otra al cargar. -->
+      <div class="fdc-hero__collage" aria-hidden="true">
+        <span class="fdc-hero__blob fdc-hero__blob--magenta"></span>
+        <span class="fdc-hero__blob fdc-hero__blob--amarillo"></span>
+        <span class="fdc-hero__blob fdc-hero__blob--turquesa"></span>
+        <span class="fdc-hero__anillo"></span>
+        <img class="fdc-hero__foto fdc-hero__foto--musica" src="assets/img/552305890_1319497169769971_9170207779982222089_n.jpg" alt="">
+        <img class="fdc-hero__foto fdc-hero__foto--danza"  src="assets/img/556889478_1329700475416307_7284762312387271769_n.jpg" alt="">
+        <img class="fdc-hero__foto fdc-hero__foto--charla" src="assets/img/conferencias.jpg" alt="">
+        <span class="fdc-hero__punto fdc-hero__punto--verde"></span>
+        <span class="fdc-hero__punto fdc-hero__punto--naranja"></span>
       </div>
     </div>
 
-    <h1 class="fdc-sr">Festival del Conocimiento 2026 — Ensenada, Baja California</h1>
-
-    <!-- Quiénes lo organizan, en una caja translúcida. -->
-    <div class="fdc-hero__insti">
-      <p class="fdc-hero__insti-label">Una iniciativa de</p>
-      <div class="fdc-hero__insti-row">
-        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
-          <img src="assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" class="fdc-hero__lg fdc-hero__lg--unam">
+    <!-- Quiénes lo organizan. Registro institucional: monocromo y limpio. Los
+         logotipos blancos de la UNAM se vuelven negros con brightness(0). -->
+    <div class="fdc-insti">
+      <p class="fdc-insti__label">Una iniciativa de:</p>
+      <div class="fdc-insti__row">
+        <a href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" class="fdc-insti__lg fdc-insti__lg--blanco" style="height:64px">
         </a>
-        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
-        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
-          <img src="assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" class="fdc-hero__lg fdc-hero__lg--unam2">
+        <a href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" class="fdc-insti__lg fdc-insti__lg--blanco" style="height:52px">
         </a>
-        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
-        <a class="fdc-hero__lglink" href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
-          <img src="assets/img/logo-unam-475.png" alt="475 años de la UNAM" class="fdc-hero__lg fdc-hero__lg--475">
+        <a href="https://www.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logo-unam-475.png" alt="475 años de la UNAM" class="fdc-insti__lg fdc-insti__lg--blanco" style="height:58px">
         </a>
-        <span class="fdc-hero__lgsep" aria-hidden="true"></span>
-        <a class="fdc-hero__lglink" href="https://www.cnyn.unam.mx" target="_blank" rel="noopener noreferrer">
-          <img src="assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" class="fdc-hero__lg fdc-hero__lg--cnyn">
+        <a href="https://www.cnyn.unam.mx" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" class="fdc-insti__lg" style="height:56px">
         </a>
+      </div>
+      <div class="fdc-insti__lema">
+        <span>Conocimiento que nos une</span>
+        <i class="fdc-guiones" aria-hidden="true"><b></b><b></b><b></b><b></b></i>
       </div>
     </div>
 
-    <!-- Tarjetas de actividades del programa. El HTML deja el hueco vacío y
-         oculto; assets/js/programa-portada.js lo llena solo con actividades
-         publicadas que tengan póster. Sin datos o sin red no aparece nada. -->
+    <!-- Actividades destacadas: título a la izquierda y tres tarjetas. Las
+         tres primeras publicadas con póster, de hoy en adelante. -->
     <div class="fdc-hero__prog" id="fdc-hero-prog" hidden></div>
-
-    <div class="fdc-hero__cta">
-      <a class="fdc-btn fdc-btn--magenta" href="/programa/">Programa 2026</a>
-      <a class="fdc-btn fdc-btn--ghost" href="#fdc-festival">Conoce el festival</a>
-    </div>
   </div>
-
-  <a class="fdc-hero__scroll" href="#fdc-festival">
-    <span class="fdc-hero__raton" aria-hidden="true"><i></i></span>
-    <span class="fdc-hero__scroll-txt">Desliza para explorar</span>
-  </a>
 </header>
 
-<!-- ═══════════════════════════════ EL FESTIVAL ═══════════════════════════════ -->
-<section class="fdc-sec fdc-sec--soft" id="fdc-festival">
-  <div class="fdc-wrap">
+<!-- ═══════════════════════════════ ESTA SEMANA ═══════════════════════════════════
+     Lo próximo del programa en orden cronológico, agrupado por día. Es la
+     sección que cambia todos los días del festival. Sin datos no aparece. -->
+<section class="fdc-sec fdc-sec--color fdc-sec--magenta fdc-sec--foto" id="fdc-proximas" hidden
+         style="--foto:url(/assets/img/desfile.jpg)">
+  <div class="fdc-wrap fdc-wrap--ancho" id="fdc-proximas-caja"></div>
+</section>
 
-    <div class="fdc-intro">
-      <div class="fdc-intro__text">
-        <p class="fdc-kicker">El festival</p>
+<!-- ═══════════════════════════════ EL FESTIVAL ═══════════════════════════════════
+     Qué es, en un párrafo, y los cuatro ejes como entrada al programa
+     filtrado. Las cifras por eje las llena el JS; sin ellas, las tarjetas
+     funcionan igual. -->
+<section class="fdc-sec" id="fdc-ejes">
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <div class="fdc-cabeza-sec">
+      <div>
+        <p class="fdc-eyebrow">El festival</p>
         <h2 class="fdc-h2">El conocimiento,<br>puesto en tus manos</h2>
+      </div>
+      <p class="fdc-lead">
+        Cada octubre, el <b>Centro de Nanociencias y Nanotecnología de la UNAM</b>
+        y más de veinte instituciones de Ensenada abren la ciudad al saber:
+        conferencias, talleres, conciertos, teatro y caminatas del conocimiento,
+        gratuitos y para todas las edades. Cuatro ejes, un mismo propósito:
+        que el conocimiento sea de todos.
+      </p>
+    </div>
+
+    <ul class="fdc-ejes">
+      <li>
+        <a class="fdc-eje fdc-eje--ciencia" href="/programa/?eje=Ciencia">
+          <span class="fdc-eje__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.3"/><ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(120 12 12)"/></svg>
+          </span>
+          <b class="fdc-eje__n" data-eje-cifra="Ciencia"></b>
+          <h3>Ciencia</h3>
+          <p>Charlas de divulgación, laboratorios abiertos, astronomía, nanociencia y el placer de preguntar por qué.</p>
+          <span class="fdc-eje__ir">Ver actividades <i aria-hidden="true">→</i></span>
+        </a>
+      </li>
+      <li>
+        <a class="fdc-eje fdc-eje--arte" href="/programa/?eje=Arte">
+          <span class="fdc-eje__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2.8c-5.1 0-9.2 4.1-9.2 9.2s4.1 9.2 9.2 9.2c.95 0 1.7-.77 1.7-1.7 0-.44-.17-.84-.44-1.14-.28-.3-.45-.7-.45-1.14 0-.95.77-1.7 1.7-1.7h2a5.5 5.5 0 0 0 5.5-5.5c0-4.5-4.4-7.2-10-7.2z"/><circle cx="7.6" cy="12" r="1.15" fill="currentColor" stroke="none"/><circle cx="9.7" cy="7.9" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.3" cy="7.4" r="1.15" fill="currentColor" stroke="none"/><circle cx="17.6" cy="10.4" r="1.15" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <b class="fdc-eje__n" data-eje-cifra="Arte"></b>
+          <h3>Arte</h3>
+          <p>Teatro, danza, conciertos, exposiciones e intervenciones artísticas en espacios públicos.</p>
+          <span class="fdc-eje__ir">Ver actividades <i aria-hidden="true">→</i></span>
+        </a>
+      </li>
+      <li>
+        <a class="fdc-eje fdc-eje--tecnologia" href="/programa/?eje=Tecnolog%C3%ADa">
+          <span class="fdc-eje__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="7.4" y="7.4" width="9.2" height="9.2" rx="1.8"/><path d="M10.2 10.6h3.6v3.6h-3.6z"/><path d="M10 3.6v3.8M14 3.6v3.8M10 16.6v3.8M14 16.6v3.8M3.6 10h3.8M3.6 14h3.8M16.6 10h3.8M16.6 14h3.8"/></svg>
+          </span>
+          <b class="fdc-eje__n" data-eje-cifra="Tecnología"></b>
+          <h3>Tecnología</h3>
+          <p>Talleres prácticos, innovación, emprendimiento y demostraciones que se tocan, se arman y se prueban.</p>
+          <span class="fdc-eje__ir">Ver actividades <i aria-hidden="true">→</i></span>
+        </a>
+      </li>
+      <li>
+        <a class="fdc-eje fdc-eje--humanidades" href="/programa/?eje=Humanidades">
+          <span class="fdc-eje__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 6.6v13.2"/><path d="M12 6.6C10.4 5.2 8.2 4.5 5.7 4.5H2.8v13.2h2.9c2.5 0 4.7.7 6.3 2.1"/><path d="M12 6.6c1.6-1.4 3.8-2.1 6.3-2.1h2.9v13.2h-2.9c-2.5 0-4.7.7-6.3 2.1"/></svg>
+          </span>
+          <b class="fdc-eje__n" data-eje-cifra="Humanidades"></b>
+          <h3>Humanidades</h3>
+          <p>Mesas de diálogo, historia, filosofía, literatura y las conversaciones que nos ayudan a vivir juntos.</p>
+          <span class="fdc-eje__ir">Ver actividades <i aria-hidden="true">→</i></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ SEDES ═════════════════════════════════════
+     Las sedes se deducen del programa publicado: nombre, dirección y cuántas
+     actividades tiene cada una. Así nunca dice «se confirmarán» cuando ya hay
+     actividades con sede. -->
+<section class="fdc-sec fdc-sec--marfil" id="fdc-sedes">
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <div class="fdc-cabeza-sec">
+      <div>
+        <p class="fdc-eyebrow">Sedes</p>
+        <h2 class="fdc-h2">El festival<br>ocupa la ciudad</h2>
+      </div>
+      <p class="fdc-lead">
+        No hay un solo recinto: el festival se reparte por los espacios
+        culturales, académicos y públicos de Ensenada. Cada actividad del
+        programa indica su sede y su horario.
+      </p>
+    </div>
+
+    <div id="fdc-sedes-caja">
+      <!-- Respaldo mientras carga o si no hay red. -->
+      <p class="fdc-nota">Las sedes aparecen aquí conforme se publica cada actividad.
+        Consulta el <a href="/programa/">programa completo</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CÓMO ASISTIR ══════════════════════════════════ -->
+<section class="fdc-sec fdc-sec--color fdc-sec--amarillo" id="fdc-boletos">
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <div class="fdc-cabeza-sec">
+      <div>
+        <p class="fdc-eyebrow">Cómo asistir</p>
+        <h2 class="fdc-h2">Entrada libre.<br>Algunas piden boleto.</h2>
+      </div>
+      <p class="fdc-lead">
+        Todo el festival es gratuito. Las actividades con cupo limitado piden
+        un boleto, también gratuito, que se consigue desde el programa en un
+        minuto y llega a tu teléfono.
+      </p>
+    </div>
+
+    <ol class="fdc-pasos">
+      <li class="fdc-paso">
+        <span class="fdc-paso__n" aria-hidden="true">1</span>
+        <h3>Elige en el programa</h3>
+        <p>Explora por día, eje o sede. Cada actividad dice si la entrada es libre o si pide boleto o confirmación.</p>
+      </li>
+      <li class="fdc-paso">
+        <span class="fdc-paso__n" aria-hidden="true">2</span>
+        <h3>Consigue tu boleto</h3>
+        <p>Nombre y teléfono bastan. Recibes un código QR que se guarda en este mismo navegador, sin cuenta ni contraseña.</p>
+      </li>
+      <li class="fdc-paso">
+        <span class="fdc-paso__n" aria-hidden="true">3</span>
+        <h3>Llega y muéstralo</h3>
+        <p>En la entrada se lee tu código. Si una actividad se agota, puedes anotarte en lista de espera y pasas primero si sobran lugares.</p>
+      </li>
+    </ol>
+
+    <div class="fdc-acciones">
+      <a class="fdc-btn fdc-btn--magenta" href="/programa/">Ver el programa <span aria-hidden="true">→</span></a>
+      <a class="fdc-btn fdc-btn--linea" href="/mis-boletos/">Mis boletos</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ MEMORIA ═══════════════════════════════════
+     Video institucional y la edición 2025: carteles y galería. Lo pinta
+     landing.js con las listas que ya tenía. -->
+<section class="fdc-sec" id="fdc-memoria">
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <div class="fdc-memoria">
+      <div class="fdc-memoria__txt">
+        <p class="fdc-eyebrow">Memoria</p>
+        <h2 class="fdc-h2">Así se vive<br>el festival</h2>
         <p class="fdc-lead">
-          El Festival del Conocimiento es una iniciativa multidisciplinaria de divulgación
-          de la ciencia, la tecnología, las artes y las humanidades que se realiza cada año
-          en Ensenada, Baja California.
-        </p>
-        <p>
-          Lo impulsa el <b>Centro de Nanociencias y Nanotecnología de la UNAM (CNyN-UNAM)</b>
-          junto con instituciones educativas, autoridades locales, organizaciones civiles y
-          empresas, y acerca el saber a toda la comunidad con actividades abiertas y gratuitas:
-          conferencias, talleres, charlas de divulgación, caminatas del conocimiento, conciertos,
-          presentaciones artísticas, mesas de diálogo y encuentros familiares que unen ciencia y
-          arte. Todo con un mismo propósito: <b>fomentar la apropiación social del conocimiento</b>,
-          fortalecer vocaciones científicas y creativas, y provocar encuentros entre la comunidad
+          En 2025 celebramos la décima edición bajo el eje <b>«Talento de la
+          Región»</b>: caminatas del conocimiento, Euphoria Brass Band, cien
+          años de mecánica cuántica, teatro de sombras, mesas de diálogo y el
+          cierre con Son del Puerto. Once años de encuentros entre la comunidad
           científica, artistas, estudiantes y familias.
         </p>
-      </div>
-
-      <figure class="fdc-intro__fig">
-        <img src="assets/img/todo-es-la-luz-scaled-1-768x431.jpg" loading="lazy"
-             alt="Sala llena durante una charla del festival, con el público de espaldas y los ponentes al frente entre pinturas de gran formato">
-      </figure>
-    </div>
-
-    <!-- Las cuatro disciplinas -->
-    <div class="fdc-disc">
-      <article class="fdc-disc__card" data-disc="ciencia">
-        <span class="fdc-disc__ring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
-            <ellipse cx="12" cy="12" rx="10" ry="4.3"/>
-            <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/>
-            <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(120 12 12)"/>
-          </svg>
-        </span>
-        <h3>Ciencia</h3>
-        <p>Charlas de divulgación, laboratorios abiertos, astronomía, nanociencia y el placer de preguntar por qué.</p>
-      </article>
-      <article class="fdc-disc__card" data-disc="arte">
-        <span class="fdc-disc__ring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 2.8c-5.1 0-9.2 4.1-9.2 9.2s4.1 9.2 9.2 9.2c.95 0 1.7-.77 1.7-1.7 0-.44-.17-.84-.44-1.14-.28-.3-.45-.7-.45-1.14 0-.95.77-1.7 1.7-1.7h2a5.5 5.5 0 0 0 5.5-5.5c0-4.5-4.4-7.2-10-7.2z"/>
-            <circle cx="7.6" cy="12" r="1.15" fill="currentColor" stroke="none"/>
-            <circle cx="9.7" cy="7.9" r="1.15" fill="currentColor" stroke="none"/>
-            <circle cx="14.3" cy="7.4" r="1.15" fill="currentColor" stroke="none"/>
-            <circle cx="17.6" cy="10.4" r="1.15" fill="currentColor" stroke="none"/>
-          </svg>
-        </span>
-        <h3>Arte</h3>
-        <p>Teatro, danza contemporánea, conciertos, exposiciones e intervenciones artísticas en espacios públicos.</p>
-      </article>
-      <article class="fdc-disc__card" data-disc="tecnologia">
-        <span class="fdc-disc__ring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="7.4" y="7.4" width="9.2" height="9.2" rx="1.8"/>
-            <path d="M10.2 10.6h3.6v3.6h-3.6z"/>
-            <path d="M10 3.6v3.8M14 3.6v3.8M10 16.6v3.8M14 16.6v3.8M3.6 10h3.8M3.6 14h3.8M16.6 10h3.8M16.6 14h3.8"/>
-          </svg>
-        </span>
-        <h3>Tecnología</h3>
-        <p>Talleres prácticos, innovación, emprendimiento y demostraciones que se tocan, se arman y se prueban.</p>
-      </article>
-      <article class="fdc-disc__card" data-disc="humanidades">
-        <span class="fdc-disc__ring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 6.6v13.2"/>
-            <path d="M12 6.6C10.4 5.2 8.2 4.5 5.7 4.5H2.8v13.2h2.9c2.5 0 4.7.7 6.3 2.1"/>
-            <path d="M12 6.6c1.6-1.4 3.8-2.1 6.3-2.1h2.9v13.2h-2.9c-2.5 0-4.7.7-6.3 2.1"/>
-          </svg>
-        </span>
-        <h3>Humanidades</h3>
-        <p>Mesas de diálogo, historia, filosofía, literatura y las conversaciones que nos ayudan a vivir juntos.</p>
-      </article>
-    </div>
-
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ EDICIÓN 2026 ══════════════════════════════ -->
-<section class="fdc-sec fdc-sec--dark" id="fdc-2026">
-  <svg class="fdc-watermark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-    <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
-    <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
-  </svg>
-
-  <div class="fdc-wrap">
-    <p class="fdc-kicker fdc-kicker--light">Edición 2026</p>
-    <h2 class="fdc-h2 fdc-h2--light">Del 17 al 24 de octubre</h2>
-
-    <div class="fdc-datebar">
-      <div class="fdc-datebar__item"><b>Sáb 17 oct</b><span>Arranca el festival</span></div>
-      <div class="fdc-datebar__line" aria-hidden="true"></div>
-      <div class="fdc-datebar__item"><b>8 días</b><span>De sábado a sábado</span></div>
-      <div class="fdc-datebar__line" aria-hidden="true"></div>
-      <div class="fdc-datebar__item"><b>Sáb 24 oct</b><span>Clausura</span></div>
-    </div>
-
-    <p class="fdc-lead fdc-lead--light fdc-mt">
-      En diversas sedes de la ciudad de Ensenada se podrá disfrutar
-      <b>de manera gratuita</b> de:
-    </p>
-
-    <ul class="fdc-acts">
-      <li data-c="ciencia"><b>Charlas</b><span>Divulgación con especialistas</span></li>
-      <li data-c="arte"><b>Conciertos</b><span>Música en plazas y patios</span></li>
-      <li data-c="tecnologia"><b>Carrera 5K</b><span>El conocimiento también se corre</span></li>
-      <li data-c="arte"><b>Obras de teatro</b><span>Escena y artes vivas</span></li>
-      <li data-c="tecnologia"><b>Talleres</b><span>Aprender haciendo</span></li>
-      <li data-c="arte"><b>Intervenciones artísticas</b><span>Arte en el espacio público</span></li>
-      <li data-c="ciencia"><b>Eventos de divulgación</b><span>Ciencia para todo público</span></li>
-      <li data-c="humanidades"><b>Visitas a escuelas</b><span>El festival va a las aulas</span></li>
-    </ul>
-
-    <p class="fdc-note">
-      La planeación de la edición 2026 avanza con la participación del CNyN-UNAM, el Instituto
-      Tecnológico de Ensenada del TecNM y las demás instituciones aliadas.
-      <b id="fdc-nota-programa">El programa completo y las sedes se anunciarán próximamente.</b>
-    </p>
-  </div>
-</section>
-
-<!-- ════════════════════════════════ PROGRAMA ═════════════════════════════════ -->
-<section class="fdc-sec" id="fdc-programa">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Programa</p>
-    <h2 class="fdc-h2">Programa 2026</h2>
-
-    <!-- El contenido de esta caja lo sustituye assets/js/programa-portada.js
-         por las tres próximas actividades, y SOLO si hay algo publicado. Lo que
-         está escrito aquí es el respaldo: mientras el programa esté vacío, o si
-         falla la red, «Próximamente» es exactamente la verdad. -->
-    <div id="fdc-programa-caja">
-    <div class="fdc-soon">
-      <div class="fdc-soon__badge">
-        <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-          <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
-          <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
-        </svg>
-      </div>
-      <div class="fdc-soon__body">
-        <p class="fdc-soon__tag">Próximamente</p>
-        <h3>Estamos afinando los últimos detalles</h3>
-        <p>
-          El programa completo —con horarios, sedes, invitados y registro de boletos—
-          se publicará en esta página conforme se confirme cada actividad.
-          Mientras tanto, la forma más rápida de enterarte es seguirnos en redes:
-          ahí anunciamos primero cada anuncio del festival.
-        </p>
-        <div class="fdc-soon__cta">
-          <a class="fdc-btn fdc-btn--magenta" href="https://www.facebook.com/festivaldelconocimiento.ens/" target="_blank" rel="noopener">Seguir en Facebook</a>
-          <a class="fdc-btn fdc-btn--outline" href="https://www.instagram.com/festcon.ens/" target="_blank" rel="noopener">Seguir en Instagram</a>
-        </div>
-        <p class="fdc-soon__foot">
-          ¿Eres docente o representas una institución? Escríbenos para recibir el
-          programa en cuanto esté listo → <a href="#fdc-participa">Participa</a>
+        <p class="fdc-nota">
+          <a class="fdc-enlace" href="https://www.youtube.com/@festivaldelconocimientoens4767/" target="_blank" rel="noopener">Todos los videos en YouTube <span aria-hidden="true">→</span></a>
         </p>
       </div>
-    </div>
-    </div><!-- /#fdc-programa-caja -->
-  </div>
-</section>
 
-<!-- ═════════════════════════════════ VIDEO ═══════════════════════════════════ -->
-<section class="fdc-sec fdc-sec--soft" id="fdc-video">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Video</p>
-    <h2 class="fdc-h2">Así se vive el festival</h2>
-    <p class="fdc-lead fdc-lead--medida">
-      Un recorrido por lo que ocurre cuando la ciencia, el arte, la tecnología
-      y las humanidades se encuentran en Ensenada.
-    </p>
-
-    <!-- Fachada ligera: el iframe de YouTube sólo carga al hacer clic -->
-    <div class="fdc-video" data-yt="9QFQHpue3vE">
-      <button class="fdc-video__play" type="button" aria-label="Reproducir el video institucional del Festival del Conocimiento">
-        <img src="assets/img/concierto.jpg" alt="" loading="lazy">
-        <span class="fdc-video__btn" aria-hidden="true"></span>
-        <span class="fdc-video__label">Video institucional</span>
-      </button>
+      <!-- Fachada ligera: el iframe de YouTube solo carga al hacer clic. -->
+      <div class="fdc-video" data-yt="9QFQHpue3vE">
+        <button class="fdc-video__play" type="button" aria-label="Reproducir el video institucional del Festival del Conocimiento">
+          <img src="assets/img/concierto.jpg" alt="" loading="lazy">
+          <span class="fdc-video__btn" aria-hidden="true"></span>
+          <span class="fdc-video__label">Video institucional</span>
+        </button>
+      </div>
     </div>
 
-    <p class="fdc-center fdc-mt">
-      <a class="fdc-btn fdc-btn--outline" href="https://www.youtube.com/@festivaldelconocimientoens4767/" target="_blank" rel="noopener">
-        Ver todos los videos en YouTube
-      </a>
-    </p>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ MEMORIA 2025 ══════════════════════════════ -->
-<section class="fdc-sec" id="fdc-memoria">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Memoria</p>
-    <h2 class="fdc-h2">Décima edición · 2025</h2>
-    <p class="fdc-lead fdc-lead--medida">
-      Del 21 al 27 de septiembre de 2025 el festival celebró su décima edición bajo el
-      eje <b>“Talento de la Región”</b>, con actividades en Ensenada y actividades hermanas
-      en Mexicali y Valle de las Palmas. Esto fue parte de lo que se vivió.
-    </p>
-
-    <div class="fdc-memo">
-      <article class="fdc-memo__card">
-        <h3><span class="c-ciencia">Caminatas del conocimiento</span></h3>
-        <p>Dos rutas de apertura: del Museo Caracol a la cancha del CNyN-UNAM, y un recorrido guiado por el centro histórico de Ensenada.</p>
-      </article>
-      <article class="fdc-memo__card">
-        <h3><span class="c-arte">Música y escena</span></h3>
-        <p>Euphoria Brass Band en la inauguración, el cantautor Yayo González, danza contemporánea y el cierre con Son del Puerto.</p>
-      </article>
-      <article class="fdc-memo__card">
-        <h3><span class="c-tecno">Ciencia en vivo</span></h3>
-        <p>Charlas sobre 100 años de mecánica cuántica, nanotecnología y energía, y proyectos de nanoemprendimiento con enfoque social y ambiental.</p>
-      </article>
-      <article class="fdc-memo__card">
-        <h3><span class="c-human">Diálogo y comunidad</span></h3>
-        <p>Presentaciones de libro, mesas de diálogo, talleres y dinámicas sensoriales abiertas a todo público.</p>
-      </article>
+    <div class="fdc-cabeza-sub">
+      <h3 class="fdc-h3">Cartelera 2025</h3>
+      <p class="fdc-nota">Da clic en cualquier cartel para verlo completo.</p>
     </div>
-
-    <h3 class="fdc-h3 fdc-mt-l">Programa 2025 · Cartelera</h3>
-    <p class="fdc-center fdc-muted">Da clic en cualquier cartel para verlo completo.</p>
-
     <div class="fdc-cards" id="fdc-cards"></div>
-
     <p class="fdc-center fdc-mt">
-      <button class="fdc-btn fdc-btn--outline" type="button" id="fdc-cards-more">Ver toda la cartelera</button>
-    </p>
-  </div>
-</section>
-
-<!-- ════════════════════════════════ GALERÍA ══════════════════════════════════ -->
-<section class="fdc-sec fdc-sec--soft" id="fdc-galeria">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Galería</p>
-    <h2 class="fdc-h2">Ediciones anteriores</h2>
-    <p class="fdc-lead fdc-lead--medida">
-      Once años de encuentros entre la comunidad científica, artistas, estudiantes y familias.
+      <button class="fdc-btn fdc-btn--linea" type="button" id="fdc-cards-more">Ver toda la cartelera</button>
     </p>
   </div>
 
   <div class="fdc-gal" id="fdc-gal"></div>
 </section>
 
-<!-- ═════════════════════════════════ SEDES ═══════════════════════════════════ -->
-<section class="fdc-sec" id="fdc-sedes">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Sedes</p>
-    <h2 class="fdc-h2">El festival ocupa la ciudad</h2>
-    <p class="fdc-lead fdc-lead--medida">
-      No hay un solo recinto: el festival se reparte por los espacios culturales, académicos y
-      públicos de Ensenada. Estos son algunos de ellos.
-    </p>
+<!-- ═════════════════════════════════════ PIE ═════════════════════════════════════
+     Azul negro, círculos de identidad recortados por los bordes, una frase
+     grande y debajo navegación, contacto, redes e instituciones. El contacto
+     conserva el ancla «fdc-participa» porque otras páginas enlazan a ella. -->
+<footer class="fdc-foot" id="fdc-contacto">
+  <span class="fdc-foot__circ fdc-foot__circ--magenta" aria-hidden="true"></span>
+  <span class="fdc-foot__circ fdc-foot__circ--turquesa" aria-hidden="true"></span>
+  <span class="fdc-foot__circ fdc-foot__circ--amarillo" aria-hidden="true"></span>
 
-    <ul class="fdc-sedes">
-      <li>Centro Estatal de las Artes de Ensenada (CEART)</li>
-      <li>Centro Social, Cívico y Cultural Riviera</li>
-      <li>Centro de Nanociencias y Nanotecnología, UNAM</li>
-      <li>UABC · Unidad Sauzal y Unidad Valle Dorado</li>
-      <li>Instituto Tecnológico de Ensenada · TecNM</li>
-      <li>Caracol Museo de Ciencias</li>
-      <li>CETYS Universidad</li>
-      <li>CONALEP Ensenada</li>
-      <li>Centro histórico y Ventana al Mar</li>
-      <li>Bodegas de Santo Tomás</li>
-      <li>Teatro Universitario Benito Juárez</li>
-      <li>Parque Ejido El Porvenir</li>
-      <li>Centro de Investigación Científica y de Educación Superior de Ensenada (CICESE)</li>
-    </ul>
+  <div class="fdc-wrap fdc-wrap--ancho">
+    <p class="fdc-foot__frase">El conocimiento<br>nos une.</p>
 
-    <p class="fdc-note fdc-note--light">
-      <b id="fdc-nota-sedes">Las sedes de la edición 2026 se confirmarán junto con el programa.</b>
-      El listado anterior reúne recintos que han albergado ediciones anteriores y espacios
-      que se suman este año.
-    </p>
-  </div>
-</section>
-
-<!-- ════════════════════════════════ PARTICIPA ════════════════════════════════ -->
-<section class="fdc-sec fdc-sec--dark" id="fdc-participa">
-  <svg class="fdc-watermark fdc-watermark--right" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-    <circle cx="48" cy="40" r="25"/><circle cx="76" cy="44" r="25"/>
-    <circle cx="42" cy="66" r="25"/><circle cx="70" cy="70" r="25"/>
-  </svg>
-
-  <div class="fdc-wrap">
-    <p class="fdc-kicker fdc-kicker--light">Participa</p>
-    <h2 class="fdc-h2 fdc-h2--light">El festival se hace entre muchas manos</h2>
-    <p class="fdc-lead fdc-lead--light">
-      Cada edición es posible gracias a instituciones, autoridades, organizaciones civiles,
-      empresas, divulgadores, artistas y voluntarios que suman su trabajo. Si quieres formar
-      parte de la edición 2026, hay lugar para ti.
-    </p>
-
-    <div class="fdc-part">
-      <article class="fdc-part__card">
-        <h3>Propón una actividad</h3>
-        <p>¿Tienes una charla, taller, obra o exposición? Cuéntanos de qué trata, a qué público va dirigida y qué necesitas.</p>
-      </article>
-      <article class="fdc-part__card">
-        <h3>Súmate como sede o patrocinador</h3>
-        <p>Espacios, equipo, difusión o apoyo económico: toda colaboración amplía el alcance del festival.</p>
-      </article>
-      <article class="fdc-part__card">
-        <h3>Sé voluntario</h3>
-        <p>Logística, registro, acompañamiento de invitados y apoyo en sedes. Es la mejor forma de vivir el festival desde dentro.</p>
-      </article>
-      <article class="fdc-part__card">
-        <h3>Lleva el festival a tu escuela</h3>
-        <p>Coordinamos visitas y actividades de divulgación con instituciones educativas de todos los niveles.</p>
-      </article>
-    </div>
-
-    <div class="fdc-contact">
-      <p class="fdc-contact__label">Coordinación general</p>
-      <p class="fdc-contact__name">Mtro. Juan Antonio Peralta</p>
-      <a class="fdc-btn fdc-btn--yellow" href="mailto:jperalta@ens.cnyn.unam.mx?subject=Festival%20del%20Conocimiento%202026">
-        jperalta@ens.cnyn.unam.mx
-      </a>
-      <p class="fdc-contact__org">Centro de Nanociencias y Nanotecnología · UNAM · Ensenada, B.C.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════ REDES ═════════════════════════════════ -->
-<section class="fdc-sec fdc-sec--soft" id="fdc-redes">
-  <div class="fdc-wrap">
-    <p class="fdc-kicker">Redes</p>
-    <h2 class="fdc-h2">Sigue el festival</h2>
-    <p class="fdc-lead fdc-lead--medida">
-      Los anuncios del programa, invitados y boletos salen primero en nuestras redes sociales.
-    </p>
-
-    <div class="fdc-social">
-      <a class="fdc-social__card" data-net="fb" href="https://www.facebook.com/festivaldelconocimiento.ens/" target="_blank" rel="noopener">
-        <span class="fdc-social__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z"/></svg>
-        </span>
-        <b>Facebook</b>
-        <span>/festivaldelconocimiento.ens</span>
-      </a>
-      <a class="fdc-social__card" data-net="ig" href="https://www.instagram.com/festcon.ens/" target="_blank" rel="noopener">
-        <span class="fdc-social__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.3 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .3-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.3-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.3 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.1A6.7 6.7 0 1 0 18.7 12 6.7 6.7 0 0 0 12 5.3zm0 11a4.3 4.3 0 1 1 4.3-4.3 4.3 4.3 0 0 1-4.3 4.3zm6.9-11.3a1.6 1.6 0 1 1-1.6-1.6 1.6 1.6 0 0 1 1.6 1.6z"/></svg>
-        </span>
-        <b>Instagram</b>
-        <span>@festcon.ens</span>
-      </a>
-      <a class="fdc-social__card" data-net="yt" href="https://www.youtube.com/@festivaldelconocimientoens4767/" target="_blank" rel="noopener">
-        <span class="fdc-social__ico" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg>
-        </span>
-        <b>YouTube</b>
-        <span>Festival del Conocimiento</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ═════════════════════════════════ FOOTER ═════════════════════════════════ -->
-<footer class="fdc-foot">
-  <div class="fdc-wrap">
-
-    <div class="fdc-foot__top">
-      <div class="fdc-foot__brand">
-        <img src="assets/img/icono-festcon.png" alt="" class="fdc-foot__icon">
-        <p class="fdc-foot__name">Festival del<br>Conocimiento</p>
-        <p class="fdc-foot__tag">Ciencia · Arte · Tecnología · Humanidades</p>
+    <div class="fdc-foot__cols">
+      <div>
+        <h4>Festival</h4>
+        <p>
+          <a href="/programa/">Programa 2026</a><br>
+          <a href="#fdc-ejes">El festival</a><br>
+          <a href="#fdc-sedes">Sedes</a><br>
+          <a href="#fdc-boletos">Cómo asistir</a><br>
+          <a href="/mis-boletos/">Mis boletos</a>
+        </p>
       </div>
-
-      <div class="fdc-foot__cols">
-        <div>
-          <h4>Edición 2026</h4>
-          <p>17 al 24 de octubre de 2026<br>Ensenada, Baja California<br>Entrada libre</p>
-        </div>
-        <div>
-          <h4>Contacto</h4>
-          <p>
-            Mtro. Juan Antonio Peralta<br>
-            <a href="mailto:jperalta@ens.cnyn.unam.mx">jperalta@ens.cnyn.unam.mx</a>
-          </p>
-        </div>
-        <div>
-          <h4>Síguenos</h4>
-          <p>
-            <a href="https://www.facebook.com/festivaldelconocimiento.ens/" target="_blank" rel="noopener">Facebook</a><br>
-            <a href="https://www.instagram.com/festcon.ens/" target="_blank" rel="noopener">Instagram</a><br>
-            <a href="https://www.youtube.com/@festivaldelconocimientoens4767/" target="_blank" rel="noopener">YouTube</a>
-          </p>
-        </div>
+      <div>
+        <h4>Talleres</h4>
+        <p>
+          <a href="/laboratorio-arte-de-comunicar-ciencia/">El arte de comunicar ciencia</a><br>
+          <a href="/taller-comic-difusion-cientifica/">Cómic para difusión científica</a>
+        </p>
+      </div>
+      <div id="fdc-participa">
+        <h4>Participa y contacto</h4>
+        <p>
+          ¿Propones una actividad, una sede o quieres ser voluntario?<br>
+          Mtro. Juan Antonio Peralta · Coordinación general<br>
+          <a href="mailto:jperalta@ens.cnyn.unam.mx?subject=Festival%20del%20Conocimiento%202026">jperalta@ens.cnyn.unam.mx</a>
+        </p>
+      </div>
+      <div>
+        <h4>Síguenos</h4>
+        <p>
+          <a href="https://www.facebook.com/festivaldelconocimiento.ens/" target="_blank" rel="noopener">Facebook</a><br>
+          <a href="https://www.instagram.com/festcon.ens/" target="_blank" rel="noopener">Instagram</a><br>
+          <a href="https://www.youtube.com/@festivaldelconocimientoens4767/" target="_blank" rel="noopener">YouTube</a>
+        </p>
       </div>
     </div>
 
@@ -531,25 +379,10 @@
       </div>
     </div>
 
-    <!-- ─────────────────────────────────────────────────────────────────────
-         Pleca institucional 2026, en el orden en que nos la entregaron
-         («PLECA LOGOS FDC 2026»): las veinte marcas, tal cual.
-
-         La UNAM, el CNyN y el 475+ también están aquí arriba, en «Una
-         iniciativa de», en su versión blanca; en la pleca van a color porque
-         así viene la pleca oficial y porque aquí cumplen otro papel: la lista
-         completa de quienes respaldan el festival.
-
-         Va sobre banda clara y no sobre el pie oscuro porque estos logotipos
-         llegaron a color. Arriba, los de la UNAM funcionan sobre oscuro porque
-         son versiones en blanco; pasar estos a blanco con un filtro deja el
-         escudo de la UABC como una mancha sin forma y vacía por dentro el de
-         Ensenada, que llevan ilustración.
-
-         Las marcas compuestas (CETYS | CEVIT, Baja California | Cultura,
-         Gobierno de Ensenada | ¡Amor en grande!) van en un solo archivo con su
-         barra divisoria, como en la pleca original.
-         ───────────────────────────────────────────────────────────────────── -->
+    <!-- Pleca institucional 2026 («PLECA LOGOS FDC 2026»): las veinte marcas,
+         a color y sobre blanco porque así llegaron. Las compuestas (CETYS |
+         CEVIT, Baja California | Cultura, Gobierno | ¡Amor en grande!) van en
+         un solo archivo con su barra divisoria. -->
     <div class="fdc-pleca">
       <p class="fdc-pleca__label">Con el apoyo de</p>
       <div class="fdc-pleca__row">
@@ -578,7 +411,8 @@
 
     <p class="fdc-foot__legal">
       © <span id="fdc-year">2026</span> Festival del Conocimiento · Centro de Nanociencias y
-      Nanotecnología, UNAM · Ensenada, Baja California, México.
+      Nanotecnología, UNAM · Ensenada, Baja California, México ·
+      <a href="/privacidad/">Aviso de privacidad</a>
     </p>
   </div>
 </footer>
@@ -604,8 +438,8 @@
   import { montarCabecera } from '/assets/js/cabecera.js';
   montarCabecera();
 </script>
-<!-- Adelanto del programa. Va aparte y como módulo porque lee la base de datos;
-     landing.js no toca la red. Si falla, la sección queda como está escrita. -->
+<!-- Lo que viene de la base de datos. Va aparte y como módulo; landing.js no
+     toca la red. Si falla, los huecos siguen ocultos y la página está completa. -->
 <script type="module" src="/assets/js/programa-portada.js"></script>
 </body>
 </html>

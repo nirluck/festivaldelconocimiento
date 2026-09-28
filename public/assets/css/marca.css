@@ -25,7 +25,8 @@
    ========================================================================== */
 
 :root{
-  --marca-oscuro: #26282C;
+  /* Azul negro del sistema editorial (DISEÑO.md). Antes #26282C. */
+  --marca-oscuro: #172033;
 
   /* Variantes derivadas. No se tocan: se recalculan desde el valor de arriba. */
 

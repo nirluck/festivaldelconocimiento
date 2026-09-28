@@ -48,37 +48,7 @@
   })();
 
   /* ====================================================================== *
-   *  1. CARRUSEL DEL HERO
-   * ====================================================================== */
-  (function heroSlider() {
-    var slides = $$('.fdc-hero__slide');
-    if (slides.length < 2) return;
-
-    var i = 0, timer = null, DELAY = 6000;
-
-    function go(n) {
-      slides[i].classList.remove('is-active');
-      i = (n + slides.length) % slides.length;
-      slides[i].classList.add('is-active');
-    }
-    function start() { if (!reduced) timer = setInterval(function () { go(i + 1); }, DELAY); }
-    function restart() { clearInterval(timer); start(); }
-
-    // Precarga de la siguiente imagen para que el cambio sea limpio
-    slides.forEach(function (s) {
-      var m = /url\(['"]?(.+?)['"]?\)/.exec(s.style.backgroundImage);
-      if (m) { var im = new Image(); im.src = m[1]; }
-    });
-
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) { clearInterval(timer); } else { restart(); }
-    });
-
-    start();
-  })();
-
-  /* ====================================================================== *
-   *  2. DATOS DE IMÁGENES
+   *  1. DATOS DE IMÁGENES
    * ====================================================================== */
 
   /* Galería fotográfica — ediciones anteriores */
@@ -160,7 +130,7 @@
   var VISIBLES = 8; /* carteles mostrados antes de pulsar "Ver toda la cartelera" */
 
   /* ====================================================================== *
-   *  3. CONSTRUCCIÓN DE GALERÍAS
+   *  2. CONSTRUCCIÓN DE GALERÍAS
    * ====================================================================== */
   var lbGrupo = [], lbIndex = 0;
 
@@ -242,7 +212,7 @@
   })();
 
   /* ====================================================================== *
-   *  4. LIGHTBOX
+   *  3. LIGHTBOX
    * ====================================================================== */
   var lb      = $('#fdc-lb');
   var lbImg   = lb ? $('img', lb) : null;
@@ -306,7 +276,7 @@
   }
 
   /* ====================================================================== *
-   *  5. VIDEO DE YOUTUBE (fachada — sólo carga al hacer clic)
+   *  4. VIDEO DE YOUTUBE (fachada — sólo carga al hacer clic)
    * ====================================================================== */
   (function video() {
     var box = $('.fdc-video');
@@ -328,7 +298,7 @@
   })();
 
   /* ====================================================================== *
-   *  6. NAVEGACIÓN SUAVE (sólo para los enlaces internos del festival)
+   *  5. NAVEGACIÓN SUAVE (sólo para los enlaces internos del festival)
    * ====================================================================== */
   $$('a[href^="#fdc-"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
@@ -340,7 +310,7 @@
   });
 
   /* ====================================================================== *
-   *  7. VOLVER ARRIBA
+   *  6. VOLVER ARRIBA
    * ====================================================================== */
   (function volverArriba() {
     var btn = $('#fdc-top');
@@ -362,14 +332,14 @@
   })();
 
   /* ====================================================================== *
-   *  8. APARICIÓN AL HACER SCROLL
+   *  7. APARICIÓN AL HACER SCROLL
    * ====================================================================== */
   (function reveal() {
     if (reduced || !('IntersectionObserver' in window)) return;
 
-    var sel = '.fdc-intro, .fdc-disc__card, .fdc-datebar, .fdc-acts li,' +
-              '.fdc-soon, .fdc-video, .fdc-memo__card, .fdc-sedes, .fdc-part__card,' +
-              '.fdc-contact, .fdc-social__card, .fdc-note, .fdc-h2, .fdc-lead';
+    // Solo lo que está escrito en el HTML. Lo que pinta programa-portada.js
+    // llega después y entra con su propia transición.
+    var sel = '.fdc-cabeza-sec, .fdc-eje, .fdc-paso, .fdc-memoria__txt, .fdc-video, .fdc-cabeza-sub';
 
     var items = $$(sel);
     items.forEach(function (el, n) {
@@ -389,7 +359,7 @@
   })();
 
   /* ====================================================================== *
-   *  9. AÑO EN EL PIE DE PÁGINA
+   *  8. AÑO EN EL PIE DE PÁGINA
    * ====================================================================== */
   (function anio() {
     var y = document.getElementById('fdc-year');
