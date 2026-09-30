@@ -441,8 +441,12 @@ function tarjeta(a) {
             onerror="this.parentElement.classList.remove('pg-act--poster');this.remove()">`
     : '';
 
+  // La tarjeta es un <article> y no un solo enlace: dentro puede ir el botón
+  // de boleto, y un enlace no admite otro enlace dentro. Toda la tarjeta sigue
+  // llevando a la actividad porque el enlace del título se estira sobre ella
+  // (.pg-act__enlace::after); el botón queda por encima y hace lo suyo.
   return `
-  <a class="pg-act${a.poster ? ' pg-act--poster' : ''}" href="/programa/${encodeURIComponent(a.slug)}/" style="${estiloEje(a.eje_color)}">
+  <article class="pg-act${a.poster ? ' pg-act--poster' : ''}" style="${estiloEje(a.eje_color)}">
     <div class="pg-act__hora">
       ${i ? `<b>${escapar(i)}</b>${f ? `<i></i><small>${escapar(f)}</small>` : ''}`
           : '<em>Hora por<br>confirmar</em>'}
@@ -453,16 +457,16 @@ function tarjeta(a) {
         ${a.tipo ? `<u></u><span>${escapar(a.tipo)}</span>` : ''}
         ${esNuevo(a) ? '<span class="pg-nuevo">Nuevo</span>' : ''}
       </p>
-      <h3 class="pg-act__tit">${escapar(a.titulo)}</h3>
+      <h3 class="pg-act__tit"><a class="pg-act__enlace" href="/programa/${encodeURIComponent(a.slug)}/">${escapar(a.titulo)}</a></h3>
       ${lineaPonentes(a)}
       ${a.resumen ? `<p class="pg-act__res">${escapar(a.resumen)}</p>` : ''}
       <p class="pg-act__meta">
         ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(a.sede)}</span>` : ''}
-        ${etiquetaBoleto(a)}
       </p>
+      ${accesoTarjeta(a)}
     </div>
     ${poster}
-  </a>`;
+  </article>`;
 }
 
 /* ============================================================================
@@ -470,29 +474,68 @@ function tarjeta(a) {
    El público nunca ve el cupo: trae el sobrecupo incluido (decisión del 16 de
    septiembre) y ya no es la capacidad de la sala. Ve si hay lugar.
    ========================================================================== */
-function etiquetaBoleto(a) {
-  if (!a.acceso || a.acceso === 'libre') return '';
+/**
+ * Cómo se entra, dicho sin ambigüedad. «Boleto gratuito» a secas se leía
+ * como «entrada libre» y la gente no sabía que tenía que pedirlo (29 de
+ * septiembre de 2026). Ahora las actividades con cupo llevan un botón
+ * resaltado que dice que hay boleto y que hay que solicitarlo, y una nota que
+ * aclara que es gratis. Las de entrada libre también lo dicen: así la
+ * diferencia entre unas y otras se ve de un vistazo.
+ *
+ * El botón lleva a la actividad con #boleto, que abre el formulario directo.
+ */
+function accesoTarjeta(a) {
+  const url = `/programa/${encodeURIComponent(a.slug)}/`;
+  const pedir = `${url}?o=programa#boleto`;
+  const ir = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const caja = (boton, nota, extra = '') => `
+      <div class="pg-acceso${extra}">
+        ${boton}
+        ${nota ? `<p class="pg-acceso__nota">${nota}</p>` : ''}
+      </div>`;
+  const boton = (href, texto, clase = '') =>
+    `<a class="pg-pedir${clase}" href="${href}">${ICO.boleto}<span>${texto}</span>${ir}</a>`;
+  const apagado = (texto) => `<span class="pg-pedir pg-pedir--off">${ICO.boleto}<span>${texto}</span></span>`;
+
+  if (!a.acceso || a.acceso === 'libre') {
+    return `<p class="pg-acceso pg-acceso--libre"><span class="pg-libre">${ICO.palomita}Entrada libre</span> Sin boleto ni registro: llega y entra.</p>`;
+  }
+
   const mio = boletoDeActividad(a.slug);
   if (mio) {
-    return `<span class="pg-bol pg-bol--tuyo">${ICO.palomita}${mio.estado === 'espera' ? 'En lista de espera' : 'Tienes boleto'}</span>`;
+    return caja(
+      boton(`/boleto/#${escapar(mio.token)}`, mio.estado === 'espera' ? 'Estás en lista de espera · Ver' : 'Ya tienes boleto · Verlo', ' pg-pedir--tuyo'),
+      mio.estado === 'espera' ? 'Si se libera un lugar, pasas primero.' : '');
   }
+
   const e = a.estado_boletos;
   if (a.acceso === 'registro') {
-    return e === 'cerrado' ? '' : `<span class="pg-bol">${ICO.boleto}Confirma asistencia</span>`;
+    if (e === 'cerrado') return '';
+    return caja(
+      boton(pedir, 'Confirma tu asistencia'),
+      'La entrada es libre. Confirmar nos ayuda a saber cuánta gente esperar.');
   }
+
+  // Sin número: cuántos lugares quedan no es asunto del público, y con el
+  // sobrecupo incluido ni siquiera es la capacidad de la sala.
   switch (e) {
-    // Sin número: cuántos lugares quedan no es asunto del público, y con el
-    // sobrecupo incluido ni siquiera es la capacidad de la sala.
-    case 'pocos':
-      return `<span class="pg-bol pg-bol--pocos">${ICO.boleto}Últimos lugares</span>`;
-    case 'agotado':
-      return `<span class="pg-bol pg-bol--agotado">${ICO.boleto}Agotado · lista de espera</span>`;
-    case 'pronto':
-      return `<span class="pg-bol pg-bol--apagado">${ICO.boleto}Boletos muy pronto</span>`;
+    case 'pronto': {
+      const f = a.boletos_desde ? fechaHoraTexto(a.boletos_desde) : '';
+      return caja(apagado('Requiere boleto'),
+        `<b>El boleto es gratuito</b>, pero hay que pedirlo. ${f ? `Se abren el ${escapar(f)}.` : 'Se abren muy pronto.'}`);
+    }
     case 'cerrado':
-      return `<span class="pg-bol pg-bol--apagado">${ICO.boleto}Boletos cerrados</span>`;
+      return caja(apagado('Boletos cerrados'),
+        'Si sobran lugares, en la entrada se ocupan por orden de llegada.');
+    case 'agotado':
+      return caja(boton(pedir, 'Agotado · Lista de espera', ' pg-pedir--espera'),
+        'Si alguien cancela o sobran lugares en la entrada, pasas primero.');
+    case 'pocos':
+      return caja(boton(pedir, 'Requiere boleto · Solicitar'),
+        '<b>Quedan los últimos lugares.</b> El boleto es gratuito, pero hay que pedirlo antes de ir.');
     default:
-      return `<span class="pg-bol">${ICO.boleto}Boleto gratuito</span>`;
+      return caja(boton(pedir, 'Requiere boleto · Solicitar'),
+        'Cupo limitado');
   }
 }
 
