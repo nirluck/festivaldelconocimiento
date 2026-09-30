@@ -16,13 +16,17 @@ import { SUPABASE_URL } from './config.js';
 
 export const BUCKET = 'actividades';
 
-/** Dirección pública de un archivo del bucket. Cadena vacía si no hay ruta. */
-export function urlPublica(ruta) {
+/* Las fotos de ponentes van en su propio bucket: un ponente no pertenece a
+   una sola actividad (ver sql/13-ponentes.sql). */
+export const BUCKET_PONENTES = 'ponentes';
+
+/** Dirección pública de un archivo. Cadena vacía si no hay ruta. */
+export function urlPublica(ruta, bucket = BUCKET) {
   if (!ruta) return '';
   // Cada tramo por separado: encodeURIComponent sobre la ruta entera
   // convertiría las diagonales en %2F y Storage no encontraría el archivo.
   const limpia = String(ruta).split('/').map(encodeURIComponent).join('/');
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${limpia}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${limpia}`;
 }
 
 /**
@@ -40,3 +44,4 @@ export function rutaMini(ruta) {
 
 export const urlPoster     = (ruta) => urlPublica(ruta);
 export const urlPosterMini = (ruta) => urlPublica(rutaMini(ruta));
+export const urlFotoPonente = (ruta) => urlPublica(ruta, BUCKET_PONENTES);

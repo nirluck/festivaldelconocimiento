@@ -166,13 +166,24 @@ export function explicar(error) {
   // Storage. Van antes que la regla de «row-level security»: una subida
   // rechazada por la política dice lo mismo, y aquí sí se puede ser concreto.
   if (m.includes('bucket not found'))
-    return 'Todavía no está listo el espacio para subir imágenes. Falta ejecutar sql/10-poster.sql en Supabase (ver README).';
+    return 'Todavía no está listo el espacio para subir imágenes. Falta ejecutar en Supabase el archivo SQL que lo crea: sql/10-poster.sql para los pósters, sql/13-ponentes.sql para las fotos de ponentes (ver README).';
   if (m.includes('exceeded the maximum allowed size') || m.includes('payload too large'))
     return 'La imagen sigue siendo demasiado grande para subirla. Expórtala a menor resolución y vuelve a intentarlo.';
   if (m.includes('mime type') && m.includes('not supported'))
     return 'Ese tipo de imagen no se puede subir. Guárdala como JPG o PNG y vuelve a intentarlo.';
   if (m.includes('actividades_poster_en_su_carpeta'))
     return 'Esa imagen pertenece a otra actividad y no se puede usar aquí.';
+  // Ponentes (sql/13-ponentes.sql). Antes de «violates»: todas lo dicen.
+  if (m.includes('ponentes_foto_en_su_carpeta'))
+    return 'Esa foto pertenece a otra persona y no se puede usar aquí.';
+  if (m.includes('ponentes_sitio_web'))
+    return 'El sitio tiene que ser una dirección completa que empiece con https://';
+  if (m.includes('ponentes_nombre_valido'))
+    return 'El nombre tiene que tener entre 2 y 160 caracteres.';
+  if (m.includes('ponentes_semblanza_larga'))
+    return 'La semblanza pasa de 2000 caracteres. Resúmela un poco.';
+  if (m.includes('actividad_ponentes_unico'))
+    return 'Esa persona ya está en esta actividad.';
   if (m.includes('row-level security') || m.includes('violates'))
     return 'Tu cuenta no tiene permiso para hacer eso.';
   // Cuando falta una migración, Supabase contesta con el nombre de la tabla que

@@ -319,6 +319,9 @@ a{color:var(--turquesa-tx)}
   color:var(--tx-2); font-size:.93rem; line-height:1.52;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-clamp:2; overflow:hidden;
 }
+/* Quién presenta, bajo el título. Una línea: con muchos nombres se corta
+   con «y 2 más» desde programa.js, no con puntos suspensivos. */
+.pg-act__con{font-size:.9rem; font-weight:500; color:var(--tx-2); line-height:1.4; margin-top:-2px}
 .pg-act__meta{display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; margin-top:2px; font-size:.85rem; color:var(--tx-3)}
 .pg-act__meta span{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .pg-act__meta svg{width:14px;height:14px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
@@ -396,6 +399,8 @@ a{color:var(--turquesa-tx)}
 .pg-hero--act .pg-hero__rejilla{position:relative;z-index:1}
 .pg-hero--act .pg-kicker{color:var(--eje-tx)}
 .pg-hero--act h1{font-size:clamp(2.2rem,5vw,4.2rem); font-weight:800; line-height:.98}
+.pg-hero__con{margin-top:14px; font-size:clamp(1rem,1.4vw,1.14rem); line-height:1.45; color:var(--tx-2); max-width:48ch}
+.pg-hero__con b{color:var(--tx); font-weight:600}
 .pg-hero--act .pg-hero__lede{margin-top:18px; font-size:clamp(1.02rem,1.5vw,1.2rem); line-height:1.55; color:var(--tx-2); max-width:48ch}
 
 /* Cuándo y dónde, en una línea bajo el título. */
@@ -466,6 +471,33 @@ a{color:var(--turquesa-tx)}
 .pg-texto ol li::before{content:counter(paso) '.'; position:absolute; left:0; top:0; font-family:var(--f-disp); font-weight:800; color:var(--eje-tx); font-variant-numeric:tabular-nums}
 .pg-texto strong{color:var(--tx);font-weight:600}
 .pg-texto a{color:var(--eje-tx);text-underline-offset:3px;text-decoration-thickness:1px;overflow-wrap:anywhere}
+
+/* ---- quién participa ----
+   El retrato va recortado en círculo y un círculo más chico del color del eje
+   se asoma detrás (DISEÑO.md: retratos con formas geométricas). El recorte se
+   hace aquí y no al subir la foto: se guarda en su proporción original. El
+   encuadre sube un poco porque la cara casi nunca está al centro exacto. */
+.pg-pon{margin-top:44px; padding-top:28px; border-top:1px solid var(--line); display:grid; gap:34px}
+.pg-pon__tit{font-family:var(--f-body); font-size:.7rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-3)}
+.pg-pon__item{display:grid; grid-template-columns:132px minmax(0,1fr); gap:28px; align-items:start}
+@media (max-width:560px){ .pg-pon__item{grid-template-columns:84px minmax(0,1fr); gap:18px} }
+.pg-pon__foto{position:relative; isolation:isolate; aspect-ratio:1/1; margin:0 8px 8px 0}
+.pg-pon__foto::before{
+  content:''; position:absolute; z-index:-1; width:46%; aspect-ratio:1/1; border-radius:50%;
+  background:var(--eje); right:-8px; bottom:-8px;
+}
+.pg-pon__foto span{
+  position:absolute; inset:0; display:grid; place-items:center; border-radius:50%;
+  background:color-mix(in srgb, var(--eje) 18%, #fff);
+  font-family:var(--f-disp); font-weight:800; font-size:clamp(1.4rem,3vw,2.1rem); color:var(--eje-tx);
+}
+.pg-pon__foto img{position:absolute; inset:0; width:100%; height:100%; border-radius:50%; object-fit:cover; object-position:50% 25%; background:var(--marfil)}
+.pg-pon__txt h3{font-family:var(--f-disp); font-weight:800; font-size:1.3rem; line-height:1.15; letter-spacing:-.015em; color:var(--tx); text-wrap:balance}
+.pg-pon__papel{margin-top:5px; font-size:.78rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--eje-tx)}
+.pg-pon__semb{margin-top:12px; font-size:1rem; line-height:1.7}
+.pg-pon__semb p{margin-bottom:.8em; text-wrap:pretty}
+.pg-pon__semb > :last-child{margin-bottom:0}
+.pg-pon__sitio{display:inline-block; margin-top:10px; font-size:.9rem; font-weight:500}
 
 /* ---- compartir: en segundo plano ---- */
 .pg-comp{margin-top:36px;padding-top:22px;border-top:1px solid var(--line)}

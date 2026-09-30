@@ -152,7 +152,7 @@ export async function prepararPoster(archivo) {
  * principal y respeta la orientación EXIF de las fotos de celular. Si el
  * navegador no lo tiene o no entiende el formato, se prueba con <img>.
  */
-async function decodificar(archivo) {
+export async function decodificar(archivo) {
   if (typeof createImageBitmap === 'function') {
     try {
       const bmp = await createImageBitmap(archivo);
@@ -190,7 +190,7 @@ async function decodificar(archivo) {
  * El fondo se pinta de blanco: un PNG con transparencia codificado como JPEG
  * saldría con fondo negro.
  */
-function reducir(fuente, ladoMax, recorte) {
+export function reducir(fuente, ladoMax, recorte) {
   // «recorte» ({sx, sy, sw, sh}) es la parte del original que se usa. Se
   // aplica en el PRIMER dibujo y no en un lienzo aparte a tamaño completo:
   // recortar una foto de 6000 px en su propio lienzo costaría 140 MB de
@@ -232,7 +232,7 @@ function dibujar(origen, w, h, rect) {
  * ese PNG sería rechazado al subir con un error incomprensible. Por eso se
  * revisa el tipo de lo que de verdad salió.
  */
-async function codificar(lienzo, tipoForzado) {
+export async function codificar(lienzo, tipoForzado) {
   const aBlob = (tipo) => new Promise(r => lienzo.toBlob(r, tipo, CALIDAD));
 
   if (tipoForzado !== 'image/jpeg') {

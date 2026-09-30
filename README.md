@@ -30,6 +30,9 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/08-cupo.sql` | Agrega `cupo` a las actividades. Puramente aditivo |
 | `sql/09-programa.sql` | Abre el programa público: `vista_programa` y lectura sin cuenta |
 | `sql/10-poster.sql` | Póster de la actividad: columna, bucket `actividades` y sus políticas |
+| `sql/11-boletos.sql` | Boletos, aforo, puerta y panel |
+| `sql/12-datos-minimos.sql` | Datos mínimos del público. Después, `12b-lugares.local.sql` (fuera del repositorio) y otra vez el 12 |
+| `sql/13-ponentes.sql` | Ponentes: foto, semblanza y su papel en cada actividad; bucket `ponentes` |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.

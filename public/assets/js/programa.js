@@ -7,14 +7,15 @@
      /programa/            cartelera: los ocho días, filtrable
      /programa/<slug>/     la ficha de una actividad
 
-   Lee solo de «vista_programa», que es la única cosa del esquema que se abre a
-   quien no tiene cuenta. Esa vista no trae requerimientos ni responsable: si
-   algún día hacen falta aquí, el problema no es de esta página.
+   Lee de «vista_programa», que es lo que el esquema abre a quien no tiene
+   cuenta. Esa vista no trae requerimientos ni responsable: si algún día hacen
+   falta aquí, el problema no es de esta página. Los ponentes llegan de
+   «vista_programa_ponentes» (sql/13-ponentes.sql), en una consulta paralela.
    ========================================================================== */
 
 import { db, edicionActiva, explicar, escapar, hora } from '/assets/js/app.js';
 import { colorTexto, estiloEje } from '/assets/js/color.js';
-import { urlPoster, urlPosterMini } from '/assets/js/archivos.js';
+import { urlPoster, urlPosterMini, urlFotoPonente } from '/assets/js/archivos.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { boletoDeActividad } from '/assets/js/boletos/almacen.js';
 import { fechaHoraTexto } from '/assets/js/boletos/util.js';
@@ -146,23 +147,27 @@ let diaActivo = 'todo';  // 'todo' | '2026-10-18'
 let ejesOn = new Set();  // filtro de ejes; vacío = todos
 let sedeOn = '';
 let tipoOn = '';
+let PONENTES = new Map(); // id de actividad → sus ponentes, en orden
 
 async function pintarCartelera() {
   const ed = await edicionActiva();
 
-  const { data, error } = await db
-    .from('vista_programa')
-    .select('*')
-    .eq('edicion_id', ed.id)
-    .order('fecha', { ascending: true, nullsFirst: false })
-    .order('hora_inicio', { ascending: true, nullsFirst: false })
-    .order('titulo', { ascending: true });
+  const [{ data, error }, ponentes] = await Promise.all([
+    db.from('vista_programa')
+      .select('*')
+      .eq('edicion_id', ed.id)
+      .order('fecha', { ascending: true, nullsFirst: false })
+      .order('hora_inicio', { ascending: true, nullsFirst: false })
+      .order('titulo', { ascending: true }),
+    leerPonentes('edicion_id', ed.id),
+  ]);
 
   // Supabase no lanza excepción: devuelve { data:null, error }. Sin revisarlo,
   // la cartelera se quedaría en «Cargando…» para siempre.
   if (error) throw error;
 
   ACTS = data || [];
+  PONENTES = agruparPonentes(ponentes);
   DIAS = diasDeLaEdicion(ed);
 
   if (!ACTS.length) { pintarSinPrograma(ed); return; }
@@ -449,6 +454,7 @@ function tarjeta(a) {
         ${esNuevo(a) ? '<span class="pg-nuevo">Nuevo</span>' : ''}
       </p>
       <h3 class="pg-act__tit">${escapar(a.titulo)}</h3>
+      ${lineaPonentes(a)}
       ${a.resumen ? `<p class="pg-act__res">${escapar(a.resumen)}</p>` : ''}
       <p class="pg-act__meta">
         ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(a.sede)}</span>` : ''}
@@ -687,10 +693,12 @@ function pintarSinPrograma(ed) {
    FICHA DE UNA ACTIVIDAD
    ========================================================================== */
 async function pintarFicha(slug) {
-  const { data, error } = await db
-    .from('vista_programa')
-    .select('*')
-    .eq('slug', slug);
+  // Los ponentes se piden por slug y a la vez, no después con el id: así la
+  // ficha no espera una segunda vuelta a la base.
+  const [{ data, error }, ponentesDelSlug] = await Promise.all([
+    db.from('vista_programa').select('*').eq('slug', slug),
+    leerPonentes('slug', slug),
+  ]);
 
   if (error) throw error;
 
@@ -705,6 +713,9 @@ async function pintarFicha(slug) {
       a = data.find(x => x.edicion_id === ed.id) || data[0];
     } catch (e) { /* sin edición activa, se queda la primera */ }
   }
+
+  // El slug se repite entre ediciones: solo los de la actividad elegida.
+  const gente = ponentesDelSlug.filter(p => p.actividad_id === a.id);
 
   document.title = a.titulo + ' · Programa 2026 · Festival del Conocimiento';
   const meta = document.querySelector('meta[name="description"]');
@@ -733,6 +744,7 @@ async function pintarFicha(slug) {
         <a class="pg-volver" href="/programa/${location.hash === '#boleto' ? '' : location.hash}">${ICO.flecha} Todo el programa</a>
         <p class="pg-kicker">${escapar(a.eje || 'Festival del Conocimiento')}${a.tipo ? ` · ${escapar(a.tipo)}` : ''}</p>
         <h1>${escapar(a.titulo)}</h1>
+        ${gente.length ? `<p class="pg-hero__con">Con ${enumerar(gente.map(p => p.nombre), n => `<b>${escapar(n)}</b>`, 4)}</p>` : ''}
         ${lede ? `<p class="pg-hero__lede">${enLinea(escapar(lede))}</p>` : ''}
         <p class="pg-hero__datos">
           <span>${ICO.calend}<b>${cuandoDia ? escapar(cuandoDia) : 'Fecha por confirmar'}</b></span>
@@ -790,6 +802,8 @@ async function pintarFicha(slug) {
           <p>La descripción completa de esta actividad se publicará pronto.
              Los datos de día, hora y sede ya están en firme.</p>`)}
 
+        ${seccionPonentes(gente)}
+
         <div class="pg-comp">
           <p class="pg-comp__tit">Comparte esta actividad</p>
           <div class="pg-comp__botones">${botonesCompartir(a)}</div>
@@ -816,6 +830,107 @@ async function pintarFicha(slug) {
   }
 
   if (a.fecha) await pintarMismoDia(a);
+}
+
+/* ============================================================================
+   PONENTES
+   ----------------------------------------------------------------------------
+   Son un extra de la página: si su consulta falla —por ejemplo, porque todavía
+   no se ejecuta sql/13-ponentes.sql—, la cartelera y la ficha se pintan igual,
+   sin nombres. Por eso aquí no se lanza el error, se anota en la consola.
+   ========================================================================== */
+async function leerPonentes(campo, valor) {
+  try {
+    const { data, error } = await db
+      .from('vista_programa_ponentes')
+      .select('actividad_id, orden, papel, nombre, institucion, semblanza, foto, sitio')
+      .eq(campo, valor)
+      .order('orden', { ascending: true })
+      .order('nombre', { ascending: true });
+    if (error) { console.warn('Ponentes:', error.message); return []; }
+    return data || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function agruparPonentes(filas) {
+  const m = new Map();
+  for (const f of filas) {
+    if (!m.has(f.actividad_id)) m.set(f.actividad_id, []);
+    m.get(f.actividad_id).push(f);
+  }
+  return m;
+}
+
+/**
+ * «A», «A y B», «A, B y C»; pasado el tope, «A, B, C y 2 más».
+ * Con «e» y no «y» ante un nombre que suena a i: «Ana e Isabel».
+ */
+function enumerar(nombres, envolver = escapar, max = 3) {
+  const partes = nombres.map(envolver);
+  if (partes.length > max + 1) return `${partes.slice(0, max).join(', ')} y ${partes.length - max} más`;
+  if (partes.length < 2) return partes.join('');
+  const y = /^h?[ií](?![aeiouáéíóú])/i.test(nombres[nombres.length - 1]) ? 'e' : 'y';
+  return `${partes.slice(0, -1).join(', ')} ${y} ${partes[partes.length - 1]}`;
+}
+
+function lineaPonentes(a) {
+  const gente = PONENTES.get(a.id);
+  return gente && gente.length
+    ? `<p class="pg-act__con">Con ${enumerar(gente.map(p => p.nombre))}</p>` : '';
+}
+
+const GRADOS = /^(dr|dra|mtro|mtra|m|lic|ing|arq|prof|profa|mc|phd)$/;
+
+/** Dos iniciales sin contar el grado, para quien no tiene foto. */
+function iniciales(nombre) {
+  const palabras = String(nombre || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ')
+    .filter(p => p && !GRADOS.test(p));
+  return (palabras.slice(0, 2).map(p => p[0]).join('') || '?').toUpperCase();
+}
+
+/** El sitio como enlace, solo si es http(s). La base ya lo exige; se repite
+    aquí porque un «javascript:» en un href sería código ajeno en la página. */
+function sitioSeguro(url) {
+  if (!url || !/^https?:\/\//i.test(url)) return null;
+  try {
+    const u = new URL(url);
+    const texto = (u.hostname.replace(/^www\./, '') + (u.pathname === '/' ? '' : u.pathname)).replace(/\/$/, '');
+    return { href: u.href, texto };
+  } catch (e) {
+    return null;
+  }
+}
+
+/* La foto va recortada en círculo, con un círculo más chico del color del eje
+   asomándose detrás: el retrato con forma geométrica de DISEÑO.md. Sin foto,
+   las iniciales en el mismo círculo, para que la sección no quede coja. */
+function seccionPonentes(gente) {
+  if (!gente.length) return '';
+  return `
+        <section class="pg-pon" aria-labelledby="pg-pon-tit">
+          <h2 class="pg-pon__tit" id="pg-pon-tit">Quién participa</h2>
+          ${gente.map(p => {
+            const sub = [p.papel, p.institucion].filter(Boolean).map(escapar).join(' · ');
+            const sitio = sitioSeguro(p.sitio);
+            return `
+          <article class="pg-pon__item">
+            <div class="pg-pon__foto" aria-hidden="true">
+              <span>${escapar(iniciales(p.nombre))}</span>
+              ${p.foto ? `<img src="${escapar(urlFotoPonente(p.foto))}" alt="" loading="lazy" decoding="async"
+                   width="132" height="132" onerror="this.remove()">` : ''}
+            </div>
+            <div class="pg-pon__txt">
+              <h3>${escapar(p.nombre)}</h3>
+              ${sub ? `<p class="pg-pon__papel">${sub}</p>` : ''}
+              ${p.semblanza ? `<div class="pg-pon__semb">${formato(p.semblanza)}</div>` : ''}
+              ${sitio ? `<a class="pg-pon__sitio" href="${escapar(sitio.href)}" target="_blank" rel="noopener">${escapar(sitio.texto)} ↗</a>` : ''}
+            </div>
+          </article>`;
+          }).join('')}
+        </section>`;
 }
 
 /* ============================================================================

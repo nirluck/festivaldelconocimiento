@@ -411,6 +411,73 @@ input[type=number],input[type=datetime-local],input[type=time]{
 .bol-graf__num small{font-weight:400;color:var(--tx-3);margin-left:6px}
 .bol-graf li:hover .bol-graf__barra i{background:var(--dark)}
 
+/* ------------------------------------------------------------- ponentes --
+   El módulo de assets/js/modulos/ponentes.js. Los retratos son redondos
+   —el círculo es la forma del festival (DISEÑO.md)— y se recortan aquí con
+   «object-fit», no al subir: la foto se guarda en su proporción original.
+   El encuadre va un poco hacia arriba porque en un retrato la cara casi
+   nunca está al centro exacto.
+-------------------------------------------------------------------------- */
+/* «.btn» declara display, y cualquier display le gana al atributo hidden. */
+.pon-modulo [hidden]{display:none!important}
+
+.pon-lista{display:grid;gap:10px;margin-bottom:24px}
+.pon-vacio{padding:18px;border:1.5px dashed var(--line);border-radius:var(--r-s);
+  color:var(--tx-3);font-size:.92rem;text-align:center}
+.pon-fila{display:grid;grid-template-columns:56px 1fr;gap:6px 14px;align-items:center;
+  padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
+.pon-fila__txt{min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.pon-fila__txt b{font-weight:600}
+.pon-fila__txt small{font-size:.86rem;color:var(--tx-3)}
+.pon-falta{align-self:flex-start;margin-top:5px;font-size:.74rem;font-weight:600;
+  padding:2px 9px;border-radius:99px;background:var(--ambar-bg);color:#6B4700}
+.pon-fila__acc{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+@media(min-width:640px){
+  .pon-fila{grid-template-columns:56px 1fr auto}
+  .pon-fila__acc{grid-column:auto}
+}
+.pon-mover{appearance:none;font:inherit;font-size:.95rem;line-height:1;width:34px;height:34px;
+  border:1.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--tx-2);cursor:pointer}
+.pon-mover:hover:not(:disabled){border-color:var(--dark);color:var(--dark)}
+.pon-mover:disabled{opacity:.35;cursor:default}
+
+.pon-avatar{position:relative;display:grid;place-items:center;width:56px;height:56px;
+  border-radius:50%;overflow:hidden;background:var(--ice);flex:0 0 auto}
+.pon-avatar i{font-style:normal;font-family:var(--f-disp);font-weight:700;font-size:1.05rem;color:var(--turquesa-tx)}
+.pon-avatar img,.pon-foto__marco img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:50% 25%}
+.pon-avatar--chico{width:40px;height:40px}
+.pon-avatar--chico i{font-size:.85rem}
+
+.pon-buscar{display:grid;gap:8px}
+.pon-res{display:grid;gap:4px;border:1px solid var(--line);border-radius:var(--r-s);padding:6px;background:var(--surface)}
+.pon-res__item,.pon-res__nuevo{appearance:none;font:inherit;width:100%;text-align:left;cursor:pointer;
+  border:0;border-radius:8px;background:none;color:var(--tx)}
+.pon-res__item{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:8px 10px}
+.pon-res__item span{min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.pon-res__item small{font-size:.84rem;color:var(--tx-3)}
+.pon-res__item em{font-style:normal;font-size:.84rem;font-weight:600;color:var(--turquesa-tx)}
+.pon-res__item:hover,.pon-res__item:focus-visible,.pon-res__nuevo:hover{background:var(--ice)}
+.pon-res__nuevo{padding:10px 12px;font-weight:600;color:var(--turquesa-tx)}
+.pon-res__nota{padding:8px 12px;font-size:.88rem;color:var(--tx-3)}
+
+.pon-forma{margin-top:8px;padding-top:24px;border-top:1px solid var(--line)}
+.pon-forma__tit{font-family:var(--f-disp);font-weight:700;font-size:1.06rem;margin-bottom:14px}
+.pon-forma__nota{font-size:.88rem;color:var(--tx-3);margin-bottom:18px;max-width:70ch}
+.pon-forma__nota b{color:var(--tx-2)}
+.pon-forma__rejilla{display:grid;gap:22px 28px;align-items:start}
+@media(min-width:760px){.pon-forma__rejilla{grid-template-columns:190px 1fr}}
+.pon-foto{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.pon-foto .pista{font-size:.8rem;color:var(--tx-3);line-height:1.45}
+.pon-foto__marco{position:relative;display:grid;place-items:center;width:150px;height:150px;
+  border-radius:50%;overflow:hidden;cursor:pointer;background:var(--ice);border:1.5px solid var(--line)}
+.pon-foto__marco:hover{border-color:var(--turquesa)}
+.pon-foto__marco i{font-style:normal;font-family:var(--f-disp);font-weight:700;font-size:2.2rem;color:var(--turquesa-tx)}
+.pon-foto__acc{display:flex;flex-wrap:wrap;gap:6px}
+.pon-foto__estado{width:100%}
+.pon-cuenta{display:block;margin-top:2px;font-variant-numeric:tabular-nums}
+.opcional{font-weight:400;font-size:.8rem;color:var(--tx-3);margin-left:4px}
+
 /* ------------------------------------------------------------------ pie -- */
 .pie{
   border-top:1px solid var(--line);margin-top:60px;padding:26px 24px;

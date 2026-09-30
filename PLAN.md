@@ -72,6 +72,8 @@ ejes · tipos · sedes
 | `sql/09-programa.sql` | **Fase D.** Abre el programa a quien no tiene cuenta |
 | `sql/10-poster.sql` | **Adelanto de C.** Póster de la actividad y el bucket `actividades` de Storage |
 | `sql/11-boletos.sql` | **Fase F1.** Boletos, aforo, puerta y panel |
+| `sql/12-datos-minimos.sql` | **F3½.** El público deja solo los datos mínimos; retira `asistentes` |
+| `sql/13-ponentes.sql` | **Fase C, ponentes.** Foto, semblanza y participación; bucket `ponentes`. Escrito el 29 de septiembre de 2026 |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
 **03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
@@ -86,10 +88,11 @@ que se detiene y lo explica.
 
 - **Edición resuelta (fase B).** Coordinador y administración editan una
   actividad desde el módulo Resumen del panel.
-- **El póster ya se captura; los ponentes y la galería todavía no.** El póster
+- **El póster y los ponentes ya se capturan; la galería todavía no.** El póster
   se adelantó de la fase C (14 de septiembre) y sale en la cartelera, la ficha
-  y la landing. Faltan ponentes, galería y cupos de voluntariado (fase C y las
-  mitades de captura de E y G).
+  y la landing. Los ponentes llegaron el 29 de septiembre: nombres en la
+  cartelera, foto y semblanza en la ficha. Faltan galería y cupos de
+  voluntariado (resto de la fase C y las mitades de captura de E y G).
 - **Las vistas previas al compartir una actividad son genéricas.** Sin paso de
   compilación, `/programa/<slug>/` es la misma página para todas y las redes no
   ejecutan JavaScript. Explicado en la fase D.
@@ -210,10 +213,11 @@ seguimiento       actividad_id (PK) · contactado · fecha · medio
 ### Módulo · Ponentes
 
 ```
-ponentes          id · nombre · correo · semblanza · foto_url
-                  institucion · sitio · creado
-                  ↑ unique(correo) donde no sea nulo. La semblanza se escribe
-                    una vez y sirve para todas sus actividades y años
+ponentes          id · nombre · semblanza · foto · institucion · sitio
+                  creado_por · creado · actualizado
+                  ↑ La semblanza se escribe una vez y sirve para todas sus
+                    actividades y años. «foto» es la RUTA en Storage, como el
+                    póster. Sin correo: ver «Hecho: ponentes» en la fase C
 
 actividad_ponentes  id · actividad_id · ponente_id · papel · orden
                   ↑ «papel» en texto libre: Ponente, Tallerista, Moderadora…
@@ -566,10 +570,45 @@ construir los que faltan.
 
 ### Fase C · Ponentes y contenido — después de F (mitad de captura)
 
-**SQL** — `sql/11-ponentes.sql`: `ponentes`, `actividad_ponentes`,
-`actividad_imagenes`. (El 09 lo tomó el programa público, el 10 el póster y el
-11 los boletos, que se adelantaron; así que esta fase será `12-ponentes.sql` y
-las demás corren en consecuencia: 13-voluntariado, 14-encuesta, 15-correo.)
+**SQL** — `ponentes`, `actividad_ponentes`, `actividad_imagenes`. (El 09 lo
+tomó el programa público, el 10 el póster, el 11 los boletos y el 12 los datos
+mínimos, que se adelantaron; así que los ponentes quedaron en
+`13-ponentes.sql` y las demás corren en consecuencia: 14-voluntariado,
+15-encuesta, 16-correo.)
+
+#### Hecho: ponentes (29 de septiembre de 2026)
+
+Lo pidió el equipo para las charlas y los conciertos en que alguien
+importante presenta: foto y semblanza. `sql/13-ponentes.sql`, módulo
+**Ponentes** del panel (`modulos/ponentes.js`) y la ficha pública.
+
+- **Dos tablas y no columnas en `actividades`**, como dice la sección 4: una
+  charla con dos ponentes o un concierto con banda y director no cabrían, y la
+  semblanza se reescribiría cada año.
+- **Sin correo** (cambio respecto del modelo original). Era solo para evitar
+  duplicados, y habría sido el único dato privado de una tabla que por lo demás
+  va al programa; además la asesoría legal pidió minimizar datos (fase F3½).
+  Los duplicados se evitan buscando entre los ya registrados mientras se
+  escribe el nombre. Si hace falta, se agrega con `add column if not exists`.
+- **Quién edita a un ponente:** la administración, quien lo dio de alta y el
+  coordinador de cualquier actividad en la que participe
+  (`puede_editar_ponente()`). La tercera es a propósito: quien vuelve a invitar
+  a alguien debe poder actualizar su semblanza. El formulario advierte que el
+  cambio se ve en todas sus actividades. Borrar, solo la administración;
+  quitar a alguien de una actividad no lo borra.
+- **El equipo ve a todos los ponentes; sin cuenta, solo a los de lo publicado.**
+  `creado_por` no se lee sin cuenta ni se escribe con ella (permisos por
+  columna). `sitio` solo admite http(s): se pinta como enlace en la página.
+- **Bucket `ponentes`**, propio, porque las políticas del de `actividades`
+  deciden por la carpeta de la actividad. Foto en su proporción original, hasta
+  1000 px (`foto-ponente.js`, que reutiliza la preparación de
+  `subir-poster.js`); el recorte redondo lo hace el CSS.
+- **`vista_programa_ponentes`**, aparte de `vista_programa`, que no se tocó.
+  Trae `edicion_id` y `slug` para que la cartelera y la ficha la pidan en
+  paralelo con su consulta principal. Si falla, las dos páginas se pintan igual,
+  sin nombres.
+- **Pruebas:** `pruebas/ponentes/probar.sh` arma la base desechable de boletos,
+  aplica el 13 dos veces y corre `reglas.sql` (28 comprobaciones de acceso).
 
 #### Hecho por adelantado: el póster (14 de septiembre de 2026)
 
