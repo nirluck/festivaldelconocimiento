@@ -165,6 +165,7 @@ import { db, perfil, catalogos, edicionActiva, llenar,
          aviso, limpiarAviso, explicar, fechaDia } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
 import * as campoAcceso from '/assets/js/campos-acceso.js';
+import * as campoSede from '/assets/js/campo-sede.js';
 import { montarSelector, subirPoster } from '/assets/js/subir-poster.js';
 
 montarCabecera();
@@ -203,10 +204,10 @@ const selectorPoster = montarSelector($('#poster-selector'), {
 
     document.getElementById('caja-acceso').innerHTML =
       campoAcceso.html('g', {}, { titulo: '¿Cómo se entra a tu actividad?' });
-    campoAcceso.conectar(document, 'g');
+    campoAcceso.conectar(document, 'g', { tipo: $('#tipo') });
     llenar($('#eje'),  cat.ejes.map(e => e.nombre), 'Elige un eje');
     llenar($('#tipo'), cat.tipos, 'Elige un tipo');
-    llenar($('#sede'), cat.sedes, 'Elige una sede');
+    campoSede.llenarSedes($('#sede'), cat.sedes, { placeholder: 'Elige una sede' });
 
     // El campo de fecha se acota a los días del festival. El navegador no deja
     // elegir fuera del rango con el calendario, pero sí escribiendo: la
@@ -260,6 +261,7 @@ function validar() {
   // Modo de acceso y cupo: es una propuesta, la administración la confirma al
   // publicar. «boleto» sin cupo no se puede guardar (lo exige la base).
   if (campoAcceso.leer(document, 'g').error) ok = false;
+  if (campoSede.leer($('#sede')).error) ok = false;
 
   if (!ok) {
     const primero = forma.querySelector('[aria-invalid="true"]');
@@ -281,11 +283,14 @@ forma.addEventListener('submit', async (ev) => {
   // que la base la resuelve sola y el formulario no tiene que saber el año.
   // El slug tampoco: lo genera un disparador a partir del título.
   const acceso = campoAcceso.leer(document, 'g').cambios;
+  // Si es una sede nueva, se da de alta ya con sesión, justo antes de la
+  // actividad (paso 2): sin cuenta no hay permiso para crearla.
+  const lecturaSede = campoSede.leer($('#sede'));
   const actividad = {
     titulo:         $('#actividad').value.trim(),
     eje:            $('#eje').value,
     tipo:           $('#tipo').value,
-    sede:           $('#sede').value || '',
+    sede:           lecturaSede.sede || '',
     // Los campos de fecha y hora vacíos se mandan como null, no como cadena
     // vacía: las columnas son «date» y «time» y rechazarían ''.
     fecha:          $('#fecha').value || null,
@@ -319,7 +324,9 @@ forma.addEventListener('submit', async (ev) => {
       // sin sesión no hay permiso para escribir. Guardamos la actividad y la
       // damos de alta en cuanto entre, para no perderle el trabajo.
       if (!data.session) {
-        localStorage.setItem('fdc_actividad_pendiente', JSON.stringify(actividad));
+        // La sede nueva viaja aparte y se da de alta al entrar (mi-actividad).
+        localStorage.setItem('fdc_actividad_pendiente', JSON.stringify(
+          lecturaSede.nueva ? { ...actividad, _sede_nueva: lecturaSede.nueva } : actividad));
         // Un archivo no cabe en localStorage, así que el póster no puede esperar
         // a que confirme la cuenta junto con la actividad. Se dice claro.
         aviso(cajaAviso, 'info',
@@ -334,7 +341,12 @@ forma.addEventListener('submit', async (ev) => {
       usuarioId = data.session.user.id;
     }
 
-    /* -------- 2. Dar de alta la actividad -------- */
+    /* -------- 2. Dar de alta la sede nueva, si la hay, y la actividad -------- */
+    if (lecturaSede.nueva) {
+      btn.textContent = 'Guardando la sede…';
+      actividad.sede = await campoSede.guardar(lecturaSede);
+      btn.textContent = 'Registrando…';
+    }
     // «.select('id')» para recibir el id: el póster lo necesita para su carpeta.
     const { data: nueva, error: errAct } = await db
       .from('actividades')

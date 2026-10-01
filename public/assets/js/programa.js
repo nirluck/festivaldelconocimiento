@@ -108,6 +108,7 @@ const ICO = {
   etiq:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.5l-7 7a2 2 0 0 1-2.8 0l-7.2-7.2V3.5h9.8l7.2 7.2a2 2 0 0 1 0 2.8z"/><circle cx="8" cy="8" r="1.4"/></svg>',
   boleto: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5V6h17v2.5a2.5 2.5 0 0 0 0 5V16h-17v-2.5a2.5 2.5 0 0 0 0-5z"/><path d="M14 6v10" stroke-dasharray="1.6 2"/></svg>',
   palomita: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  escuela:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z"/><path d="M6.5 11.8V16c0 1.4 2.5 3 5.5 3s5.5-1.6 5.5-3v-4.2"/></svg>',
 };
 
 const ANILLOS = `
@@ -500,6 +501,11 @@ function accesoTarjeta(a) {
   if (!a.acceso || a.acceso === 'libre') {
     return `<p class="pg-acceso pg-acceso--libre"><span class="pg-libre">${ICO.palomita}Entrada libre</span> Sin boleto ni registro: llega y entra.</p>`;
   }
+  // Visitas a escuelas (sql/14-acceso-escolar.sql): salen en el programa,
+  // pero dicen de entrada que no son para el público general.
+  if (a.acceso === 'escolar') {
+    return `<p class="pg-acceso pg-acceso--libre"><span class="pg-escolar">${ICO.escuela}Solo para la escuela</span> Para el alumnado de las escuelas visitadas; no está abierta al público.</p>`;
+  }
 
   const mio = boletoDeActividad(a.slug);
   if (mio) {
@@ -542,12 +548,13 @@ function accesoTarjeta(a) {
 function entradaFicha(a) {
   if (a.acceso === 'boleto')   return 'Con boleto gratuito<small>Cupo limitado</small>';
   if (a.acceso === 'registro') return 'Libre<small>Con confirmación de asistencia</small>';
+  if (a.acceso === 'escolar')  return 'Solo para la escuela<small>Para el alumnado de las escuelas visitadas; no está abierta al público</small>';
   return 'Libre<small>Sin registro previo</small>';
 }
 
 /** El recuadro «Consigue tu boleto» de la ficha. */
 function bloqueBoleto(a) {
-  if (!a.acceso || a.acceso === 'libre') return '';
+  if (!a.acceso || a.acceso === 'libre' || a.acceso === 'escolar') return '';
   const mio = boletoDeActividad(a.slug);
   const e = a.estado_boletos;
   const registro = a.acceso === 'registro';
@@ -592,7 +599,7 @@ function bloqueBoleto(a) {
  * botón; la explicación de por qué sí la da el recuadro.
  */
 function ctaHero(a) {
-  if (!a.acceso || a.acceso === 'libre') return '';
+  if (!a.acceso || a.acceso === 'libre' || a.acceso === 'escolar') return '';
   const mio = boletoDeActividad(a.slug);
   if (mio) {
     return `<a class="pg-btn pg-btn--lleno pg-btn--grande" href="/boleto/#${escapar(mio.token)}">${ICO.boleto}Ver mi boleto</a>`;

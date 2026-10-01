@@ -1,17 +1,18 @@
 /* ============================================================================
    CAMPOS DE ACCESO · Festival del Conocimiento
    ----------------------------------------------------------------------------
-   El modo de acceso de una actividad (libre, registro, boleto), el cupo y, si
-   se piden, los lugares por boleto y la ventana de boletos. Los usan tres
-   pantallas que deben decir lo mismo: el registro, el módulo Resumen y el
-   diálogo «Programar».
+   El modo de acceso de una actividad (libre, registro, boleto, escolar), el
+   cupo y, si se piden, los lugares por boleto y la ventana de boletos. Los
+   usan tres pantallas que deben decir lo mismo: el registro, el módulo
+   Resumen y el diálogo «Programar».
 
      html(prefijo, valores, { lugares, ventana, capacidad })
-     conectar(raiz, prefijo)          muestra u oculta según el modo
+     conectar(raiz, prefijo, { tipo }) muestra u oculta según el modo y el tipo
      leer(raiz, prefijo)              → { cambios } o { error: { campo, texto } }
 
-   Regla de la base (sql/11-boletos.sql): «boleto» exige cupo mayor que cero.
-   Aquí se valida antes para decirlo en claro, no con el error de la
+   Reglas de la base: «boleto» exige cupo mayor que cero (sql/11-boletos.sql)
+   y «escolar» exige el tipo «Visita a escuela» (sql/14-acceso-escolar.sql).
+   Aquí se cuidan antes para decirlo en claro, no con el error de la
    restricción.
 
    El cupo YA TRAE el sobrecupo (decisión del 16 de septiembre de 2026): es el
@@ -22,7 +23,14 @@ const MODOS = [
   ['libre',    'Entrada libre',            'Sin registro. Llega quien llegue, hasta que se llene el espacio.'],
   ['registro', 'Confirmar asistencia',     'Entrada libre, pero se pide confirmar para saber cuánta gente esperar. Sin tope.'],
   ['boleto',   'Con boleto gratuito',      'Cupo limitado: solo entra quien consiguió boleto, hasta agotar los lugares.'],
+  ['escolar',  'Solo para la escuela',     'Para el alumnado de la escuela visitada. No está abierta al público: sin boleto ni registro.'],
 ];
+
+/* Nombres del catálogo con los que se reconoce lo escolar. Son texto, sin
+   llave foránea: si se renombran en el catálogo, cambiarlos aquí y en
+   sql/14-acceso-escolar.sql. */
+export const TIPO_ESCOLAR  = 'Visita a escuela';
+export const SEDE_ESCUELAS = 'Escuelas';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g,
   c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -84,10 +92,11 @@ export function html(p, v = {}, op = {}) {
     <fieldset class="acceso__modos">
       <legend class="acceso__tit">${esc(op.titulo || '¿Cómo se entra?')}</legend>
       ${MODOS.map(([valor, nombre, ayuda]) => `
-      <label class="acceso__modo">
+      <label class="acceso__modo"${valor === 'escolar' ? ` data-solo-escolar${acceso === 'escolar' ? '' : ' hidden'}` : ''}>
         <input type="radio" name="${esc(p)}-acceso" value="${valor}"${valor === acceso ? ' checked' : ''}>
         <span><b>${esc(nombre)}</b><small>${esc(ayuda)}</small></span>
       </label>`).join('')}
+      <p class="acceso__aviso" data-aviso-escolar role="status" hidden></p>
     </fieldset>
 
     <div class="acceso__cupo" data-solo-boleto>
@@ -133,16 +142,46 @@ export function html(p, v = {}, op = {}) {
   </div>`;
 }
 
-export function conectar(raiz, p) {
+/**
+ * @param {object} op
+ *   tipo  el <select> del tipo de actividad, para seguirlo mientras se edita,
+ *         o el tipo como texto cuando la pantalla no deja cambiarlo.
+ */
+export function conectar(raiz, p, op = {}) {
   const caja = raiz.querySelector(`[data-acceso="${p}"]`);
   if (!caja) return;
   const actualizar = () => {
     const modo = modoElegido(caja, p);
     caja.querySelectorAll('[data-solo-boleto]').forEach(e => { e.hidden = modo !== 'boleto'; });
-    caja.querySelectorAll('[data-sin-libre]').forEach(e => { e.hidden = modo === 'libre'; });
+    caja.querySelectorAll('[data-sin-libre]').forEach(e => { e.hidden = modo === 'libre' || modo === 'escolar'; });
   };
   caja.querySelectorAll(`input[name="${p}-acceso"]`).forEach(r => r.addEventListener('change', actualizar));
-  actualizar();
+
+  // «Solo para la escuela» existe únicamente en las visitas a escuela. Al
+  // elegir ese tipo queda marcada de inicio; si el tipo cambia a otro, se
+  // vuelve a entrada libre y se avisa, para no guardar algo que la base
+  // rechazaría sin que se viera por qué.
+  const radio = (valor) => caja.querySelector(`input[name="${p}-acceso"][value="${valor}"]`);
+  const aviso = caja.querySelector('[data-aviso-escolar]');
+  const tipo  = () => typeof op.tipo === 'string' ? op.tipo : (op.tipo?.value || '');
+  const seguirTipo = (alCambiar) => {
+    const esVisita = tipo() === TIPO_ESCOLAR;
+    caja.querySelector('[data-solo-escolar]').hidden = !esVisita;
+    aviso.hidden = true;
+    if (esVisita && alCambiar) radio('escolar').checked = true;
+    if (!esVisita && radio('escolar').checked) {
+      radio('libre').checked = true;
+      aviso.textContent = 'La entrada cambió a «Entrada libre»: «Solo para la escuela» es exclusiva de las visitas a escuela.';
+      aviso.hidden = false;
+    }
+    actualizar();
+  };
+  if (op.tipo !== undefined) {
+    if (typeof op.tipo !== 'string') op.tipo.addEventListener('change', () => seguirTipo(true));
+    seguirTipo(false);
+  } else {
+    actualizar();
+  }
 }
 
 function modoElegido(caja, p) {

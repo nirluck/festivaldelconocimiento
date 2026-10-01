@@ -228,6 +228,9 @@ function accion(a, url) {
   if (!a.acceso || a.acceso === 'libre') {
     return { html: boton(url, 'Ver actividad', ' fdc-fila__btn--linea'), nota: 'Entrada libre' };
   }
+  if (a.acceso === 'escolar') {
+    return { html: boton(url, 'Ver actividad', ' fdc-fila__btn--linea'), nota: 'Solo para la escuela' };
+  }
   if (a.acceso === 'registro') {
     return a.estado_boletos === 'cerrado'
       ? { html: apagado('Registro cerrado') }

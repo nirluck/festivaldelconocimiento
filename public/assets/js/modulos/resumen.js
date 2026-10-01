@@ -14,6 +14,7 @@
 import { db, catalogos, edicionActiva, llenar,
          aviso, limpiarAviso, explicar, escapar } from '/assets/js/app.js';
 import * as campoAcceso from '/assets/js/campos-acceso.js';
+import * as campoSede from '/assets/js/campo-sede.js';
 
 const $ = (sel, raiz) => (raiz || document).querySelector(sel);
 
@@ -133,12 +134,12 @@ export default {
     // Listas, con la opción actual ya seleccionada.
     llenar($('#r-eje', contenedor),  cat.ejes.map(e => e.nombre), 'Elige un eje');
     llenar($('#r-tipo', contenedor), cat.tipos, 'Elige un tipo');
-    llenar($('#r-sede', contenedor), cat.sedes, 'Elige una sede');
     if (actividad.eje)  $('#r-eje',  contenedor).value = actividad.eje;
     if (actividad.tipo) $('#r-tipo', contenedor).value = actividad.tipo;
-    if (actividad.sede) $('#r-sede', contenedor).value = actividad.sede;
+    campoSede.llenarSedes($('#r-sede', contenedor), cat.sedes,
+      { actual: actividad.sede, placeholder: 'Elige una sede' });
 
-    campoAcceso.conectar(contenedor, 'r');
+    campoAcceso.conectar(contenedor, 'r', { tipo: $('#r-tipo', contenedor) });
 
     const forma = $('#r-forma', contenedor);
     const caja  = $('#r-aviso', contenedor);
@@ -168,10 +169,21 @@ export default {
       } else marca('fecha', '');
       const acceso = campoAcceso.leer(contenedor, 'r');
       if (acceso.error) ok = false;
+      const lecturaSede = campoSede.leer($('#r-sede', contenedor));
+      if (lecturaSede.error) ok = false;
       if (!ok) return;
 
       const btn = $('#r-guardar', contenedor);
       btn.disabled = true; btn.textContent = 'Guardando…';
+
+      let sede;
+      try {
+        sede = await campoSede.guardar(lecturaSede);
+      } catch (e) {
+        aviso(caja, 'mal', explicar(e));
+        btn.disabled = false; btn.textContent = 'Guardar cambios';
+        return;
+      }
 
       // Se mandan solo los campos editables. No se toca slug, edicion_id ni
       // responsable_id: así se preservan y el disparador no regenera la
@@ -182,7 +194,7 @@ export default {
         descripcion:    $('#r-descripcion', contenedor).value.trim(),
         requerimientos: $('#r-requerimientos', contenedor).value.trim(),
         eje, tipo,
-        sede:           $('#r-sede', contenedor).value || '',
+        sede,
         fecha:          fecha || null,
         hora_inicio:    $('#r-hora_inicio', contenedor).value || null,
         hora_fin:       $('#r-hora_fin', contenedor).value || null,

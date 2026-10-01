@@ -108,6 +108,7 @@
 <script type="module">
 import { db, exigirSesion, explicar, catalogos, fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { guardar as guardarSede } from '/assets/js/campo-sede.js';
 import { urlPosterMini } from '/assets/js/archivos.js';
 import { estiloEje } from '/assets/js/color.js';
 
@@ -146,6 +147,12 @@ async function completarPendiente() {
     // Los guardados antes de 07-nucleo.sql traen «actividad» y «dia», columnas
     // que ya no existen: insertarlos fallaría. Se descartan sin ruido.
     if (act && !('actividad' in act) && !('dia' in act)) {
+      // Sede nueva escrita en el registro: se da de alta ahora que hay sesión.
+      // Si fallara, la actividad entra sin sede y se completa en el Resumen.
+      if (act._sede_nueva) {
+        try { act.sede = await guardarSede({ nueva: act._sede_nueva }); } catch (e) { act.sede = ''; }
+        delete act._sede_nueva;
+      }
       await db.from('actividades').insert({ ...act, responsable_id: yo.id });
     }
   } catch (e) { /* si falla, no bloqueamos la página */ }

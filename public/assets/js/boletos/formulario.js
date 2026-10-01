@@ -34,6 +34,14 @@ export async function montarFormulario(caja, act, op = {}) {
     return;
   }
 
+  if (act.acceso === 'escolar') {
+    caja.innerHTML = `<div class="bf-nota">
+      <h2>Actividad escolar</h2>
+      <p>Esta actividad es solo para el alumnado de las escuelas visitadas. No está
+         abierta al público y no lleva boleto.</p></div>`;
+    return;
+  }
+
   if (act.estado_boletos === 'pronto') {
     const f = fechaHoraTexto(act.boletos_desde);
     caja.innerHTML = `<div class="bf-nota">

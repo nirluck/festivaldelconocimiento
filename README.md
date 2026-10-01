@@ -33,6 +33,8 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/11-boletos.sql` | Boletos, aforo, puerta y panel |
 | `sql/12-datos-minimos.sql` | Datos mínimos del público. Después, `12b-lugares.local.sql` (fuera del repositorio) y otra vez el 12 |
 | `sql/13-ponentes.sql` | Ponentes: foto, semblanza y su papel en cada actividad; bucket `ponentes` |
+| `sql/14-acceso-escolar.sql` | Sede «Escuelas» y modo de acceso «escolar» (solo con tipo «Visita a escuela»). Si se vuelve a correr el 11, correr el 14 después |
+| `sql/15-sedes-abiertas.sql` | Quien registra una actividad puede dar de alta una sede nueva (`alta_sede`); sale «Otra sede» |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.

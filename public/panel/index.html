@@ -54,6 +54,8 @@ const pagina = $('#pagina');
 let filas = [], esperado = 0;
 let vista = 'activas';        // 'activas' | 'archivadas'
 let confirmandoId = null;     // fila con el borrado permanente en confirmación
+let tipoSel = '';             // filtros por tipo y por sede; sobreviven a la
+let sedeSel = '';             // recarga tras archivar
 
 (async function iniciar() {
   const yo = await exigirSesion('administrador');
@@ -116,6 +118,8 @@ function pintar() {
         <option value="ambar">Solo requieren atención</option>
         <option value="verde">Solo en tiempo</option>
       </select>`}
+      <select id="f-tipo" aria-label="Tipo de actividad">${opcionesDe('tipo', tipoSel, 'Todos los tipos', 'Sin tipo')}</select>
+      <select id="f-sede" aria-label="Sede">${opcionesDe('sede', sedeSel, 'Todas las sedes', 'Sin sede')}</select>
       <input type="text" id="f-buscar" placeholder="Buscar actividad o responsable">
       <button class="btn btn--chico btn--linea" id="csv" type="button">Descargar CSV</button>
     </div>
@@ -124,6 +128,8 @@ function pintar() {
 
   $('#f-vista').addEventListener('change', (e) => { vista = e.target.value; cargar(); });
   if ($('#f-color')) $('#f-color').addEventListener('change', tabla);
+  $('#f-tipo').addEventListener('change', (e) => { tipoSel = e.target.value; tabla(); });
+  $('#f-sede').addEventListener('change', (e) => { sedeSel = e.target.value; tabla(); });
   $('#f-buscar').addEventListener('input', tabla);
   $('#csv').addEventListener('click', exportar);
   $('#tabla').addEventListener('click', accionFila);
@@ -131,11 +137,30 @@ function pintar() {
   tabla();
 }
 
+/* Los tipos y las sedes salen de las actividades cargadas, no del catálogo:
+   así solo se ofrecen los que tienen algo que mostrar, con cuántas hay de
+   cada uno. El elegido se conserva aunque se haya quedado sin actividades. */
+const VACIO = '(vacío)';
+const valorDe = (f, campo) => f[campo] || VACIO;
+
+function opcionesDe(campo, elegido, todos, sinTexto) {
+  const cuenta = {};
+  filas.forEach(f => { const v = valorDe(f, campo); cuenta[v] = (cuenta[v] || 0) + 1; });
+  if (elegido && !(elegido in cuenta)) cuenta[elegido] = 0;
+  const valores = Object.keys(cuenta).sort((a, b) =>
+    (a === VACIO) - (b === VACIO) || a.localeCompare(b, 'es'));
+  return `<option value="">${todos}</option>` + valores.map(v =>
+    `<option value="${escapar(v)}"${v === elegido ? ' selected' : ''}>${escapar(v === VACIO ? sinTexto : v)} (${cuenta[v]})</option>`
+  ).join('');
+}
+
 function filtradas() {
   const c = $('#f-color') ? $('#f-color').value : '';
   const q = $('#f-buscar').value.trim().toLowerCase();
   return filas.filter(f =>
     (!c || f.color === c) &&
+    (!tipoSel || valorDe(f, 'tipo') === tipoSel) &&
+    (!sedeSel || valorDe(f, 'sede') === sedeSel) &&
     (!q || (f.titulo + ' ' + f.responsable + ' ' + f.correo).toLowerCase().includes(q))
   );
 }

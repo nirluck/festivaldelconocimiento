@@ -30,7 +30,7 @@ insert into public.tipos (nombre, orden) values
   ('Exposición',                   6),
   ('Mesa de diálogo',              7),
   ('Presentación de libro',        8),
-  ('Carrera 5K',                   9),
+  ('Carrera 4K',                   9),
   ('Caminata del conocimiento',   10),
   ('Visita a escuela',            11),
   ('Intervención artística',      12),
@@ -60,7 +60,7 @@ insert into public.sedes (nombre, orden) values
   ('Parque Ejido El Porvenir',                              14),
   ('Centro de Investigación Científica y de Educación Superior de Ensenada (CICESE)', 15),
   ('Casa de la Cultura “Miguel De Anda Jacobsen”',            16),
-  ('Otra sede',                                             98),
+  ('Escuelas',                                              97),   -- visitas itinerantes (14-acceso-escolar.sql)
   ('Por definir',                                           99)
 on conflict (nombre) do update set orden = excluded.orden;
 

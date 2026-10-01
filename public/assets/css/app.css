@@ -322,11 +322,22 @@ input[type=number],input[type=datetime-local],input[type=time]{
 .acceso__modo input{width:auto;margin-top:4px;accent-color:var(--turquesa-tx)}
 .acceso__modo b{display:block;font-size:.95rem}
 .acceso__modo small{display:block;color:var(--tx-3);font-size:.84rem;line-height:1.4}
+.acceso__aviso{margin:0;font-size:.86rem;line-height:1.45;color:#6B4700;background:var(--ambar-bg);padding:8px 12px;border-radius:8px}
 .acceso__cupo{display:grid;gap:16px}
 @media(min-width:640px){.acceso__cupo:has(select){grid-template-columns:1fr 1fr}}
 .acceso__ventana summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--turquesa-tx)}
 .acceso__ventana[open] summary{margin-bottom:10px}
 .acceso__ventana .pista{display:block;font-size:.82rem;color:var(--tx-3);margin-bottom:12px}
+
+/* ------------------------------------------------------------ sede nueva --
+   «＋ Nueva sede…» del selector de sede (assets/js/campo-sede.js).
+-------------------------------------------------------------------------- */
+.sede-nueva{border:1.5px dashed var(--line);border-radius:var(--r-s);padding:14px 16px;background:var(--surface)}
+.sede-nueva[hidden],.sede-nueva [hidden]{display:none!important}
+.sede-nueva__tit{margin:0;font-weight:700;font-size:.92rem}
+.sede-nueva__parecidas{font-size:.82rem;color:var(--tx-3);line-height:1.8}
+.sede-nueva__sug{font:inherit;font-size:.82rem;cursor:pointer;color:var(--turquesa-tx);
+  background:var(--ice);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
 
 /* ------------------------------------------------------ módulo Boletos --
    assets/js/modulos/boletos.js y /panel/boletos/.

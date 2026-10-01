@@ -327,7 +327,8 @@ a{color:var(--turquesa-tx)}
 /* Entrada libre: una línea tranquila, para que se distinga de las de boleto. */
 .pg-acceso--libre{font-size:.86rem;color:var(--tx-3);gap:4px 10px}
 .pg-libre{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--verde-tx)}
-.pg-libre svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pg-escolar{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--tx-2)}
+.pg-libre svg,.pg-escolar svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:599px){ .pg-pedir{width:100%;justify-content:center} }
 
 .pg-act__hora{

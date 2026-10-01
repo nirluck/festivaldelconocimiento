@@ -87,6 +87,9 @@ export async function catalogos() {
   return _cat;
 }
 
+/** Tras dar de alta una sede: la próxima lectura trae la lista al día. */
+export function olvidarCatalogos() { _cat = null; }
+
 /* --------------------------------------------------------------- edición -- */
 
 let _edicion = null;

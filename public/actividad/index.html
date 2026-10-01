@@ -113,6 +113,7 @@ function pintar() {
     a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : '',
     a.acceso === 'boleto' ? `<span>· con boleto, ${a.cupo} boletos</span>`
       : a.acceso === 'registro' ? '<span>· confirmar asistencia</span>'
+      : a.acceso === 'escolar' ? '<span>· solo para la escuela</span>'
       : '<span>· entrada libre</span>',
   ].filter(Boolean).join(' ');
 
