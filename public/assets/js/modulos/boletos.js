@@ -74,13 +74,16 @@ class Modulo {
 
   async cargar() {
     const a = this.act;
-    const [res, lista, puertas, cat, sede] = await Promise.all([
+    const [res, lista, puertas, cat, sede, sala] = await Promise.all([
       db.rpc('resumen_boletos', { p_actividad: a.id }),
       db.rpc('boletos_de_actividad', { p_actividad: a.id }),
       db.from('puertas').select('*').eq('actividad_id', a.id).order('creado', { ascending: true }),
       catalogos().catch(() => ({ ejes: [] })),
-      a.sede ? db.from('sedes').select('capacidad').eq('nombre', a.sede).maybeSingle()
+      a.sede ? db.from('sedes').select('capacidad, nombre_corto').eq('nombre', a.sede).maybeSingle()
              : Promise.resolve({ data: null }),
+      // Sala (sql/16-sedes-salas.sql): su capacidad manda sobre la de la sede.
+      a.sala_id ? db.from('salas').select('nombre, capacidad').eq('id', a.sala_id).maybeSingle()
+                : Promise.resolve({ data: null }),
     ]);
     const fallo = [res, lista, puertas].find(r => r.error);
     if (fallo) {
@@ -90,7 +93,10 @@ class Modulo {
     this.resumen = res.data || {};
     this.boletos = lista.data || [];
     this.puertas = puertas.data || [];
-    this.capacidad = sede.data?.capacidad || null;
+    this.capacidad = sala.data?.capacidad || sede.data?.capacidad || null;
+    // Para el cartel: «CEART · Aula Magna», como en el programa.
+    this.act.sala = sala.data?.nombre || null;
+    this.act.sede_corta = sede.data?.nombre_corto || null;
     this.act.eje_color = (cat.ejes || []).find(e => e.nombre === a.eje)?.color || null;
     this.pintar();
   }
@@ -173,7 +179,7 @@ class Modulo {
         <i style="width:${pct}%"></i>
       </div>
       <p class="bol-nota">${pct} % emitido.
-        ${this.capacidad ? `La sede registra una capacidad de <b>${this.capacidad}</b>; el cupo es de <b>${cupo}</b> boletos, con el sobrecupo incluido.`
+        ${this.capacidad ? `La ${this.act.sala ? 'sala' : 'sede'} registra una capacidad de <b>${this.capacidad}</b>; el cupo es de <b>${cupo}</b> boletos, con el sobrecupo incluido.`
           : 'La sede no tiene capacidad registrada: en la entrada se usará el cupo como tope.'}</p>`}
 
       <div class="bol-liga">

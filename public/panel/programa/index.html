@@ -289,8 +289,10 @@ const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
 
 const CAPACIDADES = {};   // sede → capacidad registrada
+const SALAS = {};         // id → { nombre, capacidad }, también las desactivadas
 let EDICION = null;
 let SEDES   = [];
+let CAT_SALAS = [];       // las activas, para elegir en el diálogo
 let ACTS    = [];      // actividades no archivadas de la edición activa
 let DIAS    = [];      // los días del festival, en ISO
 
@@ -320,6 +322,10 @@ async function cargar() {
     // está vacía, simplemente no se muestra.
     const { data: caps } = await db.from('sedes').select('nombre, capacidad');
     (caps || []).forEach(r => { if (r.capacidad) CAPACIDADES[r.nombre] = r.capacidad; });
+    // Salas (sql/16-sedes-salas.sql). Si la tabla aún no existe, sin salas.
+    CAT_SALAS = cat.salas;
+    const { data: sl } = await db.from('salas').select('id, nombre, capacidad');
+    (sl || []).forEach(r => { SALAS[r.id] = r; });
     DIAS    = diasDe(ed);
     cat.ejes.forEach(e => EJES_COLOR[e.nombre] = e.color);
   } catch (e) {
@@ -355,6 +361,11 @@ async function cargar() {
       a.acceso      = mapa[a.id]?.acceso || 'libre';
       a.lugares_max = mapa[a.id]?.lugares_max || 4;
     });
+    // La sala, aparte: si la base aún no tiene «sala_id», lo de arriba no se pierde.
+    const { data: ss } = await db.from('actividades')
+      .select('id, sala_id').in('id', ACTS.map(a => a.id));
+    const salaDe = Object.fromEntries((ss || []).map(r => [r.id, r.sala_id]));
+    ACTS.forEach(a => { a.sala_id = salaDe[a.id] || null; });
   }
 
   elegirVistaInicial();
@@ -445,8 +456,11 @@ function choquesDe(a, contra) {
   // «Escuelas» agrupa planteles distintos: dos visitas a la misma hora no
   // comparten salón.
   if (!t || !a.sede || !a.fecha || a.sede === campoAcceso.SEDE_ESCUELAS) return [];
+  // Con salas distintas no hay empalme. Si a alguna le falta la sala, sí se
+  // avisa: no se sabe si comparten espacio.
   return contra.filter(b =>
     b.id !== a.id && b.publica && b.sede === a.sede && b.fecha === a.fecha &&
+    (!a.sala_id || !b.sala_id || a.sala_id === b.sala_id) &&
     (() => { const u = tramo(b); return u && t[0] < u[1] && u[0] < t[1]; })()
   );
 }
@@ -732,7 +746,7 @@ function fila(a, pub) {
       <div class="fila__texto">
         <h3 class="fila__tit">${escapar(a.titulo)}</h3>
         <p class="fila__meta">
-          <span><b>${escapar(a.sede || 'Sin sede')}</b></span>
+          <span><b>${escapar(a.sede || 'Sin sede')}${SALAS[a.sala_id] ? ' · ' + escapar(SALAS[a.sala_id].nombre) : ''}</b></span>
           <span>${escapar(a.eje || '')}${a.tipo ? ' · ' + escapar(a.tipo) : ''}</span>
         </p>
         <div class="etqs">
@@ -961,6 +975,7 @@ function abrirDialogo(a, diaSugerido) {
   campoSede.llenarSedes(selS, SEDES.filter(s => s !== 'Por definir'), {
     actual: (a.sede && a.sede !== 'Por definir') ? a.sede : '',
     placeholder: 'Elige la sede',
+    salas: CAT_SALAS, salaActual: a.sala_id,
   });
 
   $('#dlg-inicio').value = hora(a.hora_inicio) || '';
@@ -976,12 +991,14 @@ function abrirDialogo(a, diaSugerido) {
   // El modo de acceso y el cupo: el coordinador los propuso; aquí se confirman.
   $('#dlg-acceso').innerHTML = campoAcceso.html('dlg', a, {
     titulo: '¿Cómo se entra?', lugares: true,
-    capacidad: CAPACIDADES[selS.value] || null,
+    capacidad: SALAS[a.sala_id]?.capacidad || CAPACIDADES[selS.value] || null,
   });
   // El tipo no se cambia en este diálogo: se pasa fijo.
   campoAcceso.conectar($('#dlg'), 'dlg', { tipo: a.tipo || '' });
 
   ['fecha', 'inicio', 'sede'].forEach(c => marca(c, ''));
+  // El selector de sala lo crea campoSede: se engancha aquí, ya que existe.
+  $('#dlg-sede-sala').onchange = revisarChoque;
   revisarChoque();
   $('#dlg').showModal();
 }
@@ -997,16 +1014,21 @@ function revisarChoque() {
   const caja = $('#dlg-aviso');
   const tentativa = {
     id: editando.id, sede: $('#dlg-sede').value,
+    sala_id: campoSede.salaElegida($('#dlg-sede')),
     fecha: $('#dlg-fecha').value,
     hora_inicio: $('#dlg-inicio').value, hora_fin: $('#dlg-fin').value,
   };
   const ch = choquesDe(tentativa, publicadas());
 
   if (!ch.length) { caja.hidden = true; return; }
-  caja.className = 'aviso aviso--mal dlg__aviso';
-  caja.innerHTML = `<strong>${escapar(tentativa.sede)}</strong> ya tiene a esa hora
+  // Ámbar y no rojo: es un aviso, no un error. Publicar sigue permitido, y el
+  // rojo hacía creer que el empalme bloqueaba (30 de septiembre de 2026).
+  caja.className = 'aviso aviso--ambar dlg__aviso';
+  const sala = SALAS[tentativa.sala_id]?.nombre;
+  caja.innerHTML = `<strong>${escapar(tentativa.sede)}${sala ? ' · ' + escapar(sala) : ''}</strong> ya tiene a esa hora
     ${ch.map(c => `«${escapar(c.titulo)}» (${escapar(hora(c.hora_inicio))}${c.hora_fin ? '–' + escapar(hora(c.hora_fin)) : ''})`).join(' y ')}.
-    Puedes publicar igual si son salas distintas.`;
+    Puedes publicar igual si son espacios distintos${campoSede.salaElegida($('#dlg-sede')) === null && CAT_SALAS.some(s => s.sede === tentativa.sede)
+      ? ': elige la sala y el aviso desaparece' : ''}.`;
   caja.hidden = false;
 }
 
@@ -1059,6 +1081,7 @@ async function enviarDialogo(ev) {
 
   const { error } = await db.from('actividades').update({
     fecha, hora_inicio: inicio, hora_fin: fin || null, sede: sedeFinal, publica: true,
+    ...('sala_id' in lecturaSede ? { sala_id: lecturaSede.sala_id } : {}),
     ...acceso.cambios,
   }).eq('id', editando.id);
 

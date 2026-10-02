@@ -19,6 +19,7 @@ import { urlPoster, urlPosterMini, urlFotoPonente } from '/assets/js/archivos.js
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { boletoDeActividad } from '/assets/js/boletos/almacen.js';
 import { fechaHoraTexto } from '/assets/js/boletos/util.js';
+import { lugarCorto, urlMapa } from '/assets/js/lugar.js';
 
 const pagina = document.getElementById('pagina');
 
@@ -462,7 +463,7 @@ function tarjeta(a) {
       ${lineaPonentes(a)}
       ${a.resumen ? `<p class="pg-act__res">${escapar(a.resumen)}</p>` : ''}
       <p class="pg-act__meta">
-        ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(a.sede)}</span>` : ''}
+        ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(lugarCorto(a))}</span>` : ''}
       </p>
       ${accesoTarjeta(a)}
     </div>
@@ -799,7 +800,7 @@ async function pintarFicha(slug) {
         <p class="pg-hero__datos">
           <span>${ICO.calend}<b>${cuandoDia ? escapar(cuandoDia) : 'Fecha por confirmar'}</b></span>
           <span>${ICO.reloj}${escapar(rangoHoras(a))}</span>
-          ${a.sede ? `<span>${ICO.pin}${escapar(a.sede)}</span>` : ''}
+          ${a.sede ? `<span>${ICO.pin}${escapar(lugarCorto(a))}</span>` : ''}
         </p>
         <div class="pg-hero__cta" id="hero-boleto">${ctaHero(a)}</div>
       </div>
@@ -831,7 +832,10 @@ async function pintarFicha(slug) {
             ${a.sede ? `
             <div class="pg-ficha__fila">${ICO.pin}
               <div><dt>Sede</dt><dd>${escapar(a.sede)}
+                ${a.sala ? `<span class="pg-ficha__sala">${escapar(a.sala)}</span>` : ''}
                 ${a.sede_direccion ? `<small>${escapar(a.sede_direccion)}</small>` : ''}
+                ${a.sede_referencias ? `<small>${escapar(a.sede_referencias)}</small>` : ''}
+                ${urlMapa(a) ? `<a class="pg-ficha__mapa" href="${escapar(urlMapa(a))}" target="_blank" rel="noopener">Cómo llegar <span aria-hidden="true">↗</span></a>` : ''}
               </dd></div>
             </div>` : ''}
             ${a.tipo ? `

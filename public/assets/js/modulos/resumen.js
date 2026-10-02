@@ -136,8 +136,10 @@ export default {
     llenar($('#r-tipo', contenedor), cat.tipos, 'Elige un tipo');
     if (actividad.eje)  $('#r-eje',  contenedor).value = actividad.eje;
     if (actividad.tipo) $('#r-tipo', contenedor).value = actividad.tipo;
-    campoSede.llenarSedes($('#r-sede', contenedor), cat.sedes,
-      { actual: actividad.sede, placeholder: 'Elige una sede' });
+    campoSede.llenarSedes($('#r-sede', contenedor), cat.sedes, {
+      actual: actividad.sede, placeholder: 'Elige una sede',
+      salas: cat.salas, salaActual: actividad.sala_id,
+    });
 
     campoAcceso.conectar(contenedor, 'r', { tipo: $('#r-tipo', contenedor) });
 
@@ -200,6 +202,8 @@ export default {
         hora_fin:       $('#r-hora_fin', contenedor).value || null,
         ...acceso.cambios,
       };
+      // Solo si la sede tiene salas; si no, la base suelta la vieja sola.
+      if ('sala_id' in lecturaSede) cambios.sala_id = lecturaSede.sala_id;
       if (esAdmin) cambios.publica = $('#r-publica', contenedor).checked;
 
       const { error } = await db.from('actividades').update(cambios).eq('id', actividad.id);

@@ -24,6 +24,7 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { urlPosterMini } from './archivos.js';
+import { lugarCorto } from './lugar.js';
 
 const HERO   = document.getElementById('fdc-hero-prog');
 const PROX   = document.getElementById('fdc-proximas');
@@ -50,7 +51,10 @@ arrancar();
 
 async function arrancar() {
   const campos = 'slug,titulo,resumen,poster,eje,eje_color,tipo,sede,sede_direccion,fecha,hora_inicio,hora_fin,acceso,estado_boletos';
-  const acts = await pedir(`${campos}&order=fecha.asc,hora_inicio.asc,titulo.asc&limit=400`);
+  const orden = '&order=fecha.asc,hora_inicio.asc,titulo.asc&limit=400';
+  // «sala» y «sede_corta» llegan con sql/16-sedes-salas.sql. Si la base aún
+  // no las tiene, la portada sale igual que antes en vez de quedarse vacía.
+  const acts = await pedir(`${campos},sala,sede_corta${orden}`) || await pedir(campos + orden);
   if (!acts || !acts.length) return;
 
   if (HERO)  pintarDestacadas(acts);
@@ -200,7 +204,7 @@ function fila(a) {
       <div class="fdc-fila__txt">
         <p class="fdc-fila__eje"><i></i>${esc(a.eje || 'Festival')}${a.tipo ? ` · ${esc(a.tipo)}` : ''}</p>
         <h3 class="fdc-fila__tit"><a href="${url}">${esc(a.titulo)}</a></h3>
-        ${a.sede ? `<p class="fdc-fila__sede">${esc(a.sede)}</p>` : ''}
+        ${a.sede ? `<p class="fdc-fila__sede">${esc(lugarCorto(a))}</p>` : ''}
         ${acc.nota ? `<p class="fdc-fila__estado">${esc(acc.nota)}</p>` : ''}
       </div>
       <div class="fdc-fila__accion">${acc.html}</div>

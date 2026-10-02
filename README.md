@@ -35,6 +35,7 @@ En Supabase ▸ **SQL Editor** ▸ *New query*, pega y ejecuta **en este orden**
 | `sql/13-ponentes.sql` | Ponentes: foto, semblanza y su papel en cada actividad; bucket `ponentes` |
 | `sql/14-acceso-escolar.sql` | Sede «Escuelas» y modo de acceso «escolar» (solo con tipo «Visita a escuela»). Si se vuelve a correr el 11, correr el 14 después |
 | `sql/15-sedes-abiertas.sql` | Quien registra una actividad puede dar de alta una sede nueva (`alta_sede`); sale «Otra sede» |
+| `sql/16-sedes-salas.sql` | Sedes administrables: salas, datos públicos (nombre corto, indicaciones, mapa) e internos (capacidades, contacto). Renombrar arrastra actividades; `fusionar_sedes`. Si se vuelve a correr 11, 14 o 15, correr el 16 después |
 
 > El `00-verificar.sql` no crea nada: comprueba que todo quedó bien.
 > El `05` lleva contraseña y por eso está fuera del repositorio.
@@ -127,6 +128,7 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | `/programa/<slug>/` | La ficha de una actividad | Cualquiera |
 | `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
 | `/panel/programa/` | Armar el programa: bandeja, los ocho días y empalmes | Administrador |
+| `/panel/sedes/` | Sedes y sus salas: dirección, mapa, capacidades, contacto; fusionar y borrar | Administrador |
 
 ---
 

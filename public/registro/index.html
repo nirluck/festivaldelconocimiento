@@ -207,7 +207,7 @@ const selectorPoster = montarSelector($('#poster-selector'), {
     campoAcceso.conectar(document, 'g', { tipo: $('#tipo') });
     llenar($('#eje'),  cat.ejes.map(e => e.nombre), 'Elige un eje');
     llenar($('#tipo'), cat.tipos, 'Elige un tipo');
-    campoSede.llenarSedes($('#sede'), cat.sedes, { placeholder: 'Elige una sede' });
+    campoSede.llenarSedes($('#sede'), cat.sedes, { placeholder: 'Elige una sede', salas: cat.salas });
 
     // El campo de fecha se acota a los días del festival. El navegador no deja
     // elegir fuera del rango con el calendario, pero sí escribiendo: la
@@ -291,6 +291,8 @@ forma.addEventListener('submit', async (ev) => {
     eje:            $('#eje').value,
     tipo:           $('#tipo').value,
     sede:           lecturaSede.sede || '',
+    // La sala solo si la sede tiene salas (sql/16-sedes-salas.sql).
+    ...('sala_id' in lecturaSede ? { sala_id: lecturaSede.sala_id } : {}),
     // Los campos de fecha y hora vacíos se mandan como null, no como cadena
     // vacía: las columnas son «date» y «time» y rechazarían ''.
     fecha:          $('#fecha').value || null,

@@ -503,6 +503,8 @@ a{color:var(--turquesa-tx)}
 .pg-ficha dt{font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--tx-3); font-weight:600; margin-bottom:3px}
 .pg-ficha dd{font-size:1rem;color:var(--tx);font-weight:500;text-wrap:pretty}
 .pg-ficha dd small{display:block;font-size:.86rem;color:var(--tx-3);font-weight:400;margin-top:3px}
+.pg-ficha__sala{display:block;font-weight:600;margin-top:2px}
+.pg-ficha__mapa{display:inline-block;margin-top:8px;font-size:.88rem;font-weight:600;color:var(--eje-tx)}
 .pg-ficha__fila{display:flex;gap:12px;align-items:flex-start}
 .pg-ficha__fila svg{width:17px;height:17px;margin-top:3px;flex:0 0 auto;stroke:var(--eje-tx);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 

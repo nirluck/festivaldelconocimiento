@@ -45,6 +45,7 @@ function resumir(b) {
       titulo: a.titulo, slug: a.slug, fecha: a.fecha,
       hora_inicio: a.hora_inicio, hora_fin: a.hora_fin,
       sede: a.sede, sede_direccion: a.sede_direccion,
+      sala: a.sala || null, sede_mapa: a.sede_mapa || null,
       eje: a.eje, eje_color: a.eje_color,
     },
     guardado: new Date().toISOString(),

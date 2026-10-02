@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sedes · Administración · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+<style>
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .filtros select,.filtros input{width:auto;min-width:190px}
+  .filtros .btn{margin-left:auto}
+  tr[data-sede]{cursor:pointer}
+  tr[data-sede]:hover td{background:var(--ice)}
+  .sub{display:block;font-size:.8rem;color:var(--tx-3);margin-top:3px}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .sueltas{margin-bottom:18px}
+  .sueltas ul{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+  .sueltas li{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+  .volver{display:inline-block;margin-bottom:14px;font-weight:600;font-size:.9rem}
+  .ed .tarjeta h2{font-family:var(--f-disp);font-size:1.05rem;margin-bottom:4px}
+  .ed .leyenda{margin-bottom:16px}
+  .ed .interno{border-left:4px solid var(--line)}
+  .etq-int{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-3);font-weight:700}
+  .prueba{font-size:.84rem;font-weight:600}
+  .salas{display:grid;gap:10px}
+  .sala{display:grid;gap:8px;grid-template-columns:1fr;border:1px solid var(--line);border-radius:var(--r-s);
+        padding:12px;background:var(--surface)}
+  @media(min-width:760px){.sala{grid-template-columns:minmax(0,2fr) 110px minmax(0,3fr) auto;align-items:end}}
+  .sala .campo label{font-size:.8rem}
+  .sala__acc{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.84rem}
+  .sala__uso{font-size:.78rem;color:var(--tx-3)}
+  .acciones{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  .peligro{display:grid;gap:14px}
+  .peligro__fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .peligro__fila select{width:auto;min-width:220px;flex:1 1 220px}
+  .ed [hidden]{display:none!important}
+  .ed .check{display:flex;gap:8px;align-items:center;font-weight:500}
+  .ed .check input{width:18px;height:18px;margin:0;accent-color:var(--turquesa-tx)}
+</style>
+</head>
+<body>
+
+<!-- ============================================================================
+     SEDES · solo administración
+     El catálogo de sedes y sus salas (sql/16-sedes-salas.sql).
+
+       · Lista       cada sede con sus salas, sus actividades y lo que le falta.
+                     Arriba, las «sedes sueltas»: nombres que usan actividades
+                     y no están en el catálogo.
+       · Ficha       #sede=<nombre> o #nueva. Lo público, las salas y lo
+                     interno, por separado; fusionar y borrar al final.
+
+     Renombrar arrastra las actividades (lo hace la base). Fusionar pasa todo
+     a otra sede y borra la sobrante. Borrar solo se puede sin actividades.
+============================================================================= -->
+
+<div data-cabecera></div>
+
+<main class="hoja hoja--media" id="pagina">
+  <div class="cargando">Cargando las sedes…</div>
+</main>
+
+<footer class="pie">Festival del Conocimiento · Administración</footer>
+
+<script type="module">
+import { db, exigirSesion, explicar, escapar, fecha, olvidarCatalogos } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
+import { urlMapa } from '/assets/js/lugar.js';
+
+const $ = (s, r) => (r || document).querySelector(s);
+const pagina = $('#pagina');
+
+let SEDES = [], SALAS = [], INTERNAS = {}, ACTS = [], QUIENES = {};
+const filtro = { texto: '', ver: '' };
+let mensaje = null;          // { tipo, texto } para mostrar tras recargar
+
+const normal = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/\s+/g, ' ').trim();
+const limpio = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+const vacioANulo = (s) => limpio(s) || null;
+
+/* ------------------------------------------------------------ arranque --- */
+(async function iniciar() {
+  const yo = await exigirSesion('administrador');
+  if (!yo) return;
+  montarCabecera(yo);
+  await cargar();
+  addEventListener('hashchange', mostrar);
+})();
+
+async function cargar() {
+  const [s, sa, i, a] = await Promise.all([
+    db.from('sedes').select('*').order('orden').order('nombre'),
+    db.from('salas').select('*').order('orden').order('nombre'),
+    db.from('sedes_internas').select('*'),
+    db.from('actividades').select('sede, sala_id'),
+  ]);
+  const fallo = [s, sa, i, a].find(r => r.error);
+  if (fallo) {
+    pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(fallo.error))}</div>`;
+    return false;
+  }
+  SEDES = s.data || [];
+  SALAS = sa.data || [];
+  INTERNAS = Object.fromEntries((i.data || []).map(r => [r.sede, r]));
+  ACTS = a.data || [];
+
+  // Quién dio de alta las sedes que vinieron del formulario.
+  const ids = [...new Set(SEDES.map(x => x.creada_por).filter(Boolean))];
+  if (ids.length) {
+    const { data: ps } = await db.from('perfiles').select('id, nombre, correo').in('id', ids);
+    QUIENES = Object.fromEntries((ps || []).map(p => [p.id, p.nombre || p.correo]));
+  }
+  mostrar();
+  return true;
+}
+
+function mostrar() {
+  const h = decodeURIComponent(location.hash.replace(/^#/, ''));
+  if (h === 'nueva') return ficha(null);
+  if (h.startsWith('sede=')) {
+    const s = SEDES.find(x => x.nombre === h.slice(5));
+    if (s) return ficha(s);
+  }
+  lista();
+}
+
+const actividadesDe = (nombre) => ACTS.filter(a => a.sede === nombre).length;
+const salasDe = (nombre) => SALAS.filter(s => s.sede === nombre);
+const usoDeSala = (id) => ACTS.filter(a => a.sala_id === id).length;
+
+function avisoMensaje() {
+  if (!mensaje) return '';
+  const m = mensaje; mensaje = null;
+  return `<div class="aviso aviso--${m.tipo}">${escapar(m.texto)}</div>`;
+}
+
+/* =============================================================== lista ==== */
+function lista() {
+  // Nombres que usan las actividades y no están en el catálogo.
+  const conocidas = new Set(SEDES.map(s => s.nombre));
+  const sueltas = {};
+  ACTS.forEach(a => { if (a.sede && !conocidas.has(a.sede)) sueltas[a.sede] = (sueltas[a.sede] || 0) + 1; });
+  const nSueltas = Object.keys(sueltas).length;
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker">Administración</p>
+      <h1>Sedes</h1>
+      <p class="entrada">Dónde ocurre el festival. El nombre, la dirección, las indicaciones,
+        el mapa y el nombre de cada sala se publican. Las capacidades, el contacto y las notas
+        son solo para la administración.</p>
+    </div>
+    ${avisoMensaje()}
+    ${nSueltas ? `
+    <div class="aviso aviso--ambar sueltas">
+      <strong>Sedes sueltas.</strong> Hay actividades con una sede que no está en el catálogo:
+      no salen en los formularios ni tienen dirección.
+      <ul>${Object.entries(sueltas).map(([n, c]) => `
+        <li><span>«${escapar(n)}» · ${c} ${c === 1 ? 'actividad' : 'actividades'}</span>
+          <button class="btn btn--chico btn--linea" type="button" data-alta="${escapar(n)}">Darla de alta</button></li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    <div class="filtros">
+      <input type="search" id="f-texto" placeholder="Buscar sede o sala" aria-label="Buscar" value="${escapar(filtro.texto)}">
+      <select id="f-ver" aria-label="Mostrar">
+        ${[['', 'Todas las sedes'], ['pend', 'Sin dirección'], ['nuevas', 'Dadas de alta desde el formulario'],
+           ['inactivas', 'Desactivadas']].map(([v, t]) =>
+          `<option value="${v}"${filtro.ver === v ? ' selected' : ''}>${t}</option>`).join('')}
+      </select>
+      <a class="btn btn--principal btn--chico" href="#nueva">＋ Nueva sede</a>
+    </div>
+    <div id="tabla"></div>`;
+
+  $('#f-texto').addEventListener('input', e => { filtro.texto = e.target.value; tabla(); });
+  $('#f-ver').addEventListener('change', e => { filtro.ver = e.target.value; tabla(); });
+  pagina.querySelectorAll('[data-alta]').forEach(b => b.addEventListener('click', () => darDeAlta(b.dataset.alta, b)));
+  tabla();
+}
+
+function tabla() {
+  const q = normal(filtro.texto);
+  const filas = SEDES.filter(s =>
+    (!q || normal(s.nombre + ' ' + (s.nombre_corto || '') + ' ' + salasDe(s.nombre).map(x => x.nombre).join(' ')).includes(q)) &&
+    (filtro.ver !== 'pend'      || !s.direccion) &&
+    (filtro.ver !== 'nuevas'    || s.creada_por) &&
+    (filtro.ver !== 'inactivas' || !s.activa));
+
+  if (!filas.length) {
+    $('#tabla').innerHTML = `<div class="vacio"><h3>Nada que mostrar</h3><p>Ninguna sede coincide con la búsqueda.</p></div>`;
+    return;
+  }
+  $('#tabla').innerHTML = `
+    <div class="tabla-caja">
+      <table>
+        <thead><tr><th>Sede</th><th>Dirección</th><th class="num">Salas</th><th class="num">Actividades</th><th></th></tr></thead>
+        <tbody>
+          ${filas.map(s => {
+            const salas = salasDe(s.nombre);
+            return `
+            <tr data-sede="${escapar(s.nombre)}">
+              <td><a href="#sede=${encodeURIComponent(s.nombre)}"><strong>${escapar(s.nombre)}</strong></a>
+                ${s.nombre_corto ? `<span class="sub">En el programa: ${escapar(s.nombre_corto)}</span>` : ''}
+                ${salas.length ? `<span class="sub">${salas.map(x => escapar(x.nombre)).join(' · ')}</span>` : ''}</td>
+              <td>${s.direccion ? escapar(s.direccion) : '<span class="chip chip--ambar">Falta dirección</span>'}</td>
+              <td class="num">${salas.length || '—'}</td>
+              <td class="num">${actividadesDe(s.nombre) || '—'}</td>
+              <td><div class="chips">
+                ${s.creada_por ? '<span class="chip chip--azul" title="Dada de alta desde el formulario">Revisar</span>' : ''}
+                ${s.activa ? '' : '<span class="chip chip--gris">Desactivada</span>'}
+              </div></td>
+            </tr>`; }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="entrada" style="margin-top:14px;font-size:.86rem">${filas.length} de ${SEDES.length} sedes.</p>`;
+
+  $('#tabla').querySelectorAll('tr[data-sede]').forEach(tr => tr.addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    location.hash = 'sede=' + encodeURIComponent(tr.dataset.sede);
+  }));
+}
+
+async function darDeAlta(nombre, btn) {
+  btn.disabled = true;
+  const { error } = await db.from('sedes').insert({ nombre, orden: ordenNuevo() });
+  if (error) { mensaje = { tipo: 'mal', texto: explicar(error) }; }
+  else { olvidarCatalogos(); mensaje = { tipo: 'ok', texto: `«${nombre}» ya está en el catálogo. Completa su dirección.` }; }
+  if (!error) history.replaceState(null, '', '#sede=' + encodeURIComponent(nombre));
+  await cargar();
+}
+
+// Las nuevas van al final de la lista normal, antes de «Escuelas» y
+// «Por definir» (orden 90 en adelante), como las del formulario.
+const ordenNuevo = () => Math.max(0, ...SEDES.filter(s => s.orden < 90).map(s => s.orden)) + 1;
+
+/* =============================================================== ficha ==== */
+function ficha(s) {
+  const nueva = !s;
+  s = s || { nombre: '', activa: true, orden: ordenNuevo() };
+  const int = INTERNAS[s.nombre] || {};
+  const salas = nueva ? [] : salasDe(s.nombre);
+  const nActs = nueva ? 0 : actividadesDe(s.nombre);
+  const v = (x) => escapar(x ?? '');
+
+  pagina.innerHTML = `
+    <div class="ed">
+      <a class="volver" href="#">← Todas las sedes</a>
+      <div class="titulo">
+        <p class="kicker">Sede</p>
+        <h1>${nueva ? 'Nueva sede' : v(s.nombre)}</h1>
+        ${nueva ? '' : `<p class="entrada">${nActs ? `${nActs} ${nActs === 1 ? 'actividad' : 'actividades'} en esta sede.` : 'Ninguna actividad en esta sede todavía.'}</p>`}
+      </div>
+      ${avisoMensaje()}
+      ${s.creada_por ? `<div class="aviso aviso--info">La dio de alta <b>${v(QUIENES[s.creada_por] || 'un coordinador')}</b>
+        desde el formulario${s.creada_en ? ' el ' + v(fecha(s.creada_en)) : ''}. Revisa que el nombre y la dirección
+        estén bien; si es la misma que otra, fusiónala abajo.</div>` : ''}
+      <div class="aviso" id="ed-aviso" hidden></div>
+
+      <form id="ed-forma" novalidate>
+        <section class="tarjeta">
+          <h2>Lo que se publica</h2>
+          <p class="leyenda">Sale en el programa, en la ficha de cada actividad y en los boletos.</p>
+          <div class="campos campos--2">
+            <div class="campo completo">
+              <label for="s-nombre">Nombre</label>
+              <input type="text" id="s-nombre" maxlength="120" value="${v(s.nombre)}" required>
+              <span class="pista">${nueva ? '' : 'Si lo cambias, sus actividades se actualizan solas.'}</span>
+              <span class="error-campo" id="e-nombre" hidden></span>
+            </div>
+            <div class="campo">
+              <label for="s-corto">Nombre corto</label>
+              <input type="text" id="s-corto" maxlength="40" value="${v(s.nombre_corto)}" placeholder="Por ejemplo, CEART">
+              <span class="pista">Para las tarjetas del programa. Vacío: el nombre completo.</span>
+            </div>
+            <div class="campo">
+              <label for="s-direccion">Dirección</label>
+              <input type="text" id="s-direccion" maxlength="200" value="${v(s.direccion)}" placeholder="Calle y número, colonia, Ensenada, B.C.">
+              <span class="pista">En una línea, con ciudad y estado.</span>
+            </div>
+            <div class="campo completo">
+              <label for="s-referencias">Indicaciones para llegar</label>
+              <input type="text" id="s-referencias" maxlength="300" value="${v(s.referencias)}" placeholder="Entrada por la calle Tal, junto al estacionamiento">
+            </div>
+            <div class="campo completo">
+              <label for="s-mapa">Enlace de mapa</label>
+              <input type="url" id="s-mapa" maxlength="500" value="${v(s.mapa_url)}" placeholder="https://maps.app.goo.gl/…">
+              <span class="pista">En Google Maps: busca el lugar, «Compartir», «Copiar vínculo» y pégalo aquí.
+                Vacío: el botón «Cómo llegar» busca la dirección. <a class="prueba" id="s-probar" target="_blank" rel="noopener" hidden>Probar el enlace ↗</a></span>
+              <span class="error-campo" id="e-mapa" hidden></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="tarjeta">
+          <h2>Salas o espacios</h2>
+          <p class="leyenda">Si la sede se divide en salas, cada actividad puede decir en cuál es
+            («CEART · Aula Magna») y los empalmes del programa se revisan por sala. El nombre se
+            publica; la capacidad y las notas, no.</p>
+          <div class="salas" id="salas">${salas.map(filaSala).join('')}</div>
+          <p style="margin-top:12px"><button class="btn btn--chico btn--linea" type="button" id="mas-sala">＋ Agregar sala</button></p>
+          <span class="error-campo" id="e-salas" hidden></span>
+        </section>
+
+        <section class="tarjeta interno">
+          <p class="etq-int">Interno · no se publica</p>
+          <h2>Para la administración</h2>
+          <div class="campos campos--2">
+            <div class="campo">
+              <label for="s-capacidad">Capacidad de la sede</label>
+              <input type="number" id="s-capacidad" min="1" step="1" inputmode="numeric" value="${v(s.capacidad)}">
+              <span class="pista">Si no se divide en salas. Es referencia: el cupo de boletos de cada actividad
+                se define aparte y trae el sobrecupo.</span>
+              <span class="error-campo" id="e-capacidad" hidden></span>
+            </div>
+            <div class="campo">
+              <label for="s-orden">Lugar en las listas</label>
+              <input type="number" id="s-orden" step="1" inputmode="numeric" value="${v(s.orden)}">
+              <span class="pista">Las listas se ordenan de menor a mayor.</span>
+            </div>
+            <div class="campo completo">
+              <label class="check"><input type="checkbox" id="s-activa"${s.activa ? ' checked' : ''}>
+                Se ofrece en los formularios</label>
+              <span class="pista">Desactivada no aparece al registrar ni al programar; las actividades que ya la
+                tienen la conservan.</span>
+            </div>
+            <div class="campo">
+              <label for="s-cnombre">Contacto del recinto</label>
+              <input type="text" id="s-cnombre" maxlength="120" value="${v(int.contacto_nombre)}" placeholder="Nombre">
+            </div>
+            <div class="campo">
+              <label for="s-ctel">Teléfono</label>
+              <input type="tel" id="s-ctel" maxlength="40" value="${v(int.contacto_telefono)}">
+            </div>
+            <div class="campo completo">
+              <label for="s-ccorreo">Correo</label>
+              <input type="email" id="s-ccorreo" maxlength="160" value="${v(int.contacto_correo)}">
+              <span class="error-campo" id="e-ccorreo" hidden></span>
+            </div>
+            <div class="campo completo">
+              <label for="s-notas">Notas internas</label>
+              <textarea id="s-notas" rows="3" maxlength="2000" placeholder="Horario de acceso, quién entrega llaves, equipo disponible…">${v(int.notas)}</textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="acciones">
+          <button class="btn btn--principal" type="submit" id="guardar">${nueva ? 'Dar de alta' : 'Guardar cambios'}</button>
+          <a class="btn btn--linea btn--chico" href="#">Cancelar</a>
+        </div>
+      </form>
+
+      ${nueva ? '' : `
+      <section class="tarjeta peligro" style="margin-top:28px">
+        <h2>Fusionar o borrar</h2>
+        <div>
+          <p class="leyenda">¿Es la misma que otra sede? Al fusionarla, sus actividades y sus salas pasan a la
+            otra, y esta se borra. Lo que a la otra le falte (dirección, mapa…) se toma de esta.</p>
+          <div class="peligro__fila">
+            <select id="fusion-destino" aria-label="Fusionar con">
+              <option value="">Fusionar con…</option>
+              ${SEDES.filter(x => x.nombre !== s.nombre).map(x => `<option value="${v(x.nombre)}">${v(x.nombre)}</option>`).join('')}
+            </select>
+            <button class="btn btn--chico btn--linea" type="button" id="fusionar">Fusionar</button>
+          </div>
+        </div>
+        <div>
+          <p class="leyenda">${nActs
+            ? 'No se puede borrar mientras tenga actividades: cámbialas de sede o fusiónala con otra.'
+            : 'Borrarla la quita del catálogo junto con sus salas.'}</p>
+          <button class="btn btn--chico btn--linea" type="button" id="borrar"${nActs ? ' disabled' : ''}>Borrar esta sede</button>
+        </div>
+      </section>`}
+    </div>`;
+
+  window.scrollTo(0, 0);
+  const forma = $('#ed-forma');
+  const salasCaja = $('#salas');
+  const borradas = [];
+
+  $('#mas-sala').addEventListener('click', () => {
+    salasCaja.insertAdjacentHTML('beforeend', filaSala({}));
+    salasCaja.lastElementChild.querySelector('input').focus();
+  });
+  salasCaja.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-quitar]');
+    if (!b) return;
+    const fila = b.closest('.sala');
+    if (fila.dataset.id) borradas.push(fila.dataset.id);
+    fila.remove();
+  });
+
+  // «Probar el enlace»: el que se pegó o, si no, el que armará el sitio.
+  const probar = () => {
+    const url = urlMapa({
+      sede: limpio($('#s-nombre').value), sede_direccion: limpio($('#s-direccion').value),
+      sede_mapa: /^https:\/\//.test($('#s-mapa').value.trim()) ? $('#s-mapa').value.trim() : '',
+    });
+    $('#s-probar').hidden = !url;
+    if (url) $('#s-probar').href = url;
+  };
+  ['#s-nombre', '#s-direccion', '#s-mapa'].forEach(id => $(id).addEventListener('input', probar));
+  probar();
+
+  forma.addEventListener('submit', (e) => { e.preventDefault(); guardar(s, nueva, borradas); });
+  if (!nueva) {
+    $('#fusionar').addEventListener('click', () => fusionar(s, nActs));
+    $('#borrar').addEventListener('click', () => borrar(s));
+  }
+}
+
+function filaSala(x) {
+  const v = (y) => escapar(y ?? '');
+  const uso = x.id ? usoDeSala(x.id) : 0;
+  return `
+    <div class="sala" data-id="${v(x.id)}">
+      <div class="campo"><label>Nombre</label>
+        <input type="text" data-c="nombre" maxlength="80" value="${v(x.nombre)}" placeholder="Aula Magna"></div>
+      <div class="campo"><label>Capacidad</label>
+        <input type="number" data-c="capacidad" min="1" step="1" inputmode="numeric" value="${v(x.capacidad)}"></div>
+      <div class="campo"><label>Notas internas</label>
+        <input type="text" data-c="notas" maxlength="1000" value="${v(x.notas)}" placeholder="Proyector, sin sombra…"></div>
+      <div class="sala__acc">
+        <label class="check"><input type="checkbox" data-c="activa"${x.activa === false ? '' : ' checked'}> Activa</label>
+        ${uso
+          ? `<span class="sala__uso">En ${uso} ${uso === 1 ? 'actividad' : 'actividades'}: desactívala en vez de quitarla.</span>`
+          : `<button class="btn btn--chico btn--linea" type="button" data-quitar>Quitar</button>`}
+      </div>
+    </div>`;
+}
+
+/* ------------------------------------------------------------- guardar --- */
+function marca(id, texto) {
+  const e = $('#e-' + id);
+  if (e) { e.textContent = texto || ''; e.hidden = !texto; }
+  const c = $('#s-' + id);
+  if (c) c.setAttribute('aria-invalid', texto ? 'true' : 'false');
+  return !texto;
+}
+
+function avisoFicha(tipo, texto) {
+  const c = $('#ed-aviso');
+  c.className = 'aviso aviso--' + tipo;
+  c.textContent = texto;
+  c.hidden = false;
+  c.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+async function guardar(s, nueva, borradas) {
+  const nombre = limpio($('#s-nombre').value);
+  const mapa = $('#s-mapa').value.trim();
+  const capTx = $('#s-capacidad').value.trim();
+  const correo = limpio($('#s-ccorreo').value);
+  const ordenTx = $('#s-orden').value.trim();
+
+  // Lo que la base rechazaría, dicho antes y en claro.
+  let ok = true;
+  const otra = SEDES.find(x => x.nombre !== s.nombre && normal(x.nombre) === normal(nombre));
+  ok = marca('nombre', nombre.length < 3 ? 'Escribe el nombre de la sede.'
+    : otra ? `Ya existe «${otra.nombre}». Usa esa, o fusiónalas.` : '') && ok;
+  ok = marca('mapa', mapa && !/^https:\/\/\S+$/.test(mapa) ? 'Tiene que ser un enlace completo que empiece con https://' : '') && ok;
+  ok = marca('capacidad', capTx && !(/^\d+$/.test(capTx) && +capTx > 0) ? 'Un número entero mayor que cero.' : '') && ok;
+  ok = marca('ccorreo', correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) ? 'Revisa el correo.' : '') && ok;
+
+  const filas = [...$('#salas').querySelectorAll('.sala')].map((f, i) => ({
+    id: f.dataset.id || null,
+    nombre: limpio(f.querySelector('[data-c="nombre"]').value),
+    capTx: f.querySelector('[data-c="capacidad"]').value.trim(),
+    notas: vacioANulo(f.querySelector('[data-c="notas"]').value),
+    activa: f.querySelector('[data-c="activa"]').checked,
+    orden: i + 1,
+  })).filter(f => f.id || f.nombre || f.capTx || f.notas);
+  const vistos = new Set();
+  let errSala = '';
+  for (const f of filas) {
+    if (f.nombre.length < 2) { errSala = 'Cada sala necesita un nombre.'; break; }
+    if (vistos.has(normal(f.nombre))) { errSala = `«${f.nombre}» está dos veces.`; break; }
+    if (f.capTx && !(/^\d+$/.test(f.capTx) && +f.capTx > 0)) { errSala = `La capacidad de «${f.nombre}» tiene que ser un número entero.`; break; }
+    vistos.add(normal(f.nombre));
+  }
+  ok = marca('salas', errSala) && ok;
+  if (!ok) { $('#ed-forma [aria-invalid="true"], #e-salas:not([hidden])')?.scrollIntoView({ block: 'center' }); return; }
+
+  const btn = $('#guardar');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const fallo = (e) => { btn.disabled = false; btn.textContent = nueva ? 'Dar de alta' : 'Guardar cambios'; avisoFicha('mal', explicar(e)); };
+
+  // 1. La sede. Si cambió el nombre, la base arrastra sus actividades, sus
+  //    salas y lo interno en el mismo paso.
+  const datos = {
+    nombre,
+    nombre_corto: vacioANulo($('#s-corto').value),
+    direccion:    vacioANulo($('#s-direccion').value),
+    referencias:  vacioANulo($('#s-referencias').value),
+    mapa_url:     mapa || null,
+    capacidad:    capTx ? +capTx : null,
+    activa:       $('#s-activa').checked,
+    orden:        /^-?\d+$/.test(ordenTx) ? +ordenTx : s.orden,
+  };
+  const r1 = nueva
+    ? await db.from('sedes').insert(datos)
+    : await db.from('sedes').update(datos).eq('nombre', s.nombre);
+  if (r1.error) return fallo(r1.error);
+
+  // 2. Lo interno. Se guarda si hay algo o si ya había.
+  const interno = {
+    sede: nombre,
+    contacto_nombre:   vacioANulo($('#s-cnombre').value),
+    contacto_telefono: vacioANulo($('#s-ctel').value),
+    contacto_correo:   correo || null,
+    notas:             vacioANulo($('#s-notas').value),
+  };
+  if (INTERNAS[s.nombre] || interno.contacto_nombre || interno.contacto_telefono || interno.contacto_correo || interno.notas) {
+    const r2 = await db.from('sedes_internas').upsert(interno, { onConflict: 'sede' });
+    if (r2.error) return fallo(r2.error);
+  }
+
+  // 3. Las salas: primero las que se quitan, para que un nombre liberado se
+  //    pueda reutilizar en otra fila.
+  for (const id of borradas) {
+    const r = await db.from('salas').delete().eq('id', id);
+    if (r.error) return fallo(r.error);
+  }
+  for (const f of filas) {
+    const fila = { nombre: f.nombre, capacidad: f.capTx ? +f.capTx : null, notas: f.notas, activa: f.activa, orden: f.orden };
+    const r = f.id
+      ? await db.from('salas').update(fila).eq('id', f.id)
+      : await db.from('salas').insert({ ...fila, sede: nombre });
+    if (r.error) return fallo(r.error);
+  }
+
+  olvidarCatalogos();
+  mensaje = { tipo: 'ok', texto: nueva ? `«${nombre}» quedó dada de alta.` : 'Cambios guardados.' };
+  const destino = '#sede=' + encodeURIComponent(nombre);
+  if (location.hash === destino) await cargar();
+  else { history.replaceState(null, '', destino); await cargar(); }
+}
+
+/* ---------------------------------------------------- fusionar y borrar --- */
+async function fusionar(s, nActs) {
+  const destino = $('#fusion-destino').value;
+  if (!destino) { $('#fusion-destino').focus(); return; }
+  const nSalas = salasDe(s.nombre).length;
+  if (!confirm(`¿Fusionar «${s.nombre}» en «${destino}»?\n\n`
+      + `${nActs} ${nActs === 1 ? 'actividad pasa' : 'actividades pasan'} y ${nSalas} ${nSalas === 1 ? 'sala pasa' : 'salas pasan'} a «${destino}». `
+      + `Después «${s.nombre}» se borra. No se puede deshacer.`)) return;
+
+  const btn = $('#fusionar');
+  btn.disabled = true;
+  const { data, error } = await db.rpc('fusionar_sedes', { p_origen: s.nombre, p_destino: destino });
+  if (error) { btn.disabled = false; avisoFicha('mal', explicar(error)); return; }
+  olvidarCatalogos();
+  mensaje = { tipo: 'ok', texto: `«${s.nombre}» se fusionó en esta sede: ${data.actividades} ${data.actividades === 1 ? 'actividad' : 'actividades'} y ${data.salas} ${data.salas === 1 ? 'sala' : 'salas'}.` };
+  history.replaceState(null, '', '#sede=' + encodeURIComponent(destino));
+  await cargar();
+}
+
+async function borrar(s) {
+  if (!confirm(`¿Borrar «${s.nombre}» del catálogo, con sus salas? No se puede deshacer.`)) return;
+  const { error } = await db.from('sedes').delete().eq('nombre', s.nombre);
+  if (error) { avisoFicha('mal', explicar(error)); return; }
+  olvidarCatalogos();
+  mensaje = { tipo: 'ok', texto: `«${s.nombre}» se borró del catálogo.` };
+  history.replaceState(null, '', location.pathname);
+  await cargar();
+}
+</script>
+</body>
+</html>

@@ -89,6 +89,10 @@ async function traer() {
     .select('acceso, lugares_max, boletos_desde, boletos_hasta, publicada_en, poster')
     .eq('id', id).maybeSingle();
   actividad = { ...data, ...(extra || {}) };
+  // Aparte, para que si la base todavía no tiene «sala_id» (sql/16) no se
+  // pierda todo lo de arriba.
+  const { data: conSala } = await db.from('actividades').select('sala_id').eq('id', id).maybeSingle();
+  actividad.sala_id = conSala?.sala_id || null;
   return true;
 }
 

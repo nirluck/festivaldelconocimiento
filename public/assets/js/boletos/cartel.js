@@ -17,6 +17,7 @@
 import { crearQR, dibujarQR, qrSVG } from '../qr.js';
 import { colorOscuro } from '../marca.js';
 import { diaLargo, rangoHoras } from './util.js';
+import { lugarCorto } from '../lugar.js';
 
 export function urlActividad(slug, origen) {
   return `${location.origin}/b/${encodeURIComponent(slug)}${origen ? `?o=${encodeURIComponent(origen)}` : ''}`;
@@ -124,7 +125,7 @@ export async function cartelPNG(act, origen, formato = 'cartel') {
   if (act.sede) {
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     ctx.font = `400 ${tamSede}px ${F_TXT}`;
-    ctx.fillText(partir(ctx, act.sede, W - M * 2, 1)[0], M, ySede);
+    ctx.fillText(partir(ctx, lugarCorto(act), W - M * 2, 1)[0], M, ySede);
   }
 
   /* --- Cuerpo ----------------------------------------------------------- */

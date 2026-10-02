@@ -164,6 +164,7 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
 .aviso--ok  {background:var(--verde-bg);border-color:var(--sem-verde);color:#14603C}
 .aviso--mal {background:var(--rojo-bg); border-color:var(--rojo);      color:#8C2418}
 .aviso--info{background:var(--ice);     border-color:var(--turquesa);  color:var(--tx-2)}
+.aviso--ambar{background:var(--ambar-bg);border-color:#D9A21B;color:#6B4700}
 
 /* -------------------------------------------------------------- semáforo -- */
 .luces{display:inline-flex;gap:4px;align-items:center;vertical-align:middle}
@@ -333,7 +334,7 @@ input[type=number],input[type=datetime-local],input[type=time]{
    «＋ Nueva sede…» del selector de sede (assets/js/campo-sede.js).
 -------------------------------------------------------------------------- */
 .sede-nueva{border:1.5px dashed var(--line);border-radius:var(--r-s);padding:14px 16px;background:var(--surface)}
-.sede-nueva[hidden],.sede-nueva [hidden]{display:none!important}
+.sede-nueva[hidden],.sede-nueva [hidden],.sede-sala[hidden]{display:none!important}
 .sede-nueva__tit{margin:0;font-weight:700;font-size:.92rem}
 .sede-nueva__parecidas{font-size:.82rem;color:var(--tx-3);line-height:1.8}
 .sede-nueva__sug{font:inherit;font-size:.82rem;cursor:pointer;color:var(--turquesa-tx);

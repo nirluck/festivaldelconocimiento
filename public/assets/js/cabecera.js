@@ -80,6 +80,7 @@ const MENU_SISTEMA = {
     ['/mi-actividad/',   'Mis actividades'],
     ['/panel/boletos/',  'Boletos'],
     ['/panel/programa/', 'Armar programa'],
+    ['/panel/sedes/',    'Sedes'],
   ],
   coordinador: [
     ['/mi-actividad/', 'Mis actividades', ['/actividad/']],

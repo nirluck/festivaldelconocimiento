@@ -63,10 +63,11 @@ let _cat = null;
 
 export async function catalogos() {
   if (_cat) return _cat;
-  const [ejes, tipos, sedes] = await Promise.all([
+  const [ejes, tipos, sedes, salas] = await Promise.all([
     db.from('ejes').select('nombre, color').order('orden'),
     db.from('tipos').select('nombre').order('orden'),
     db.from('sedes').select('nombre').eq('activa', true).order('orden'),
+    db.from('salas').select('id, sede, nombre').eq('activa', true).order('orden').order('nombre'),
   ]);
 
   // Supabase NO lanza excepción cuando algo falla: devuelve { data: null, error }.
@@ -83,6 +84,9 @@ export async function catalogos() {
     ejes:  ejes.data  || [],
     tipos: (tipos.data || []).map(r => r.nombre),
     sedes: (sedes.data || []).map(r => r.nombre),
+    // Las salas no tumban el formulario si fallan: sin ellas se elige solo
+    // la sede, como antes de sql/16-sedes-salas.sql.
+    salas: salas.error ? [] : (salas.data || []),
   };
   return _cat;
 }
@@ -187,6 +191,11 @@ export function explicar(error) {
     return 'La semblanza pasa de 2000 caracteres. Resúmela un poco.';
   if (m.includes('actividad_ponentes_unico'))
     return 'Esa persona ya está en esta actividad.';
+  // Sedes y salas (sql/16-sedes-salas.sql). Antes de «violates».
+  if (m.includes('salas_nombre_unico'))
+    return 'Esa sede ya tiene una sala con ese nombre.';
+  if (m.includes('sedes_mapa_https'))
+    return 'El enlace de mapa tiene que empezar con https://';
   if (m.includes('row-level security') || m.includes('violates'))
     return 'Tu cuenta no tiene permiso para hacer eso.';
   // Cuando falta una migración, Supabase contesta con el nombre de la tabla que

@@ -16,6 +16,7 @@ import { estiloEje } from '../color.js';
 import { colorOscuro } from '../marca.js';
 import { cancelarBoleto, mensaje } from './api.js';
 import { guardarBoleto } from './almacen.js';
+import { lugarLargo, urlMapa } from '../lugar.js';
 import {
   escapar, hora, aFecha, diaLargo, rangoHoras, codigoLegible, lugaresTexto,
   urlBoleto, descargar, aLas,
@@ -52,7 +53,8 @@ export function htmlBoleto(b) {
   const a = b.actividad || {};
   const valido = b.estado !== 'cancelado';
   const lugarTxt = a.sede
-    ? `${escapar(a.sede)}${a.sede_direccion ? `<small>${escapar(a.sede_direccion)}</small>` : ''}`
+    ? `${escapar(lugarLargo(a))}${a.sede_direccion ? `<small>${escapar(a.sede_direccion)}</small>` : ''}`
+      + (urlMapa(a) ? `<small><a href="${escapar(urlMapa(a))}" target="_blank" rel="noopener">Cómo llegar ↗</a></small>` : '')
     : 'Por confirmar';
 
   return `
@@ -316,7 +318,7 @@ export async function imagenBoleto(b) {
     y += alto + 50;
   };
   fila('Cuándo', a.fecha ? diaLargo(a.fecha) : 'Por confirmar', rangoHoras(a));
-  fila('Dónde', a.sede || 'Por confirmar', a.sede_direccion || '');
+  fila('Dónde', lugarLargo(a) || 'Por confirmar', a.sede_direccion || '');
   // Nombre y lugares en dos columnas
   const yNombre = y;
   fila('A nombre de', b.nombre || '—');
@@ -421,7 +423,7 @@ export function ics(b) {
 
   lineas.push(
     `SUMMARY:${textoICS(a.titulo + ' · Festival del Conocimiento')}`,
-    `LOCATION:${textoICS([a.sede, a.sede_direccion].filter(Boolean).join(', '))}`,
+    `LOCATION:${textoICS([lugarLargo(a), a.sede_direccion].filter(Boolean).join(', '))}`,
     `DESCRIPTION:${textoICS(`Boleto ${codigoLegible(b.codigo)} · ${lugaresTexto(b.lugares || 1)} a nombre de ${b.nombre}.\nTu boleto: ${url}`)}`,
     `URL:${url}`,
     'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY',

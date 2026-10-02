@@ -7,9 +7,16 @@
    lista para todos. Lo usan el registro, el módulo Resumen y el diálogo
    «Programar».
 
-     llenarSedes(sel, sedes, { actual, placeholder })
-     leer(sel)          → { sede } | { nueva: { nombre, direccion } } | { error: { campo } }
+     llenarSedes(sel, sedes, { actual, placeholder, salas, salaActual })
+     leer(sel)          → { sede, sala_id? } | { nueva: { nombre, direccion } } | { error: { campo } }
      guardar(lectura)   → el nombre definitivo (da de alta la sede si es nueva)
+     salaElegida(sel)   → id de la sala elegida, o null
+
+   SALAS (sql/16-sedes-salas.sql): si la sede elegida tiene salas, aparece
+   «Sala o espacio» debajo. Las da de alta solo la administración, en
+   /panel/sedes/. «sala_id» viene en la lectura solo cuando el campo se ve:
+   si la sede no tiene salas no se manda, y la base suelta la sala vieja sola
+   al cambiar de sede.
 
    Mientras escribe el nombre se le sugieren las sedes parecidas que ya
    existen, para que elija esa en vez de duplicarla. Si aun así escribe una
@@ -30,6 +37,7 @@ const normal = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '')
 const limpio = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
 
 const listas = new WeakMap();   // select → sedes del catálogo
+const salasDe = new WeakMap();  // select → salas del catálogo, de todas las sedes
 
 /**
  * @param {HTMLSelectElement} sel
@@ -39,6 +47,8 @@ const listas = new WeakMap();   // select → sedes del catálogo
  *                retirada «Otra sede») se muestra igual, para no borrarla al
  *                guardar sin que nadie lo haya pedido.
  *   placeholder  primera opción vacía
+ *   salas        las del catálogo: [{ id, sede, nombre }]
+ *   salaActual   id de la sala guardada
  */
 export function llenarSedes(sel, sedes, op = {}) {
   const actual = op.actual || '';
@@ -49,7 +59,9 @@ export function llenarSedes(sel, sedes, op = {}) {
     lista.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('') +
     `<option value="${NUEVA}">＋ Nueva sede…</option>`;
   sel.value = actual;
+  salasDe.set(sel, op.salas || []);
   montarNueva(sel);
+  montarSala(sel, op.salaActual || null);
   // El diálogo «Programar» se reabre con otra actividad: sin restos de la anterior.
   ['nn', 'nd'].forEach(c => { document.getElementById(`${sel.id}-${c}`).value = ''; marcar(sel, c, ''); });
   document.getElementById(`${sel.id}-nueva`).querySelector('[data-parecidas]').hidden = true;
@@ -111,6 +123,40 @@ function montarNueva(sel) {
   caja.hidden = sel.value !== NUEVA;
 }
 
+function montarSala(sel, actual) {
+  if (!document.getElementById(`${sel.id}-sala-campo`)) {
+    const campo = document.createElement('div');
+    campo.className = 'campo sede-sala';
+    campo.id = `${sel.id}-sala-campo`;
+    campo.innerHTML = `
+      <label for="${sel.id}-sala">Sala o espacio</label>
+      <select id="${sel.id}-sala"></select>
+      <span class="pista">Dónde, dentro de la sede. Sale en el programa junto a ella.</span>`;
+    (sel.closest('.campo') || sel).after(campo);
+    sel.addEventListener('change', () => pintarSalas(sel, null));
+  }
+  pintarSalas(sel, actual);
+}
+
+function pintarSalas(sel, actual) {
+  const campo = document.getElementById(`${sel.id}-sala-campo`);
+  const salaSel = document.getElementById(`${sel.id}-sala`);
+  const deEsta = (salasDe.get(sel) || []).filter(s => s.sede === sel.value);
+  // Una sala desactivada después de asignarla: se conserva, no se borra sola.
+  if (actual && !deEsta.some(s => s.id === actual)) deEsta.push({ id: actual, nombre: 'Sala desactivada' });
+  salaSel.innerHTML = '<option value="">Sin especificar</option>' +
+    deEsta.map(s => `<option value="${esc(s.id)}">${esc(s.nombre)}</option>`).join('');
+  salaSel.value = actual || '';
+  campo.hidden = !deEsta.length;
+  salaSel.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+export function salaElegida(sel) {
+  const campo = document.getElementById(`${sel.id}-sala-campo`);
+  if (!campo || campo.hidden) return null;
+  return document.getElementById(`${sel.id}-sala`).value || null;
+}
+
 function marcar(sel, campo, texto) {
   const c = document.getElementById(`${sel.id}-${campo}`);
   const e = document.getElementById(`${sel.id}-e-${campo}`);
@@ -120,7 +166,12 @@ function marcar(sel, campo, texto) {
 
 /** Lee y valida. No escribe nada en la base. */
 export function leer(sel) {
-  if (sel.value !== NUEVA) return { sede: sel.value || '' };
+  if (sel.value !== NUEVA) {
+    const campo = document.getElementById(`${sel.id}-sala-campo`);
+    return campo && !campo.hidden
+      ? { sede: sel.value || '', sala_id: salaElegida(sel) }
+      : { sede: sel.value || '' };
+  }
 
   const nombre    = limpio(document.getElementById(`${sel.id}-nn`).value);
   const direccion = limpio(document.getElementById(`${sel.id}-nd`).value);
