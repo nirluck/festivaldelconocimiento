@@ -8,13 +8,20 @@
   command = ""
 
 # Cabeceras de seguridad razonables para un sitio institucional.
+#
+# camera=(self): la cámara solo la pide /puerta/, para leer los QR de los
+# boletos. Se abre para el propio sitio y no solo para /puerta/* porque, si
+# dos reglas ponen la misma cabecera, Netlify no documenta cuál gana: con
+# camera=() aquí y camera=(self) abajo, la puerta podría quedarse sin cámara.
+# Los iframes de otros sitios siguen sin poder usarla, y cada página que la
+# pida tiene que pasar por el permiso del navegador.
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options        = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy        = "strict-origin-when-cross-origin"
-    Permissions-Policy     = "geolocation=(), microphone=(), camera=()"
+    Permissions-Policy     = "geolocation=(), microphone=(), camera=(self)"
 
 # Las imágenes y tipografías no cambian: que el navegador las guarde.
 [[headers]]
@@ -65,6 +72,13 @@
   for = "/b/*"
   [headers.values]
     X-Robots-Tag = "noindex"
+
+# La puerta: trae la lista de nombres de una actividad. Nada de buscadores.
+[[headers]]
+  for = "/puerta/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
 
 # =============================================================================
 #  PROGRAMA PÚBLICO

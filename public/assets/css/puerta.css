@@ -1,0 +1,198 @@
+/* ============================================================================
+   PUERTA · Festival del Conocimiento
+   ----------------------------------------------------------------------------
+   /puerta/: el registro de entradas en el celular de quien cuida la puerta.
+   Se apoya en programa.css (tokens, tipografías, base). Prefijo «pt-».
+
+   Pensada para usarse de pie, con una mano, con sol o en un pasillo oscuro:
+   botones de 56 px o más, el resultado ocupa todo el ancho con un color
+   lleno y texto blanco, y nada depende solo del color (siempre hay palabra).
+   ========================================================================== */
+
+.pt{
+  --ok:#1E7A45; --ambar:#9A5B00; --azul:#1F5FA8; --mal:#B3261E; --gris:#55606E;
+  --pt-ancho:560px;
+  background:var(--marfil);
+  min-height:100vh; min-height:100dvh;
+}
+
+/* ---------------------------------------------------------------- cabecera */
+.pt-cab{background:var(--dark);color:#fff;position:sticky;top:0;z-index:5;
+  padding-top:env(safe-area-inset-top)}
+.pt-cab__in{max-width:var(--pt-ancho);margin-inline:auto;padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pt-cab__marca{display:flex;flex-direction:column;line-height:1.15}
+.pt-cab__marca b{font-family:var(--f-disp);font-weight:800;font-size:1rem;letter-spacing:-.01em}
+.pt-cab__marca span{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amarillo)}
+
+.pt-red{font-size:.78rem;font-weight:600;border-radius:999px;padding:5px 12px;white-space:nowrap}
+.pt-red--si{background:rgba(255,255,255,.12);color:#fff}
+.pt-red--si::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:#5BD38B;margin-right:7px;vertical-align:1px}
+.pt-red--sin{background:var(--amarillo);color:var(--dark)}
+
+/* -------------------------------------------------------------------- base */
+/* «hidden» tiene que ganarle a los display de abajo (botones, fichas…). */
+.pt [hidden]{display:none!important}
+.pt-main{max-width:var(--pt-ancho);margin-inline:auto;padding:16px 16px calc(48px + env(safe-area-inset-bottom));
+  display:grid;gap:14px}
+.pt-cargando{color:var(--tx-3);text-align:center;padding:48px 0}
+.pt-kicker{font-size:.74rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-3)}
+.pt-kicker b{color:var(--tx)}
+.pt-lead{color:var(--tx-2);font-size:1rem}
+.pt-nota{color:var(--tx-3);font-size:.86rem;line-height:1.5}
+.pt-nota b{color:var(--tx-2);font-weight:600}
+.pt-error{color:var(--mal);font-size:.92rem;font-weight:500;line-height:1.45}
+.pt-rotulo{display:block;font-size:.86rem;font-weight:600;color:var(--tx-2);margin-bottom:6px}
+
+/* ----------------------------------------------------------------- botones */
+.pt-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font:600 1rem/1.2 var(--f-body);min-height:52px;padding:12px 22px;border-radius:999px;
+  border:1.5px solid var(--dark);background:var(--surface);color:var(--dark);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.pt-btn:disabled{opacity:.45;cursor:default}
+.pt-btn--principal{background:var(--dark);color:#fff}
+.pt-btn--linea{background:transparent}
+.pt-btn--enorme{width:100%;min-height:72px;font-size:1.15rem;border-radius:18px}
+.pt-btn--chico{min-height:44px;padding:8px 16px;font-size:.9rem}
+.pt-btn--blanco{background:#fff;color:var(--dark);border-color:#fff}
+.pt-btn--sin{width:100%;min-height:60px;font-size:1.1rem;border-radius:18px;border-style:dashed}
+.pt-mini{background:none;border:0;padding:8px 4px;font:600 .92rem var(--f-body);color:inherit;
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;min-height:44px}
+
+/* ------------------------------------------------------- pantalla: entrar */
+.pt-entrar{display:grid;gap:14px;padding-top:12px}
+.pt-entrar h1{font-family:var(--f-disp);font-weight:800;font-size:2.2rem;line-height:1;letter-spacing:-.02em}
+.pt-codigo{display:grid;gap:10px}
+.pt-codigo input{
+  font:700 1.7rem/1 ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.14em;
+  text-align:center;text-transform:uppercase;padding:16px;border-radius:14px;
+  border:1.5px solid var(--line);background:#fff;color:var(--tx);width:100%;
+}
+.pt-codigo input:focus{border-color:var(--dark);outline:3px solid color-mix(in srgb, var(--turquesa) 40%, transparent)}
+.pt-codigo--chico input{font-size:1.25rem;padding:12px}
+
+/* ------------------------------------------------------ fichas actividades */
+.pt-acts{display:flex;gap:8px;overflow-x:auto;margin-inline:-16px;padding:2px 16px 4px;
+  scrollbar-width:none}
+.pt-acts::-webkit-scrollbar{display:none}
+.pt-ficha{
+  flex:0 0 auto;max-width:200px;display:grid;gap:1px;text-align:left;cursor:pointer;
+  padding:9px 13px 10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--tx);
+  border-top:4px solid var(--eje);font-family:var(--f-body);
+}
+.pt-ficha span{font-size:.74rem;color:var(--tx-3);font-weight:600}
+.pt-ficha b{font-size:.9rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-ficha small{font-size:.78rem;color:var(--tx-2);font-variant-numeric:tabular-nums}
+.pt-ficha.is-actual{border-color:var(--dark);border-top-color:var(--eje);box-shadow:0 2px 10px rgba(23,32,51,.12)}
+.pt-ficha[aria-pressed="true"]{background:var(--dark);color:#fff}
+.pt-ficha[aria-pressed="true"] span,.pt-ficha[aria-pressed="true"] small{color:rgba(255,255,255,.75)}
+.pt-ficha.is-invalida{opacity:.55}
+
+/* ---------------------------------------------------- actividad y cuenta */
+.pt-act{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;
+  border-top:6px solid var(--eje);display:grid;gap:8px}
+.pt-act__tit{font-family:var(--f-disp);font-weight:800;font-size:1.45rem;line-height:1.08;letter-spacing:-.015em;
+  text-wrap:balance}
+.pt-cuenta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin-top:2px}
+.pt-cuenta b{font-family:var(--f-disp);font-weight:800;font-size:3.6rem;line-height:.9;font-variant-numeric:tabular-nums}
+.pt-cuenta span{font-family:var(--f-disp);font-weight:700;font-size:1.6rem;color:var(--tx-3)}
+.pt-cuenta small{flex-basis:100%;font-size:.84rem;color:var(--tx-3)}
+.pt-cuenta--lleno b{color:var(--mal)}
+.pt-barra{height:10px;border-radius:999px;background:var(--gris);overflow:hidden}
+.pt-barra i{display:block;height:100%;background:var(--dark);border-radius:inherit;transition:width .3s ease}
+.pt-cuenta--lleno + .pt-barra i{background:var(--mal)}
+.pt-datos{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem;color:var(--tx-2)}
+.pt-datos b{color:var(--tx);font-variant-numeric:tabular-nums}
+.pt-datos__lleno b{color:var(--mal)}
+
+/* ------------------------------------------------------------------ cámara */
+.pt-cam{display:grid;gap:10px}
+.pt-cam__visor{position:relative;aspect-ratio:1;border-radius:18px;overflow:hidden;background:#000}
+.pt-cam__visor video{width:100%;height:100%;object-fit:cover;display:block}
+/* El marco señala el cuadro central, que es donde busca el lector. */
+.pt-cam__marco{position:absolute;inset:14%;border-radius:16px;
+  box-shadow:0 0 0 999px rgba(0,0,0,.28);border:3px solid rgba(255,255,255,.9)}
+.pt-cam__acc{display:flex;gap:10px}
+.pt-cam__acc .pt-btn--linea{flex:1}
+
+/* --------------------------------------------------------------- resultado */
+.pt-res{position:relative;border-radius:20px;padding:20px 20px 16px;color:#fff;display:grid;gap:4px;
+  animation:pt-entra .18s ease-out}
+.pt-res[hidden]{display:none}
+.pt-res--ok{background:var(--ok)}
+.pt-res--ambar{background:var(--ambar)}
+.pt-res--azul{background:var(--azul)}
+.pt-res--mal{background:var(--mal)}
+.pt-res--gris{background:var(--gris)}
+.pt-res__tit{font-family:var(--f-disp);font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.01em;
+  text-transform:uppercase;padding-right:36px}
+.pt-res__nom{font-size:1.35rem;font-weight:700;line-height:1.2;margin-top:6px}
+.pt-res__det{font-size:1rem;opacity:.92;line-height:1.45}
+.pt-res__det b{font-weight:700}
+.pt-res__act{font-size:.9rem;opacity:.85;margin-top:2px}
+.pt-res__acc{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;flex-wrap:wrap}
+.pt-res__acc small{font-size:.8rem;opacity:.8}
+.pt-res__cerrar{position:absolute;top:8px;right:8px;width:44px;height:44px;border:0;border-radius:50%;
+  background:rgba(255,255,255,.14);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer}
+
+.pt-paso{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:1rem}
+.pt-paso b{font-family:var(--f-disp);font-size:2rem;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums}
+.pt-paso button{width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.75);
+  background:rgba(255,255,255,.1);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer;touch-action:manipulation}
+.pt-paso button:disabled{opacity:.35;cursor:default}
+
+@keyframes pt-entra{from{transform:scale(.97);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.pt-res{animation:none}.pt-barra i{transition:none}}
+
+/* ------------------------------------------------------------ aviso suelto */
+.pt-aviso{border-radius:12px;padding:12px 14px;font-size:.92rem;font-weight:500;line-height:1.45}
+.pt-aviso--ok{background:#E3F4EA;color:var(--ok)}
+.pt-aviso--ambar{background:#FFF1D6;color:#7A4700}
+.pt-aviso--mal{background:#FBE6E3;color:var(--mal)}
+
+/* ------------------------------------------------------------- sin boleto */
+.pt-sin{display:grid;gap:6px}
+
+/* ------------------------------------------------------------------ buscar */
+.pt-buscar input{width:100%;font:500 1.05rem var(--f-body);padding:14px 16px;border-radius:14px;
+  border:1.5px solid var(--line);background:#fff;color:var(--tx)}
+.pt-buscar input:focus{border-color:var(--dark);outline:3px solid color-mix(in srgb, var(--turquesa) 40%, transparent)}
+.pt-hallados{display:grid;gap:8px;margin-top:8px}
+.pt-hallados li{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.pt-hallados li > div{display:grid;gap:1px;min-width:0}
+.pt-hallados b{font-size:1rem;overflow-wrap:anywhere}
+.pt-hallados span{font-size:.84rem;color:var(--tx-3)}
+.pt-hallados__act{color:var(--tx-2)!important}
+.pt-hallados li.is-dentro{background:var(--marfil)}
+.pt-hallados .pt-btn{flex:0 0 auto}
+.pt-hallados__nada{color:var(--tx-3);font-size:.9rem;justify-content:flex-start!important}
+
+/* --------------------------------------------------------------- plegables */
+.pt-plegable{background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.pt-plegable[hidden]{display:none}
+.pt-plegable summary{cursor:pointer;padding:14px 16px;font-weight:600;font-size:.98rem;min-height:52px;
+  display:flex;align-items:center;gap:6px;list-style:none}
+.pt-plegable summary::-webkit-details-marker{display:none}
+.pt-plegable summary::after{content:'';margin-left:auto;width:9px;height:9px;border-right:2px solid var(--tx-3);
+  border-bottom:2px solid var(--tx-3);transform:rotate(45deg);transition:transform .15s}
+.pt-plegable[open] summary::after{transform:rotate(-135deg)}
+.pt-plegable__in{padding:0 16px 16px;display:grid;gap:12px}
+
+.pt-entradas{display:grid;font-size:.92rem}
+.pt-entradas li{display:grid;grid-template-columns:3.4em 1fr auto;gap:10px;align-items:baseline;
+  padding:8px 0;border-top:1px solid var(--line-2)}
+.pt-entradas time{color:var(--tx-3);font-variant-numeric:tabular-nums}
+.pt-entradas span{overflow-wrap:anywhere}
+.pt-entradas b{font-variant-numeric:tabular-nums}
+.pt-entradas small{grid-column:2 / -1;color:var(--ambar);font-size:.78rem;margin-top:-6px}
+
+.pt-mias{display:grid;gap:8px}
+.pt-mias li{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 0;border-top:1px solid var(--line-2)}
+.pt-mias li > div{display:grid;gap:1px;min-width:0}
+.pt-mias span{font-size:.84rem;color:var(--tx-3)}
+.pt-mias .pt-mini{color:var(--mal);flex:0 0 auto}

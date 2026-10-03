@@ -402,7 +402,8 @@ input[type=number],input[type=datetime-local],input[type=time]{
 .bol-emitido p + p{margin-top:6px}
 .bol-codigo-grande{font-family:var(--f-disp);font-weight:700;font-size:1.8rem;letter-spacing:.06em}
 .bol-emitido .bol-botones{margin-top:12px}
-.bol-qr-puerta{margin-top:12px}
+/* El código de puerta: se dicta o se copia, que se lea sin dudas. */
+.bol-codigo--puerta{font-size:1.15rem;letter-spacing:.1em;background:var(--ice, #F7F5F0);padding:3px 8px;border-radius:6px}
 
 .bol-nueva{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:18px}
 .bol-nueva .campo{flex:1 1 280px}

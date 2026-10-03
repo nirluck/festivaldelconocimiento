@@ -182,6 +182,8 @@ class Modulo {
         ${this.capacidad ? `La ${this.act.sala ? 'sala' : 'sede'} registra una capacidad de <b>${this.capacidad}</b>; el cupo es de <b>${cupo}</b> boletos, con el sobrecupo incluido.`
           : 'La sede no tiene capacidad registrada: en la entrada se usará el cupo como tope.'}</p>`}
 
+      ${this.pintarAsistencia(f)}
+
       <div class="bol-liga">
         <span>Liga para pedir boleto:</span>
         <a href="${escapar(liga)}" target="_blank" rel="noopener">${escapar(liga.replace(/^https?:\/\//, ''))}</a>
@@ -199,11 +201,28 @@ class Modulo {
     });
   }
 
+  /** Cuántos entraron y cómo: con boleto, sin boleto, y qué parte de los boletos se usó. */
+  pintarAsistencia(f) {
+    if (!f.asistieron) return '';
+    const vivos = this.boletos.filter(b => b.estado !== 'cancelado');
+    const sin = vivos.filter(b => b.origen === 'puerta' && !b.nombre && b.asistio_en);
+    const con = vivos.filter(b => !(b.origen === 'puerta' && !b.nombre));
+    const usados = con.filter(b => b.asistio_en);
+    const personasCon = usados.reduce((s, b) => s + (b.asistieron ?? b.lugares), 0);
+    const personasSin = sin.reduce((s, b) => s + (b.asistieron ?? b.lugares), 0);
+    const lugaresCon = con.filter(b => b.estado === 'activo').reduce((s, b) => s + b.lugares, 0);
+    const pct = lugaresCon ? Math.round(100 * personasCon / lugaresCon) : 0;
+    return `
+      <p class="bol-nota"><b>Entraron ${f.asistieron} ${f.asistieron === 1 ? 'persona' : 'personas'}:</b>
+        ${personasCon} con boleto (${usados.length} de ${con.length} boletos; ${pct} % de los lugares apartados)
+        y ${personasSin} sin boleto. La lista de quiénes, en <b>Personas › Ya entraron</b>, o en el CSV.</p>`;
+  }
+
   conectarCopiar(raiz) {
     raiz.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', async () => {
       const antes = b.textContent;
-      try { await navigator.clipboard.writeText(b.dataset.copiar); b.textContent = '¡Copiada!'; }
-      catch (e) { b.textContent = 'Cópiala de la liga'; }
+      try { await navigator.clipboard.writeText(b.dataset.copiar); b.textContent = '¡Copiado!'; }
+      catch (e) { b.textContent = 'No se pudo copiar'; }
       setTimeout(() => { b.textContent = antes; }, 2000);
     }));
   }
@@ -537,19 +556,26 @@ class Modulo {
   /* --------------------------------------------------------------- puerta -- */
   pintarPuerta() {
     const ahora = new Date();
+    const a = this.act;
     const filas = this.puertas.map(p => {
       const vencida = p.vence && new Date(p.vence) <= ahora;
       const estado = !p.activa ? ['Revocada', 'gris'] : vencida ? ['Vencida', 'gris'] : ['Vigente', 'verde'];
-      const url = `${location.origin}/puerta/#${p.token}`;
+      const vigente = p.activa && !vencida;
+      const codigo = codigoPuerta(p.codigo);
+      // Lo que se pega en WhatsApp: el código solo no dice dónde usarlo.
+      const mensaje = `Código de puerta para «${a.titulo}»${a.fecha ? ` (${fechaDia(a.fecha)}${a.hora_inicio ? ', ' + String(a.hora_inicio).slice(0, 5) : ''})` : ''}: `
+        + `${codigo}
+Ábrelo en ${location.host}/puerta y escríbelo ahí.`;
       return `
         <tr data-id="${p.id}">
           <td><strong>${escapar(p.etiqueta || 'Sin nombre')}</strong></td>
+          <td>${vigente ? `<code class="bol-codigo bol-codigo--puerta">${escapar(codigo)}</code>` : `<s class="bol-nota">${escapar(codigo)}</s>`}</td>
           <td><span class="chip chip--${estado[1]}">${estado[0]}</span></td>
           <td>${p.vence ? escapar(fechaHora(p.vence)) : 'Sin vencimiento'}</td>
           <td class="bol-acc">
-            ${p.activa && !vencida ? `
-              <button class="btn btn--linea btn--chico" type="button" data-copiar="${escapar(url)}">Copiar liga</button>
-              <button class="btn btn--linea btn--chico" type="button" data-verqr="${escapar(url)}">Ver QR</button>
+            ${vigente ? `
+              <button class="btn btn--linea btn--chico" type="button" data-copiar="${escapar(codigo)}">Copiar código</button>
+              <button class="btn btn--linea btn--chico" type="button" data-copiar="${escapar(mensaje)}">Copiar mensaje</button>
               <button class="bol-mini bol-mini--peligro" type="button" data-revocar>Revocar</button>`
             : !p.activa && !vencida ? '<button class="bol-mini" type="button" data-reactivar>Reactivar</button>' : ''}
           </td>
@@ -558,43 +584,30 @@ class Modulo {
 
     this.$('#bol-puerta').innerHTML = `
       <h2>Puerta</h2>
-      <p class="leyenda">Una clave deja que una persona voluntaria, sin cuenta, registre
-        entradas de <b>esta</b> actividad desde su teléfono. Vence sola a las 6 de la mañana
-        del día siguiente a la actividad, y puedes revocarla antes.
-        Quien tenga la liga puede ver los nombres de la lista: dásela solo a quien estará en la entrada.</p>
+      <p class="leyenda">Quien cuide la entrada abre <b>${escapar(location.host)}/puerta</b> en su
+        celular y escribe uno de estos códigos: registra entradas de <b>esta</b> actividad
+        escaneando los boletos, sin cuenta y aunque se vaya la señal. Si cuida varias
+        actividades, escribe un código por cada una y cada boleto se registra solo en la suya.</p>
+      <p class="bol-nota">El código vence solo a las 6 de la mañana del día siguiente a la actividad
+        y puedes revocarlo antes. Quien lo tenga ve los nombres de la lista: dáselo solo a quien
+        estará en la entrada. Tú también puedes usar uno.</p>
 
       ${this.puertas.length ? `
       <div class="tabla-caja"><table>
-        <thead><tr><th scope="col">Para quién</th><th scope="col">Estado</th><th scope="col">Vence</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead>
+        <thead><tr><th scope="col">Para quién</th><th scope="col">Código</th><th scope="col">Estado</th><th scope="col">Vence</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead>
         <tbody>${filas}</tbody>
       </table></div>` : ''}
-      <div class="bol-qr-puerta" id="bol-qr-puerta" hidden></div>
 
       <form class="bol-nueva" id="bol-nueva" novalidate>
         <div class="campo">
-          <label for="bol-etiqueta">Nueva clave para</label>
+          <label for="bol-etiqueta">Nuevo código para</label>
           <input type="text" id="bol-etiqueta" maxlength="60" placeholder="Por ejemplo, «Voluntaria Ana, entrada principal»">
         </div>
-        <button class="btn btn--linea" type="submit">Crear clave</button>
+        <button class="btn btn--linea" type="submit">Crear código</button>
       </form>`;
 
     const sec = this.$('#bol-puerta');
     this.conectarCopiar(sec);
-
-    sec.querySelectorAll('[data-verqr]').forEach(b => b.addEventListener('click', () => {
-      const caja = this.$('#bol-qr-puerta');
-      const nombre = b.closest('tr').querySelector('strong').textContent;
-      caja.hidden = false;
-      caja.innerHTML = `
-        <div class="bol-emitido">
-          <div class="bol-emitido__qr">${qrSVG(b.dataset.verqr)}</div>
-          <div><p><b>Clave de puerta · ${escapar(nombre)}</b></p>
-            <p class="bol-nota">Que la persona voluntaria lo escanee con su teléfono. Abre la
-              pantalla de entrada de esta actividad.</p>
-            <button class="bol-mini" type="button" data-cerrar>Ocultar</button></div>
-        </div>`;
-      caja.querySelector('[data-cerrar]').addEventListener('click', () => { caja.hidden = true; });
-    }));
 
     const cambiar = async (id, activa, texto) => {
       const { error } = await db.from('puertas').update({ activa }).eq('id', id);
@@ -603,17 +616,17 @@ class Modulo {
     };
     sec.querySelectorAll('[data-revocar]').forEach(b => b.addEventListener('click', () => {
       if (!b.dataset.confirmar) { b.dataset.confirmar = '1'; b.textContent = '¿Seguro? Revocar'; return; }
-      cambiar(b.closest('tr').dataset.id, false, 'Clave revocada: esa liga ya no abre la puerta.');
+      cambiar(b.closest('tr').dataset.id, false, 'Código revocado: ya no abre la puerta, ni en los teléfonos que ya lo tenían.');
     }));
     sec.querySelectorAll('[data-reactivar]').forEach(b => b.addEventListener('click', () =>
-      cambiar(b.closest('tr').dataset.id, true, 'Clave reactivada.')));
+      cambiar(b.closest('tr').dataset.id, true, 'Código reactivado.')));
 
     this.$('#bol-nueva').addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const etiqueta = this.$('#bol-etiqueta').value.trim();
       const { error } = await db.from('puertas').insert({ actividad_id: this.act.id, etiqueta });
       if (error) return this.avisar('mal', explicar(error));
-      this.refrescar('Clave creada. Copia la liga o muestra el QR a quien estará en la entrada.');
+      this.refrescar('Código creado. Cópialo y dáselo a quien estará en la entrada.');
     });
   }
 
@@ -655,6 +668,12 @@ function primeras(datos, n) {
   if (con.length <= n) return datos || {};
   const resto = con.slice(n).reduce((s, [, v]) => s + v, 0);
   return Object.fromEntries([...con.slice(0, n), [`Otras (${con.length - n})`, resto], ...sin]);
+}
+
+/** «ABCD2345» → «ABCD-2345», como se teclea en /puerta/. */
+function codigoPuerta(c) {
+  const s = String(c || '');
+  return s.length === 8 ? s.slice(0, 4) + '-' + s.slice(4) : s;
 }
 
 function cancelable(b) {

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Puerta · Festival del Conocimiento</title>
+<meta name="description" content="Registro de entradas del Festival del Conocimiento.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/programa.css">
+<link rel="stylesheet" href="/assets/css/puerta.css">
+</head>
+<body class="pt">
+
+<!-- /puerta/ · REGISTRO DE ENTRADAS. Se entra con el código de puerta que el
+     coordinador copia en el panel (sql/17-puerta.sql). Funciona sin red con
+     la copia de la lista que guarda el teléfono. Lógica en
+     assets/js/puerta/pagina.js; el estado y la cola, en puerta/estado.js. -->
+
+<header class="pt-cab">
+  <div class="pt-cab__in">
+    <span class="pt-cab__marca"><b>Festival del Conocimiento</b><span>Puerta</span></span>
+    <span class="pt-red" id="pt-red" hidden></span>
+  </div>
+</header>
+
+<main class="pt-main" id="pt-main">
+  <p class="pt-cargando">Abriendo…</p>
+</main>
+
+<noscript>
+  <p class="pt-main">Esta página necesita JavaScript. Actívalo y vuelve a cargarla.</p>
+</noscript>
+
+<script type="module" src="/assets/js/puerta/pagina.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Reconstruye desde cero una base de prueba DESECHABLE en Docker:
-# simulación de Supabase + sql/01..11 + datos de ejemplo.
+# simulación de Supabase + sql/01..17 + datos de ejemplo.
 # Aplica 11-boletos.sql y 12-datos-minimos.sql dos veces cada uno, para
 # comprobar que se pueden re-ejecutar.
 # Al terminar: docker rm -f fdc-prueba
@@ -39,3 +39,8 @@ else
 fi
 run < "$SQL/12-datos-minimos.sql" > "$AQUI/.ultima-salida.txt" 2>&1 || { echo "FALLÓ 12 (2a vez)"; tail "$AQUI/.ultima-salida.txt"; exit 1; }
 tail -12 "$AQUI/.ultima-salida.txt"
+# 13 a 16 (ponentes, acceso escolar, sedes) y 17, la puerta, dos veces.
+for f in 13-ponentes 14-acceso-escolar 15-sedes-abiertas 16-sedes-salas 17-puerta 17-puerta; do
+  run < "$SQL/$f.sql" > "$AQUI/.ultima-salida.txt" 2>&1 || { echo "FALLÓ $f"; grep -m3 ERROR "$AQUI/.ultima-salida.txt"; exit 1; }
+done
+tail -9 "$AQUI/.ultima-salida.txt"

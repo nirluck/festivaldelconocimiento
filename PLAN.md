@@ -74,6 +74,8 @@ ejes · tipos · sedes
 | `sql/11-boletos.sql` | **Fase F1.** Boletos, aforo, puerta y panel |
 | `sql/12-datos-minimos.sql` | **F3½.** El público deja solo los datos mínimos; retira `asistentes` |
 | `sql/13-ponentes.sql` | **Fase C, ponentes.** Foto, semblanza y participación; bucket `ponentes`. Escrito el 29 de septiembre de 2026 |
+| `sql/17-puerta.sql` | **Fase F4.** Código de puerta corto, «Deshacer» corregido y ajuste de cuántos entraron. Escrito el 2 de octubre de 2026 |
+| `sql/auditoria-seguridad.sql` | No cambia nada: revisa permisos, reglas por fila y funciones expuestas. Correr tras cada SQL nuevo |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
 **03 y 06 ya no se vuelven a ejecutar.** Describen el esquema anterior a 07 y
@@ -864,7 +866,7 @@ indispensable y construir la puerta mientras el registro ya corre:
 | F2 · Conseguir boleto | Formulario, boleto en pantalla, QR de cada actividad | 25 sep |
 | F3 · Panel | Módulo Boletos, tablero de aforo, exportación | 29 sep |
 | — | **Apertura del registro** (requiere el aviso de privacidad, sección 8) | **1 oct** |
-| F4 · Puerta | Escáner, búsqueda, entrada sin boleto, funciona sin red | 10 oct |
+| F4 · Puerta | Escáner, búsqueda, entrada sin boleto, funciona sin red | 10 oct · **hecha el 2 oct** |
 | F5 · Correo | Mandar el boleto, recordatorio, «libera tu lugar» | cuando exista la fase H |
 
 #### Decisión: se lanza sin correo
@@ -1289,7 +1291,8 @@ biblioteca sirve para la fase G.
 - **Tablero `/panel/boletos/`**: cifras generales, filtros (modo, solo con
   espera, búsqueda), cuatro órdenes, totales y CSV. Enlazado en el menú de la
   administración.
-- **Las claves de puerta apuntan a `/puerta/#<clave>`**, que construye F4.
+- **Las claves de puerta apuntaban a `/puerta/#<clave>`.** F4 las cambió por un
+  código de ocho caracteres que se teclea (ver F4).
 
 **Cómo se probó.** El servidor de prueba ahora simula también el inicio de
 sesión (cualquier cuenta de la base, contraseña «prueba») y las escrituras
@@ -1363,37 +1366,77 @@ fase decía sobre correo, edad, ocupación y procedencia:
 **Orden para aplicar:** `12-datos-minimos.sql`, luego `12b-lugares.local.sql`,
 y otra vez `12-datos-minimos.sql` para ver sus comprobaciones en BIEN.
 
-#### F4 · Puerta — `/puerta/` — **la siguiente**
+#### F4 · Puerta — `/puerta/` y `sql/17-puerta.sql` — escrita el 2 de octubre de 2026, aplicada el 3, **en prueba**
 
-El día del evento, en una sede con mala señal, con fila.
+El día del evento, en una sede con mala señal, con fila. Decisiones del 2 de
+octubre:
 
-- **Quién entra:** el coordinador, la administración, o cualquiera con la
-  liga `/puerta/#<clave>`. La clave existe porque los voluntarios no tienen
-  cuenta (sección 3) y son quienes estarán en la puerta. Es de una sola
-  actividad, se revoca desde el panel y caduca al terminar el día.
-- **Escanear:** `BarcodeDetector` del navegador donde exista (Chrome en
-  Android); `jsQR` (Apache 2.0) en `vendor/` donde no (Safari en iPhone).
-- **Respuesta enorme y de color:** verde «Adelante · 2 lugares», ámbar «Ya
-  entró a las 10:42», rojo «Boleto de otra actividad» o «Cancelado».
-- **Búsqueda** por código, nombre o correo, para quien perdió el boleto.
-- **Entrada sin boleto:** un botón «+1» que cuenta a quien cabe.
-- **Contador en grande:** adentro / **capacidad de la sala**, no / cupo. Como
-  el cupo ya trae sobrecupo, puede rebasar lo que cabe físicamente; quien
-  cuida la puerta necesita el tope real. Sale de `sedes.capacidad`, que hoy
-  está vacía: **hay que llenarla antes del festival**. Si falta, se usa el cupo.
-- **El público nunca ve el cupo**, solo «quedan N». Hoy la ficha y la
-  cartelera muestran «N lugares»; con el sobrecupo incluido ese número ya no
-  es la capacidad de la sala, así que se sustituye en F2.
-- **Sin red:** al abrir, descarga la lista de la actividad y la guarda en
-  IndexedDB. Valida contra la copia local y encola las entradas; las sube cuando
-  vuelve la señal. Dos teléfonos en la misma puerta pueden dejar pasar dos veces
-  el mismo boleto mientras no haya red: se acepta, y al sincronizar gana la
-  primera marca.
+- **Se entra con un código, no con QR ni liga.** El coordinador crea en su
+  panel (Boletos › Puerta) un código de ocho caracteres (`ABCD-2345`) y lo
+  copia —solo, o con un mensaje listo para WhatsApp—. Quien cuida la puerta
+  abre `/puerta/` y lo escribe una vez: el teléfono lo cambia por la clave
+  larga (`entrar_puerta`) y la recuerda. Diez códigos equivocados por
+  dirección en diez minutos y se bloquea; los correctos no cuentan, porque en
+  una sede todos salen por la misma IP. Vence solo a las 6 de la mañana del
+  día siguiente y se revoca desde el panel.
+- **Varias actividades en un teléfono, sin cambiar a mano.** Se escribe un
+  código por actividad. Al escanear, el boleto se busca en todas las listas y
+  la entrada va a la suya. Si es de una actividad que el teléfono no tiene,
+  dice cuál es, cuándo y dónde. El contador y el «+1» van a la actividad que
+  ocurre (desde 45 minutos antes); se puede fijar otra con un toque.
+- **Marca al escanear**, sin toques extra, con **Deshacer** y con «Entraron
+  − 3 + de 4» para las familias. Respuesta enorme de color con palabra:
+  Adelante (verde), Ya entró a las 10:42 (ámbar), Lista de espera con «Dejar
+  pasar» (azul), Otra actividad / Cancelado / No es válido (rojo). Vibra y
+  suena distinto en cada caso.
+- **Sin boleto y lista de espera: criterio de la puerta.** «+1 sin boleto»
+  cuenta a quien pasa (ajustable a varias personas) sin pedir datos. La
+  pantalla da los números —adentro contra la capacidad de la sala, lugares
+  libres, por llegar con boleto, en espera, sin boleto— y no frena a nadie.
+- **Búsqueda por nombre o código** en todas las listas del teléfono, también
+  sin red. **Quiénes entraron**: la lista con hora y número.
+- **Sin red:** la lista de cada actividad vive en el teléfono (con la huella
+  SHA-256 del token, nunca el token). Las entradas cuentan al momento, se
+  encolan y suben solas al volver la señal; si otro teléfono ya había marcado
+  ese boleto, avisa. Un trabajador de servicio (`/puerta/sw.js`) guarda la
+  página para que vuelva a abrir sin señal. Los nombres se borran del
+  teléfono cuando vence la clave.
+- **Cámara:** `BarcodeDetector` del navegador donde existe (Chrome en
+  Android); `jsQR` 1.4.0 (Apache 2.0, `assets/js/vendor/`) donde no (Safari en
+  iPhone). Linterna si el teléfono la deja; la pantalla no se apaga mientras
+  la cámara está abierta.
+- **Cabecera:** `Permissions-Policy` pasa a `camera=(self)` en todo el sitio,
+  no solo en `/puerta/*`: Netlify no documenta qué pasa si dos reglas ponen la
+  misma cabecera, y con `camera=()` ganando, la puerta se quedaría sin
+  cámara. `/puerta/` lleva `noindex` y está en `robots.txt`.
+- **En el panel**, Ocupación dice cuántos entraron con boleto, cuántos sin
+  boleto y qué parte de los lugares apartados se usó; la lista de quiénes está
+  en Personas › Ya entraron y en el CSV.
 
-**Hay que cambiar una cabecera.** `netlify.toml` tiene
-`Permissions-Policy: camera=()` para todo el sitio: bloquea la cámara y el
-escáner no funcionaría. Se abre solo para `/puerta/*` con `camera=(self)`, y
-esa ruta lleva además `noindex`.
+`sql/17-puerta.sql` además **corrige un defecto**: `anular_entrada` (Deshacer)
+buscaba `asistente_id`, que 12 eliminó, y fallaba siempre. Al deshacer un
+«+1», ahora también le quita la hora de entrada; si no, el panel lo seguía
+contando como «Entró».
+
+**Revisión de seguridad (3 de octubre).** `pruebas/boletos/seguridad-puerta.sql`
+ataca la puerta sin clave, con clave falsa, vencida o de otra actividad, con
+texto malicioso, directo a las tablas y como coordinador ajeno: todo rebota.
+Encontró que la búsqueda con «%» coincidía con todos (corregido en 17 con
+`strpos`); además 17 purga `intentos` y cierra `puerta_por_clave`, que ya no
+se usa. `sql/auditoria-seguridad.sql` revisa la base real sin cambiar nada
+(once renglones en BIEN); se comprobó que marca REVISAR si se abre un hueco.
+
+**Orden para aplicar:** solo `17-puerta.sql`, después de 16. Se puede
+re-ejecutar. Si algún día se vuelve a correr 11, hay que correr 12, 16 y 17
+después.
+
+**Cómo se probó.** `pruebas/boletos/puerta.sql` (31 casos contra la base de
+Docker: código con guion y minúsculas, límite de fallos, ajustar, deshacer,
+«+1», ruteo entre actividades, marcas sin red con su hora, revocar, contadores
+que cuadran) y `pruebas/boletos/puerta.test.mjs` (33 casos de la lógica del
+teléfono en Node: cola sin red, correcciones, alias del «+1», búsqueda,
+vencimiento). **Falta probar con teléfonos reales**, un iPhone y un Android,
+de preferencia en una sede: cámara, linterna y señal mala.
 
 #### F5 · Correo — con la fase H
 
