@@ -13,7 +13,7 @@
    Al cambiar la lista de archivos, sube el número de CACHE.
    ========================================================================== */
 
-const CACHE = 'fdc-puerta-2';
+const CACHE = 'fdc-puerta-3';
 const ARCHIVOS = [
   '/puerta/',
   '/assets/css/marca.css',

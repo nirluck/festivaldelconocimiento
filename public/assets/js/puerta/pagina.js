@@ -33,6 +33,7 @@ let candado = null;          // Wake Lock: que la pantalla no se apague con la c
 let audio = null;
 let camaraAntes = false;     // para reabrirla al volver a la pestaña
 let leyendo = false;         // una lectura a la vez: el resultado anterior manda
+let esperaSiguiente = false; // la tarjeta verde con Cancelar / Siguiente está a la vista
 
 /* ========================================================== pantalla: entrar */
 
@@ -115,7 +116,7 @@ function mostrarPuerta() {
         <i class="pt-cam__marco" aria-hidden="true"></i>
         <span class="pt-cam__cuenta" id="pt-cam-cuenta" aria-hidden="true"></span>
         <span class="pt-cam__guia" aria-hidden="true">Pon el QR del boleto dentro del cuadro</span>
-        <button class="pt-cam__res" id="pt-cam-res" type="button" hidden></button>
+        <div class="pt-cam__res" id="pt-cam-res" role="status" hidden></div>
       </div>
       <div class="pt-cam__acc">
         <button class="pt-btn pt-btn--principal pt-btn--enorme" type="button" id="pt-camara">
@@ -201,6 +202,7 @@ function repintar() {
   pintarHallados();
   pintarLista();
   pintarMias();
+  if (esperaSiguiente) destelloEntrada();
 }
 
 const $ = (sel) => main.querySelector(sel);
@@ -356,8 +358,10 @@ async function alLeer(texto) {
   const t = Date.now();
   if (leyendo || t < pausaHasta) return;
   // El mismo QR frente a la cámara se lee diez veces por segundo: se ignora
-  // seis segundos para no convertir un «Adelante» en «Ya entró».
-  if (texto === ultimo.texto && t - ultimo.t < 6000) return;
+  // seis segundos, y todo el tiempo que su tarjeta verde siga a la vista,
+  // para no convertir un «Adelante» en «Ya entró». Otro boleto sí se lee
+  // aunque no se haya tocado «Siguiente»: reemplaza la tarjeta.
+  if (texto === ultimo.texto && (esperaSiguiente || t - ultimo.t < 6000)) return;
   ultimo = { texto, t };
   pausaHasta = t + 900;
   leyendo = true;
@@ -375,7 +379,11 @@ function mostrarResultado(r) {
   if (r.boleto?.id && !r.entrada) r.entrada = r.boleto.id;
   avisarConSentidos(TONO[r.tipo] || 'mal');
   pintarResultado();
-  if (escaner?.activo) destello(resumen(r), (TONO[r.tipo] || 'mal') === 'ok' ? 2200 : 4000);
+  if (escaner?.activo) {
+    // Entrada válida: se queda con Cancelar / Siguiente. Lo demás se quita solo.
+    if (r.tipo === 'adelante' || r.tipo === 'sin_boleto') destelloEntrada();
+    else destello(resumen(r), 4000);
+  }
   if (r.tipo !== 'sin_boleto' && !escaner?.activo) $('#pt-res')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -460,21 +468,96 @@ function destello(d, ms) {
   const visor = $('#pt-visor');
   if (!caja || !visor) return;
   clearTimeout(relojDestello);
-  caja.className = `pt-cam__res pt-cam__res--${d.tono}`;
+  esperaSiguiente = !!d.acciones;
+  caja.className = `pt-cam__res pt-cam__res--${d.tono}${d.acciones ? ' pt-cam__res--accion' : ''}`;
   caja.innerHTML = `
-    <span class="pt-cam__icono" aria-hidden="true">${d.icono}</span>
-    <b>${escapar(d.tit)}</b>
+    <span class="pt-cam__cabeza">
+      <span class="pt-cam__icono" aria-hidden="true">${d.icono}</span>
+      <b>${escapar(d.tit)}</b>
+    </span>
     ${d.nombre ? `<span class="pt-cam__nom">${escapar(d.nombre)}</span>` : ''}
     ${d.linea ? `<span>${escapar(d.linea)}</span>` : ''}
-    ${d.abajo ? `<small>${escapar(d.abajo)}</small>` : ''}`;
+    ${d.paso ? `
+      <span class="pt-paso">
+        <span>${d.paso.sin ? 'Personas' : 'Entraron'}</span>
+        <button type="button" data-cam-menos aria-label="Una persona menos"${d.paso.n <= 1 ? ' disabled' : ''}>−</button>
+        <b>${d.paso.n}</b>
+        <button type="button" data-cam-mas aria-label="Una persona más"${d.paso.n >= d.paso.max ? ' disabled' : ''}>+</button>
+        ${d.paso.sin ? '' : `<span>de ${d.paso.lugares}</span>`}
+      </span>` : ''}
+    ${d.abajo ? `<small>${escapar(d.abajo)}</small>` : ''}
+    ${d.acciones ? `
+      <span class="pt-cam__botones">
+        <button class="pt-cam__cancelar" type="button" data-cam-cancelar>Cancelar</button>
+        <button class="pt-cam__siguiente" type="button" data-cam-siguiente>Siguiente</button>
+      </span>` : ''}`;
   caja.hidden = false;
   visor.dataset.tono = d.tono;
-  caja.onclick = () => quitarDestello();
+  // Sin botones, un toque en cualquier parte la quita. Con botones, solo ellos.
+  caja.onclick = d.acciones ? null : () => quitarDestello();
+  if (d.acciones) {
+    caja.querySelector('[data-cam-siguiente]').addEventListener('click', siguiente);
+    caja.querySelector('[data-cam-cancelar]').addEventListener('click', cancelarEntrada);
+    caja.querySelector('[data-cam-menos]')?.addEventListener('click', () => ajustarDesdeCamara(-1));
+    caja.querySelector('[data-cam-mas]')?.addEventListener('click', () => ajustarDesdeCamara(+1));
+    caja.querySelector('[data-cam-siguiente]').focus({ preventScroll: true });
+  }
   if (ms) relojDestello = setTimeout(quitarDestello, ms);
+}
+
+/** La entrada de la tarjeta, como está ahora en la lista (con ajustes). */
+function entradaActual() {
+  if (!res?.entrada || !res.actividadId) return null;
+  const v = puerta.vista(res.actividadId);
+  return v?.boletos.find(x => x.id === puerta.real(res.entrada) || x.id === res.entrada) || null;
+}
+
+/**
+ * Tarjeta verde con Cancelar / Siguiente. La entrada ya quedó registrada al
+ * escanear: «Siguiente» solo confirma y despeja la cámara. No es obligatorio:
+ * si se escanea otro boleto, ese reemplaza la tarjeta.
+ */
+function destelloEntrada() {
+  const b = entradaActual();
+  if (!b || !b.asistio_en) return quitarDestello();
+  const sin = res.tipo === 'sin_boleto';
+  const n = b.asistieron ?? b.lugares;
+  const max = sin ? 100 : b.lugares;
+  destello({
+    tono: 'ok', icono: sin ? '+1' : '✓', tit: sin ? 'Sin boleto' : 'Adelante',
+    nombre: sin ? null : b.nombre,
+    linea: sin ? '' : lugaresTexto(b.lugares) + (res.admitido ? ' · de la lista de espera' : ''),
+    paso: max > 1 ? { n, max, sin, lugares: b.lugares } : null,
+    acciones: true,
+  }, 0);
+}
+
+function siguiente() {
+  quitarDestello();
+  // Un respiro para retirar el boleto de enfrente de la cámara.
+  pausaHasta = Date.now() + 600;
+}
+
+function cancelarEntrada() {
+  const b = entradaActual();
+  if (b) puerta.deshacer(res.actividadId, b.id);
+  res = { tipo: 'anulado', nombre: b?.nombre, actividadId: res?.actividadId };
+  pintarResultado();
+  // Se puede volver a escanear el mismo boleto de inmediato.
+  ultimo = { texto: '', t: 0 };
+  destello({ tono: 'gris', icono: '↺', tit: 'Cancelada', nombre: b?.nombre, linea: 'Esa entrada ya no cuenta' }, 1500);
+}
+
+function ajustarDesdeCamara(d) {
+  const b = entradaActual();
+  if (!b) return;
+  cambiarCuantos(d, b);
+  destelloEntrada();
 }
 
 function quitarDestello() {
   clearTimeout(relojDestello);
+  esperaSiguiente = false;
   const caja = $('#pt-cam-res');
   if (caja) caja.hidden = true;
   const visor = $('#pt-visor');
@@ -488,8 +571,7 @@ function resumen(r) {
   const lugares = b.lugares ? lugaresTexto(b.lugares) : '';
   switch (r.tipo) {
     case 'adelante':
-      return { tono, icono: '✓', tit: 'Adelante', nombre: b.nombre, linea: lugares,
-               abajo: b.lugares > 1 ? 'Si llegaron menos, ajústalo abajo' : '' };
+      return { tono, icono: '✓', tit: 'Adelante', nombre: b.nombre, linea: lugares };
     case 'sin_boleto':
       return { tono, icono: '+1', tit: 'Sin boleto', linea: 'Registrada' };
     case 'ya_entro':
@@ -729,6 +811,10 @@ setInterval(async () => {
 }, 60e3);
 // Lo que depende de la hora («Ahora», «Próxima») se repinta solo.
 setInterval(() => { if (pantalla === 'puerta') pintarActividad(); }, 30e3);
+
+document.addEventListener('keydown', (ev) => {
+  if (esperaSiguiente && ev.key === 'Enter' && !ev.target.closest?.('input')) { ev.preventDefault(); siguiente(); }
+});
 
 window.addEventListener('online', () => { puerta.sincronizar().then(() => puerta.descargarTodas()); });
 window.addEventListener('offline', () => puerta.marcarRed(false));
