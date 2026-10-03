@@ -33,7 +33,7 @@ let candado = null;          // Wake Lock: que la pantalla no se apague con la c
 let audio = null;
 let camaraAntes = false;     // para reabrirla al volver a la pestaña
 let leyendo = false;         // una lectura a la vez: el resultado anterior manda
-let esperaSiguiente = false; // la tarjeta verde con Cancelar / Siguiente está a la vista
+let esperaSiguiente = false; // la tarjeta de abajo muestra una entrada válida recién escaneada
 
 /* ========================================================== pantalla: entrar */
 
@@ -202,7 +202,6 @@ function repintar() {
   pintarHallados();
   pintarLista();
   pintarMias();
-  if (esperaSiguiente) destelloEntrada();
 }
 
 const $ = (sel) => main.querySelector(sel);
@@ -379,11 +378,9 @@ function mostrarResultado(r) {
   if (r.boleto?.id && !r.entrada) r.entrada = r.boleto.id;
   avisarConSentidos(TONO[r.tipo] || 'mal');
   pintarResultado();
-  if (escaner?.activo) {
-    // Entrada válida: se queda con Cancelar / Siguiente. Lo demás se quita solo.
-    if (r.tipo === 'adelante' || r.tipo === 'sin_boleto') destelloEntrada();
-    else destello(resumen(r), 4000);
-  }
+  esperaSiguiente = r.tipo === 'adelante' || r.tipo === 'sin_boleto';
+  // Sobre la cámara, solo el aviso; los botones van en la tarjeta de abajo.
+  if (escaner?.activo) destello(resumen(r), 3000);
   if (r.tipo !== 'sin_boleto' && !escaner?.activo) $('#pt-res')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -445,10 +442,16 @@ function pintarResultado() {
   caja.querySelector('[data-cerrar]').addEventListener('click', () => { res = null; pintarResultado(); });
   caja.querySelector('[data-menos]')?.addEventListener('click', () => cambiarCuantos(-1, b));
   caja.querySelector('[data-mas]')?.addEventListener('click', () => cambiarCuantos(+1, b));
+  caja.querySelector('[data-siguiente]')?.addEventListener('click', siguiente);
   caja.querySelector('[data-deshacer]')?.addEventListener('click', () => {
     puerta.deshacer(r.actividadId, b.id);
     res = { tipo: 'anulado', nombre: b.nombre, actividadId: r.actividadId };
+    esperaSiguiente = false;
     pintarResultado();
+    // Se puede volver a escanear el mismo boleto de inmediato.
+    ultimo = { texto: '', t: 0 };
+    if (escaner?.activo) destello({ tono: 'gris', icono: '↺', tit: 'Anulada', nombre: b.nombre, linea: 'Esa entrada ya no cuenta' }, 1500);
+    else quitarDestello();
   });
   caja.querySelector('[data-admitir]')?.addEventListener('click', () => {
     mostrarResultado(puerta.entrar(r.actividadId, b.id, { admitir: true }));
@@ -468,96 +471,30 @@ function destello(d, ms) {
   const visor = $('#pt-visor');
   if (!caja || !visor) return;
   clearTimeout(relojDestello);
-  esperaSiguiente = !!d.acciones;
-  caja.className = `pt-cam__res pt-cam__res--${d.tono}${d.acciones ? ' pt-cam__res--accion' : ''}`;
+  caja.className = `pt-cam__res pt-cam__res--${d.tono}`;
   caja.innerHTML = `
-    <span class="pt-cam__cabeza">
-      <span class="pt-cam__icono" aria-hidden="true">${d.icono}</span>
-      <b>${escapar(d.tit)}</b>
-    </span>
+    <span class="pt-cam__icono" aria-hidden="true">${d.icono}</span>
+    <b>${escapar(d.tit)}</b>
     ${d.nombre ? `<span class="pt-cam__nom">${escapar(d.nombre)}</span>` : ''}
-    ${d.linea ? `<span>${escapar(d.linea)}</span>` : ''}
-    ${d.paso ? `
-      <span class="pt-paso">
-        <span>${d.paso.sin ? 'Personas' : 'Entraron'}</span>
-        <button type="button" data-cam-menos aria-label="Una persona menos"${d.paso.n <= 1 ? ' disabled' : ''}>−</button>
-        <b>${d.paso.n}</b>
-        <button type="button" data-cam-mas aria-label="Una persona más"${d.paso.n >= d.paso.max ? ' disabled' : ''}>+</button>
-        ${d.paso.sin ? '' : `<span>de ${d.paso.lugares}</span>`}
-      </span>` : ''}
-    ${d.abajo ? `<small>${escapar(d.abajo)}</small>` : ''}
-    ${d.acciones ? `
-      <span class="pt-cam__botones">
-        <button class="pt-cam__cancelar" type="button" data-cam-cancelar>Cancelar</button>
-        <button class="pt-cam__siguiente" type="button" data-cam-siguiente>Siguiente</button>
-      </span>` : ''}`;
+    ${d.linea ? `<span>${escapar(d.linea)}</span>` : ''}`;
   caja.hidden = false;
   visor.dataset.tono = d.tono;
-  // Sin botones, un toque en cualquier parte la quita. Con botones, solo ellos.
-  caja.onclick = d.acciones ? null : () => quitarDestello();
-  if (d.acciones) {
-    caja.querySelector('[data-cam-siguiente]').addEventListener('click', siguiente);
-    caja.querySelector('[data-cam-cancelar]').addEventListener('click', cancelarEntrada);
-    caja.querySelector('[data-cam-menos]')?.addEventListener('click', () => ajustarDesdeCamara(-1));
-    caja.querySelector('[data-cam-mas]')?.addEventListener('click', () => ajustarDesdeCamara(+1));
-    caja.querySelector('[data-cam-siguiente]').focus({ preventScroll: true });
-  }
+  caja.onclick = () => quitarDestello();
   if (ms) relojDestello = setTimeout(quitarDestello, ms);
 }
 
-/** La entrada de la tarjeta, como está ahora en la lista (con ajustes). */
-function entradaActual() {
-  if (!res?.entrada || !res.actividadId) return null;
-  const v = puerta.vista(res.actividadId);
-  return v?.boletos.find(x => x.id === puerta.real(res.entrada) || x.id === res.entrada) || null;
-}
-
-/**
- * Tarjeta verde con Cancelar / Siguiente. La entrada ya quedó registrada al
- * escanear: «Siguiente» solo confirma y despeja la cámara. No es obligatorio:
- * si se escanea otro boleto, ese reemplaza la tarjeta.
- */
-function destelloEntrada() {
-  const b = entradaActual();
-  if (!b || !b.asistio_en) return quitarDestello();
-  const sin = res.tipo === 'sin_boleto';
-  const n = b.asistieron ?? b.lugares;
-  const max = sin ? 100 : b.lugares;
-  destello({
-    tono: 'ok', icono: sin ? '+1' : '✓', tit: sin ? 'Sin boleto' : 'Adelante',
-    nombre: sin ? null : b.nombre,
-    linea: sin ? '' : lugaresTexto(b.lugares) + (res.admitido ? ' · de la lista de espera' : ''),
-    paso: max > 1 ? { n, max, sin, lugares: b.lugares } : null,
-    acciones: true,
-  }, 0);
-}
-
+/** «Siguiente»: despeja la cámara y la tarjeta, listo para el próximo boleto. */
 function siguiente() {
   quitarDestello();
+  esperaSiguiente = false;
+  res = null;
+  pintarResultado();
   // Un respiro para retirar el boleto de enfrente de la cámara.
   pausaHasta = Date.now() + 600;
 }
 
-function cancelarEntrada() {
-  const b = entradaActual();
-  if (b) puerta.deshacer(res.actividadId, b.id);
-  res = { tipo: 'anulado', nombre: b?.nombre, actividadId: res?.actividadId };
-  pintarResultado();
-  // Se puede volver a escanear el mismo boleto de inmediato.
-  ultimo = { texto: '', t: 0 };
-  destello({ tono: 'gris', icono: '↺', tit: 'Cancelada', nombre: b?.nombre, linea: 'Esa entrada ya no cuenta' }, 1500);
-}
-
-function ajustarDesdeCamara(d) {
-  const b = entradaActual();
-  if (!b) return;
-  cambiarCuantos(d, b);
-  destelloEntrada();
-}
-
 function quitarDestello() {
   clearTimeout(relojDestello);
-  esperaSiguiente = false;
   const caja = $('#pt-cam-res');
   if (caja) caja.hidden = true;
   const visor = $('#pt-visor');
@@ -573,12 +510,12 @@ function resumen(r) {
     case 'adelante':
       return { tono, icono: '✓', tit: 'Adelante', nombre: b.nombre, linea: lugares };
     case 'sin_boleto':
-      return { tono, icono: '+1', tit: 'Sin boleto', linea: 'Registrada' };
+      return { tono, icono: '✓', tit: 'Sin boleto', linea: '1 persona' };
     case 'ya_entro':
-      return { tono, icono: '!', tit: 'Ya entró', nombre: b.nombre, linea: b.asistio_en ? aLas(b.asistio_en) : '' };
+      return { tono, icono: '!', tit: 'Ya entró', nombre: b.nombre,
+               linea: [b.asistio_en ? aLas(b.asistio_en) : '', lugares].filter(Boolean).join(' · ') };
     case 'espera':
-      return { tono, icono: '⏳', tit: 'Lista de espera', nombre: b.nombre, linea: lugares,
-               abajo: 'Para dejarla pasar, toca «Dejar pasar» abajo' };
+      return { tono, icono: '⏳', tit: 'Lista de espera', nombre: b.nombre, linea: `${lugares} · «Dejar pasar» abajo` };
     case 'otra_actividad':
       return { tono, icono: '✕', tit: 'Otra actividad', linea: r.actividad ? `Es para «${r.actividad.titulo}» · ${cuando(r.actividad)}` : '' };
     default: {
@@ -590,21 +527,26 @@ function resumen(r) {
   }
 }
 
-/** «Entraron − 3 + de 3» y «Deshacer», bajo la tarjeta. */
+/**
+ * Bajo una entrada válida: «Entraron − 3 + de 4» (solo si hay más de un
+ * lugar) y los dos botones, Deshacer a la izquierda y Siguiente a la derecha.
+ */
 function controles(b, max) {
   const n = b.asistieron ?? b.lugares;
   const sin = !b.nombre;
   return `
+    ${max > 1 ? `
     <div class="pt-paso">
       <span>${sin ? 'Personas' : 'Entraron'}</span>
-      ${max > 1 ? `<button type="button" data-menos aria-label="Una persona menos"${n <= 1 ? ' disabled' : ''}>−</button>` : ''}
+      <button type="button" data-menos aria-label="Una persona menos"${n <= 1 ? ' disabled' : ''}>−</button>
       <b>${n}</b>
-      ${max > 1 ? `<button type="button" data-mas aria-label="Una persona más"${n >= max ? ' disabled' : ''}>+</button>` : ''}
+      <button type="button" data-mas aria-label="Una persona más"${n >= max ? ' disabled' : ''}>+</button>
       ${sin ? '' : `<span>de ${b.lugares}</span>`}
-    </div>
-    <div class="pt-res__acc">
-      <button class="pt-mini" type="button" data-deshacer>Deshacer</button>
-      ${b.pendiente ? '<small>pendiente de subir</small>' : '<small>registrada</small>'}
+    </div>` : ''}
+    <p class="pt-res__estado">${b.pendiente ? 'Registrada en el teléfono · pendiente de subir' : 'Registrada'}</p>
+    <div class="pt-res__botones">
+      <button class="pt-res__deshacer" type="button" data-deshacer>Deshacer</button>
+      <button class="pt-res__siguiente" type="button" data-siguiente>Siguiente</button>
     </div>`;
 }
 

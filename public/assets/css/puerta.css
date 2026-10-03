@@ -129,7 +129,7 @@
 
 /* El borde del visor toma el color del resultado. */
 .pt-cam__visor[data-tono="ok"]{outline-color:var(--ok)}
-.pt-cam__visor[data-tono="ambar"]{outline-color:var(--ambar)}
+.pt-cam__visor[data-tono="ambar"]{outline-color:var(--amarillo)}
 .pt-cam__visor[data-tono="azul"]{outline-color:var(--azul)}
 .pt-cam__visor[data-tono="mal"]{outline-color:var(--mal)}
 .pt-cam__visor[data-tono="gris"]{outline-color:var(--gris)}
@@ -139,7 +139,8 @@
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
   color:#fff;font-family:var(--f-body);animation:pt-destello .2s ease-out}
 .pt-cam__res--ok{background:color-mix(in srgb, var(--ok) 94%, transparent)}
-.pt-cam__res--ambar{background:color-mix(in srgb, var(--ambar) 94%, transparent)}
+/* «Ya entró» en amarillo de marca: el blanco no se lee encima, va en oscuro. */
+.pt-cam__res--ambar{background:color-mix(in srgb, var(--amarillo) 96%, transparent);color:var(--dark)}
 .pt-cam__res--azul{background:color-mix(in srgb, var(--azul) 94%, transparent)}
 .pt-cam__res--mal{background:color-mix(in srgb, var(--mal) 94%, transparent)}
 .pt-cam__res--gris{background:color-mix(in srgb, var(--gris) 94%, transparent)}
@@ -152,25 +153,6 @@
 .pt-cam__res span:not(.pt-cam__icono):not(.pt-cam__nom){font-size:1rem;opacity:.95}
 .pt-cam__res small{font-size:.82rem;opacity:.85;margin-top:6px}
 
-/* Ícono y palabra en un renglón: con botones, todo debe caber en el visor. */
-.pt-cam__cabeza{display:flex;flex-direction:column;align-items:center;gap:4px}
-.pt-cam__res--accion{justify-content:center;gap:2px;padding:12px 14px}
-.pt-cam__res--accion .pt-cam__cabeza{flex-direction:row;gap:10px}
-.pt-cam__res--accion .pt-cam__icono{width:44px;height:44px;font-size:1.4rem;margin:0;border-width:2.5px}
-.pt-cam__res--accion b{font-size:2rem}
-.pt-cam__res--accion .pt-cam__nom{font-size:1.15rem;margin-top:2px}
-.pt-cam__res .pt-paso{margin-top:6px;gap:10px;font-size:.95rem}
-.pt-cam__res .pt-paso b{font-size:1.7rem}
-.pt-cam__res .pt-paso button{width:44px;height:44px;font-size:1.4rem}
-
-/* Cancelar a la izquierda, Siguiente a la derecha y más visible. */
-.pt-cam__botones{display:flex;gap:10px;width:100%;max-width:420px;margin-top:12px}
-.pt-cam__botones button{flex:1;min-height:56px;border-radius:14px;font:700 1.05rem var(--f-body);
-  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.pt-cam__cancelar{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.8)}
-.pt-cam__siguiente{background:#fff;color:var(--ok);border:2px solid #fff;flex:1.4!important}
-.pt-cam__siguiente:focus-visible,.pt-cam__cancelar:focus-visible{outline:3px solid var(--amarillo);outline-offset:2px}
-
 @keyframes pt-destello{from{transform:scale(1.04);opacity:.4}to{transform:none;opacity:1}}
 @keyframes pt-gira{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){
@@ -182,7 +164,8 @@
   animation:pt-entra .18s ease-out}
 .pt-res[hidden]{display:none}
 .pt-res--ok{background:var(--ok)}
-.pt-res--ambar{background:var(--ambar)}
+.pt-res--ambar{background:var(--amarillo);color:var(--dark)}
+.pt-res--ambar .pt-res__cerrar{background:rgba(23,32,51,.1);color:var(--dark)}
 .pt-res--azul{background:var(--azul)}
 .pt-res--mal{background:var(--mal)}
 .pt-res--gris{background:var(--gris)}
@@ -194,6 +177,15 @@
 .pt-res__act{font-size:.9rem;opacity:.85;margin-top:2px}
 .pt-res__acc{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;flex-wrap:wrap}
 .pt-res__acc small{font-size:.8rem;opacity:.8}
+.pt-res__estado{font-size:.82rem;opacity:.85;margin-top:6px}
+
+/* Deshacer a la izquierda, Siguiente a la derecha y más visible. */
+.pt-res__botones{display:flex;gap:10px;margin-top:12px}
+.pt-res__botones button{flex:1;min-height:56px;border-radius:14px;font:700 1.05rem var(--f-body);
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pt-res__deshacer{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.8)}
+.pt-res__siguiente{background:#fff;color:var(--ok);border:2px solid #fff;flex:1.4!important}
+.pt-res__botones button:focus-visible{outline:3px solid var(--amarillo);outline-offset:2px}
 .pt-res__cerrar{position:absolute;top:8px;right:8px;width:44px;height:44px;border:0;border-radius:50%;
   background:rgba(255,255,255,.14);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer}
 

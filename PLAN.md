@@ -1432,13 +1432,14 @@ a la vez la cámara y la tarjeta del resultado. Ahora el resultado cubre la
 cámara con su color, ícono, palabra y nombre («Leyendo…» al instante, mientras
 responde), el borde del visor toma ese color, y el visor es 4:3 con tope de
 altura y sube a lo alto de la pantalla al abrirse; encima lleva el contador.
-Lo que no es entrada válida se quita solo a los 4 s o con un toque. La
-entrada válida (y el «+1») se queda en verde con **Cancelar** (izquierda) y
-**Siguiente** (derecha), y con «Entraron − +» si el boleto es de varios
-lugares. «Siguiente» (o Enter) confirma y despeja la cámara, pero no es
-obligatorio: escanear otro boleto reemplaza la tarjeta. El mismo boleto no se
-vuelve a leer mientras su tarjeta siga a la vista. La entrada se registra al
-escanear: si nadie toca «Siguiente», no se pierde. Y para limpiar
+Tras probarlo en el celular, sobre la cámara va SOLO el aviso: verde con
+palomita, nombre y lugares; amarillo «Ya entró» con hora; rojo con tache si no
+es válido. Se quita a los 3 s, con un toque o con «Siguiente». Los botones van
+en la tarjeta de abajo: **Deshacer** (izquierda) y **Siguiente** (derecha),
+más «Entraron − +» si hay más de un lugar. «Siguiente» no es obligatorio:
+escanear otro boleto reemplaza la tarjeta; el mismo boleto no se relee
+mientras su tarjeta siga a la vista (ni en 6 s).
+La entrada se registra al escanear. Y para limpiar
 pruebas: `sql/18-eliminar-boletos.sql` y el botón **Eliminar** del panel
 (solo administración), que borra boletos en cualquier estado y recalcula los
 contadores.
