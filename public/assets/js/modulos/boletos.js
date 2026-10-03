@@ -307,7 +307,8 @@ class Modulo {
     this.$('#bol-personas').innerHTML = `
       <h2>Personas</h2>
       <p class="leyenda">${total
-        ? 'Quienes pidieron boleto. La lista es para organizar la entrada: no la compartas fuera de la organización.'
+        ? `Quienes pidieron boleto. La lista es para organizar la entrada: no la compartas fuera de la organización.${this.esAdmin
+            ? ' <b>Eliminar</b> borra un boleto para siempre, aunque ya haya entrado: es para pruebas y errores. Para liberar un lugar, mejor Cancelar.' : ''}`
         : 'Todavía nadie ha pedido boleto.'}</p>
 
       ${total ? `
@@ -346,7 +347,7 @@ class Modulo {
     });
     this.$('#bol-csv').addEventListener('click', () => this.exportar());
     this.$('#bol-todos').addEventListener('change', (ev) => {
-      this.filtrados().filter(cancelable).forEach(b =>
+      this.filtrados().filter(b => this.elegible(b)).forEach(b =>
         ev.target.checked ? this.seleccion.add(b.id) : this.seleccion.delete(b.id));
       this.pintarFilas();
     });
@@ -354,15 +355,15 @@ class Modulo {
 
   pintarFilas() {
     const filas = this.filtrados();
-    // La selección solo conserva lo que sigue visible y cancelable.
-    const visibles = new Set(filas.filter(cancelable).map(b => b.id));
+    // La selección solo conserva lo que sigue visible y se puede elegir.
+    const visibles = new Set(filas.filter(b => this.elegible(b)).map(b => b.id));
     [...this.seleccion].forEach(id => { if (!visibles.has(id)) this.seleccion.delete(id); });
 
     this.$('#bol-filas').innerHTML = filas.length ? filas.map(b => {
       const [etq, tono] = b.asistio_en ? ['Entró', 'azul'] : (ESTADOS[b.estado] || [b.estado, 'gris']);
       return `
       <tr data-id="${b.id}">
-        <td>${cancelable(b) ? `<input type="checkbox" data-sel aria-label="Seleccionar a ${escapar(b.nombre || b.codigo)}"${this.seleccion.has(b.id) ? ' checked' : ''}>` : ''}</td>
+        <td>${this.elegible(b) ? `<input type="checkbox" data-sel aria-label="Seleccionar a ${escapar(b.nombre || b.codigo)}"${this.seleccion.has(b.id) ? ' checked' : ''}>` : ''}</td>
         <td><code class="bol-codigo">${escapar(codigoLegible(b.codigo))}</code></td>
         <td><strong>${escapar(b.nombre || 'Sin nombre (entrada en puerta)')}</strong></td>
         <td class="num">${b.asistio_en && b.asistieron !== b.lugares ? `${b.asistieron} de ${b.lugares}` : b.lugares}</td>
@@ -371,7 +372,8 @@ class Modulo {
         <td>${escapar(fechaHora(b.creado))}</td>
         <td class="bol-acc">
           ${b.estado === 'espera' && !b.asistio_en ? '<button class="btn btn--linea btn--chico" type="button" data-admitir>Admitir</button>' : ''}
-          ${cancelable(b) ? '<button class="bol-mini bol-mini--peligro" type="button" data-cancelar>Cancelar</button>' : ''}
+          ${cancelable(b) ? '<button class="bol-mini bol-mini--peligro" type="button" data-cancelar>Cancelar</button>'
+            : this.esAdmin ? '<button class="bol-mini bol-mini--peligro" type="button" data-eliminar title="Borra el boleto y su entrada para siempre">Eliminar</button>' : ''}
         </td>
       </tr>`;
     }).join('') : `<tr><td colspan="8" class="bol-vacio">Nada coincide con la búsqueda.</td></tr>`;
@@ -393,34 +395,54 @@ class Modulo {
       b.textContent = '¿Seguro? Cancelar';
       setTimeout(() => { if (b.isConnected) { delete b.dataset.confirmar; b.textContent = 'Cancelar'; } }, 4000);
     }));
+    tbody.querySelectorAll('[data-eliminar]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.confirmar) return this.eliminar([b.closest('tr').dataset.id]);
+      b.dataset.confirmar = '1';
+      b.textContent = '¿Seguro? Eliminar para siempre';
+      setTimeout(() => { if (b.isConnected) { delete b.dataset.confirmar; b.textContent = 'Eliminar'; } }, 4000);
+    }));
     tbody.querySelectorAll('[data-admitir]').forEach(b => b.addEventListener('click', () =>
       this.admitir(b.closest('tr').dataset.id, b)));
     this.pintarMasa();
+  }
+
+  /** Qué se puede marcar: lo cancelable; la administración, todo (para eliminar). */
+  elegible(b) {
+    return this.esAdmin || cancelable(b);
   }
 
   pintarMasa() {
     const caja = this.$('#bol-masa');
     const n = this.seleccion.size;
     const todos = this.$('#bol-todos');
-    const cancelables = this.filtrados().filter(cancelable).length;
+    const elegibles = this.filtrados().filter(b => this.elegible(b)).length;
     if (todos) {
-      todos.checked = n > 0 && n === cancelables;
-      todos.indeterminate = n > 0 && n < cancelables;
+      todos.checked = n > 0 && n === elegibles;
+      todos.indeterminate = n > 0 && n < elegibles;
     }
     if (!n) { caja.hidden = true; return; }
+    const ids = [...this.seleccion];
+    const aCancelar = ids.filter(id => cancelable(this.boletos.find(b => b.id === id) || {}));
     caja.hidden = false;
     caja.innerHTML = `
       <span>${n} ${n === 1 ? 'boleto seleccionado' : 'boletos seleccionados'}</span>
-      <button class="btn btn--linea btn--chico bol-peligro" type="button" data-masa>Cancelar ${n === 1 ? 'el boleto' : `los ${n}`}</button>
+      ${aCancelar.length ? `<button class="btn btn--linea btn--chico bol-peligro" type="button" data-masa>Cancelar ${aCancelar.length === 1 ? 'el boleto' : `los ${aCancelar.length}`}${aCancelar.length < n ? ' que no han entrado' : ''}</button>` : ''}
+      ${this.esAdmin ? `<button class="btn btn--linea btn--chico bol-peligro" type="button" data-borrar>Eliminar ${n === 1 ? 'el boleto' : `los ${n}`} para siempre</button>` : ''}
       <button class="bol-mini" type="button" data-limpiar>Quitar selección</button>`;
     caja.querySelector('[data-limpiar]').addEventListener('click', () => {
       this.seleccion.clear(); this.pintarFilas();
     });
     const b = caja.querySelector('[data-masa]');
-    b.addEventListener('click', () => {
-      if (b.dataset.confirmar) return this.cancelar([...this.seleccion]);
+    b?.addEventListener('click', () => {
+      if (b.dataset.confirmar) return this.cancelar(aCancelar);
       b.dataset.confirmar = '1';
-      b.textContent = `Confirmar: cancelar ${n === 1 ? '1 boleto' : n + ' boletos'}`;
+      b.textContent = `Confirmar: cancelar ${aCancelar.length === 1 ? '1 boleto' : aCancelar.length + ' boletos'}`;
+    });
+    const e = caja.querySelector('[data-borrar]');
+    e?.addEventListener('click', () => {
+      if (e.dataset.confirmar) return this.eliminar(ids);
+      e.dataset.confirmar = '1';
+      e.textContent = `Confirmar: borrar ${n === 1 ? '1 boleto' : n + ' boletos'} y sus entradas`;
     });
   }
 
@@ -434,6 +456,17 @@ class Modulo {
     this.avisar(fallidos.length ? 'info' : 'ok',
       `${data.cancelados === 1 ? 'Se canceló 1 boleto' : `Se cancelaron ${data.cancelados} boletos`}; los lugares quedaron libres.`
       + (fallidos.length ? ` ${fallidos.length} no se pudieron cancelar (${[...new Set(fallidos.map(f => motivo[f.error] || f.error))].join(', ')}).` : ''));
+  }
+
+  /** Solo administración (sql/18): borra boletos en cualquier estado, con su entrada. */
+  async eliminar(ids) {
+    const { data, error } = await db.rpc('eliminar_boletos_panel', { p_ids: ids });
+    if (error) return this.avisar('mal', /could not find the function/i.test(error.message || '')
+      ? 'Falta aplicar sql/18-eliminar-boletos.sql en la base de datos.' : explicar(error));
+    if (!data.ok) return this.avisar('mal', data.error === 'sin_permiso'
+      ? 'Solo la administración puede eliminar boletos.' : mensaje(data));
+    this.seleccion.clear();
+    this.refrescar(`${data.eliminados === 1 ? 'Se eliminó 1 boleto' : `Se eliminaron ${data.eliminados} boletos`} para siempre; los contadores se recalcularon.`);
   }
 
   async admitir(id, boton) {

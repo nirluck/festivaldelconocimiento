@@ -107,3 +107,27 @@ select '31 aforo = suma de boletos [t t]: ' || (f.asistieron = coalesce(s.a, 0))
                     sum(lugares) filter (where estado = 'activo') e
                from public.boletos group by actividad_id) s on s.actividad_id = f.actividad_id
  where f.actividad_id = :'act';
+
+\echo ---- ELIMINAR (sql/18)
+select count(*) as antes from public.boletos where actividad_id = :'act' \gset
+set request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+set role authenticated;
+select '32 el coordinador no elimina [sin_permiso]: ' || (public.eliminar_boletos_panel(array[:'b1']::uuid[])->>'error');
+reset role;
+set role anon;
+select '33 sin cuenta [ERROR]:';
+select public.eliminar_boletos_panel(array[:'b1']::uuid[]);
+reset role;
+set request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+set role authenticated;
+select '34 la administración elimina dos, uno que ya entró y el +1 cancelado [2]: '
+       || (public.eliminar_boletos_panel(array[:'b1', :'sb', gen_random_uuid()]::uuid[])->>'eliminados');
+reset role;
+reset request.jwt.claim.sub;
+select '35 quedan [antes - 2]: ' || (count(*) = :antes - 2) from public.boletos where actividad_id = :'act';
+select '36 contadores recalculados [t t]: ' || (f.asistieron = coalesce(s.a, 0)) || ' ' || (f.emitidos = coalesce(s.e, 0))
+  from public.aforos f
+  left join (select actividad_id, sum(asistieron) filter (where asistio_en is not null and estado <> 'cancelado') a,
+                    sum(lugares) filter (where estado = 'activo') e
+               from public.boletos group by actividad_id) s on s.actividad_id = f.actividad_id
+ where f.actividad_id = :'act';

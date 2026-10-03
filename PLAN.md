@@ -75,6 +75,7 @@ ejes · tipos · sedes
 | `sql/12-datos-minimos.sql` | **F3½.** El público deja solo los datos mínimos; retira `asistentes` |
 | `sql/13-ponentes.sql` | **Fase C, ponentes.** Foto, semblanza y participación; bucket `ponentes`. Escrito el 29 de septiembre de 2026 |
 | `sql/17-puerta.sql` | **Fase F4.** Código de puerta corto, «Deshacer» corregido y ajuste de cuántos entraron. Escrito el 2 de octubre de 2026 |
+| `sql/18-eliminar-boletos.sql` | Eliminar boletos para siempre, aunque ya hayan entrado. Solo administración. Escrito el 3 de octubre de 2026 |
 | `sql/auditoria-seguridad.sql` | No cambia nada: revisa permisos, reglas por fila y funciones expuestas. Correr tras cada SQL nuevo |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
@@ -1425,6 +1426,16 @@ Encontró que la búsqueda con «%» coincidía con todos (corregido en 17 con
 `strpos`); además 17 purga `intentos` y cierra `puerta_por_clave`, que ya no
 se usa. `sql/auditoria-seguridad.sql` revisa la base real sin cambiar nada
 (once renglones en BIEN); se comprobó que marca REVISAR si se abre un hueco.
+
+**Ajustes tras la primera prueba (3 de octubre).** En el celular no se veían
+a la vez la cámara y la tarjeta del resultado. Ahora el resultado cubre la
+cámara con su color, ícono, palabra y nombre («Leyendo…» al instante, mientras
+responde), el borde del visor toma ese color, y el visor es 4:3 con tope de
+altura y sube a lo alto de la pantalla al abrirse; encima lleva el contador.
+Se quita solo (2 s si todo bien, 4 s si no) o con un toque. Y para limpiar
+pruebas: `sql/18-eliminar-boletos.sql` y el botón **Eliminar** del panel
+(solo administración), que borra boletos en cualquier estado y recalcula los
+contadores.
 
 **Orden para aplicar:** solo `17-puerta.sql`, después de 16. Se puede
 re-ejecutar. Si algún día se vuelve a correr 11, hay que correr 12, 16 y 17

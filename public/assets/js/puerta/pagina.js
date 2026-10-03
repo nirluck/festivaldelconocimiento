@@ -113,6 +113,9 @@ function mostrarPuerta() {
       <div class="pt-cam__visor" id="pt-visor" hidden>
         <video id="pt-video" playsinline muted></video>
         <i class="pt-cam__marco" aria-hidden="true"></i>
+        <span class="pt-cam__cuenta" id="pt-cam-cuenta" aria-hidden="true"></span>
+        <span class="pt-cam__guia" aria-hidden="true">Pon el QR del boleto dentro del cuadro</span>
+        <button class="pt-cam__res" id="pt-cam-res" type="button" hidden></button>
       </div>
       <div class="pt-cam__acc">
         <button class="pt-btn pt-btn--principal pt-btn--enorme" type="button" id="pt-camara">
@@ -264,6 +267,8 @@ function pintarActividad() {
   const v = puerta.vista(id);
   const a = v.actividad;
   const w = ventana(a), t = Date.now();
+  const mini = $('#pt-cam-cuenta');
+  if (mini) mini.textContent = `Adentro ${v.adentro}${v.tope ? ' / ' + v.tope : ''}`;
   const momento = puerta.fijada ? 'Fijada' : !w ? '' : t < w.ini - 45 * 60e3 ? 'Próxima' : t > w.fin ? 'Terminó' : 'Ahora';
   const lleno = v.tope && v.adentro >= v.tope;
   const pct = v.tope ? Math.min(100, Math.round(100 * v.adentro / v.tope)) : 0;
@@ -321,11 +326,14 @@ async function abrirCamara() {
   btn.classList.remove('pt-btn--principal', 'pt-btn--enorme');
   btn.classList.add('pt-btn--linea');
   $('#pt-luz').hidden = !escaner.hayLinterna;
+  // En el celular la cámara queda arriba y el resultado se ve encima de ella.
+  $('#pt-cam').scrollIntoView({ behavior: 'smooth', block: 'start' });
   try { candado = await navigator.wakeLock?.request('screen'); } catch (e) { /* no hay */ }
 }
 
 function detenerCamara() {
   escaner?.detener();
+  quitarDestello();
   candado?.release?.().catch(() => {});
   candado = null;
   const btn = $('#pt-camara');
@@ -353,6 +361,8 @@ async function alLeer(texto) {
   ultimo = { texto, t };
   pausaHasta = t + 900;
   leyendo = true;
+  // Se ve al instante que el QR se leyó, aunque la respuesta tarde (red lenta).
+  destello({ tono: 'leyendo', icono: '…', tit: 'Leyendo', linea: '' }, 0);
   try { mostrarResultado(await puerta.registrar(texto)); }
   finally { leyendo = false; }
 }
@@ -365,6 +375,7 @@ function mostrarResultado(r) {
   if (r.boleto?.id && !r.entrada) r.entrada = r.boleto.id;
   avisarConSentidos(TONO[r.tipo] || 'mal');
   pintarResultado();
+  if (escaner?.activo) destello(resumen(r), (TONO[r.tipo] || 'mal') === 'ok' ? 2200 : 4000);
   if (r.tipo !== 'sin_boleto' && !escaner?.activo) $('#pt-res')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -436,6 +447,67 @@ function pintarResultado() {
   });
 }
 
+/* ---------------------------------------------- resultado sobre la cámara -- */
+
+/**
+ * El resultado en grande ENCIMA de la cámara: en el celular la cámara ocupa la
+ * pantalla y la tarjeta queda abajo, fuera de la vista. Se quita sola (o con
+ * un toque) para seguir escaneando; la tarjeta de abajo conserva los botones.
+ */
+let relojDestello = null;
+function destello(d, ms) {
+  const caja = $('#pt-cam-res');
+  const visor = $('#pt-visor');
+  if (!caja || !visor) return;
+  clearTimeout(relojDestello);
+  caja.className = `pt-cam__res pt-cam__res--${d.tono}`;
+  caja.innerHTML = `
+    <span class="pt-cam__icono" aria-hidden="true">${d.icono}</span>
+    <b>${escapar(d.tit)}</b>
+    ${d.nombre ? `<span class="pt-cam__nom">${escapar(d.nombre)}</span>` : ''}
+    ${d.linea ? `<span>${escapar(d.linea)}</span>` : ''}
+    ${d.abajo ? `<small>${escapar(d.abajo)}</small>` : ''}`;
+  caja.hidden = false;
+  visor.dataset.tono = d.tono;
+  caja.onclick = () => quitarDestello();
+  if (ms) relojDestello = setTimeout(quitarDestello, ms);
+}
+
+function quitarDestello() {
+  clearTimeout(relojDestello);
+  const caja = $('#pt-cam-res');
+  if (caja) caja.hidden = true;
+  const visor = $('#pt-visor');
+  if (visor) delete visor.dataset.tono;
+}
+
+/** Lo esencial de un resultado, para leerlo de un vistazo sobre la cámara. */
+function resumen(r) {
+  const tono = TONO[r.tipo] || 'mal';
+  const b = r.boleto || {};
+  const lugares = b.lugares ? lugaresTexto(b.lugares) : '';
+  switch (r.tipo) {
+    case 'adelante':
+      return { tono, icono: '✓', tit: 'Adelante', nombre: b.nombre, linea: lugares,
+               abajo: b.lugares > 1 ? 'Si llegaron menos, ajústalo abajo' : '' };
+    case 'sin_boleto':
+      return { tono, icono: '+1', tit: 'Sin boleto', linea: 'Registrada' };
+    case 'ya_entro':
+      return { tono, icono: '!', tit: 'Ya entró', nombre: b.nombre, linea: b.asistio_en ? aLas(b.asistio_en) : '' };
+    case 'espera':
+      return { tono, icono: '⏳', tit: 'Lista de espera', nombre: b.nombre, linea: lugares,
+               abajo: 'Para dejarla pasar, toca «Dejar pasar» abajo' };
+    case 'otra_actividad':
+      return { tono, icono: '✕', tit: 'Otra actividad', linea: r.actividad ? `Es para «${r.actividad.titulo}» · ${cuando(r.actividad)}` : '' };
+    default: {
+      const [tit] = textoDe(r);
+      return { tono, icono: tono === 'gris' ? '?' : tono === 'ambar' ? '!' : '✕', tit,
+               linea: { cancelado: 'Su lugar quedó libre', no_existe: 'Revisa el código', no_es_boleto: 'Ese QR no es de un boleto',
+                        qr_actividad: 'Es para pedir boleto, no para entrar', sin_red: 'Búscalo por nombre abajo' }[r.tipo] || '' };
+    }
+  }
+}
+
 /** «Entraron − 3 + de 3» y «Deshacer», bajo la tarjeta. */
 function controles(b, max) {
   const n = b.asistieron ?? b.lugares;
@@ -487,7 +559,11 @@ function alAviso(a) {
   const enTarjeta = res && res.actividadId === a.actividadId && a.boletoId
     && (res.entrada === a.boletoId || puerta.real(res.entrada) === puerta.real(a.boletoId));
   if (a.tipo === 'ya_entro') {
-    if (enTarjeta) { res = { ...res, tipo: 'ya_entro', otroTelefono: true }; avisarConSentidos('ambar'); pintarResultado(); }
+    if (enTarjeta) {
+      res = { ...res, tipo: 'ya_entro', otroTelefono: true };
+      avisarConSentidos('ambar'); pintarResultado();
+      if (escaner?.activo) destello({ tono: 'ambar', icono: '!', tit: 'Ya había entrado', nombre: a.nombre, linea: `${aLas(a.hora)} · otro teléfono` }, 4000);
+    }
     else avisar('ambar', `${a.nombre || 'Un boleto'} ya había entrado ${aLas(a.hora)}: lo marcó otro teléfono.`);
   } else if (a.tipo === 'sin_permiso') {
     const act = puerta.listas[a.actividadId]?.actividad?.titulo || 'una actividad';
@@ -497,6 +573,7 @@ function alAviso(a) {
     if (enTarjeta) {
       res = { tipo: 'corregido', titulo: 'Corrección', detalle: `La base dice que ${txt}: la entrada de ${escapar(a.nombre || 'esa persona')} no se registró.` };
       avisarConSentidos('mal'); pintarResultado();
+      if (escaner?.activo) destello({ tono: 'mal', icono: '✕', tit: 'Corrección', nombre: a.nombre, linea: txt }, 4000);
     } else avisar('mal', `La entrada de ${a.nombre || 'un boleto'} no se registró: ${txt}.`);
   }
 }

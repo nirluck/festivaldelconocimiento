@@ -109,14 +109,54 @@
 .pt-datos__lleno b{color:var(--mal)}
 
 /* ------------------------------------------------------------------ cámara */
-.pt-cam{display:grid;gap:10px}
-.pt-cam__visor{position:relative;aspect-ratio:1;border-radius:18px;overflow:hidden;background:#000}
+/* Al abrirla, la página la sube hasta arriba: el margen deja ver la cabecera. */
+.pt-cam{display:grid;gap:10px;scroll-margin-top:72px}
+/* Más ancha que alta y con tope de altura: en el celular cabe la cámara con
+   los botones debajo, sin tener que desplazarse. */
+.pt-cam__visor{position:relative;aspect-ratio:4/3;max-height:58vh;width:100%;margin-inline:auto;
+  border-radius:18px;overflow:hidden;background:#000;
+  outline:5px solid transparent;outline-offset:-5px;transition:outline-color .15s}
 .pt-cam__visor video{width:100%;height:100%;object-fit:cover;display:block}
 /* El marco señala el cuadro central, que es donde busca el lector. */
-.pt-cam__marco{position:absolute;inset:14%;border-radius:16px;
-  box-shadow:0 0 0 999px rgba(0,0,0,.28);border:3px solid rgba(255,255,255,.9)}
+.pt-cam__marco{position:absolute;top:50%;left:50%;height:72%;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.9)}
+.pt-cam__cuenta{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;
+  font:700 .9rem var(--f-body);padding:5px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
+.pt-cam__guia{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:#fff;
+  font-size:.82rem;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .pt-cam__acc{display:flex;gap:10px}
 .pt-cam__acc .pt-btn--linea{flex:1}
+
+/* El borde del visor toma el color del resultado. */
+.pt-cam__visor[data-tono="ok"]{outline-color:var(--ok)}
+.pt-cam__visor[data-tono="ambar"]{outline-color:var(--ambar)}
+.pt-cam__visor[data-tono="azul"]{outline-color:var(--azul)}
+.pt-cam__visor[data-tono="mal"]{outline-color:var(--mal)}
+.pt-cam__visor[data-tono="gris"]{outline-color:var(--gris)}
+
+/* El resultado encima de la cámara: cubre el visor con el color lleno. */
+.pt-cam__res{position:absolute;inset:0;border:0;margin:0;padding:16px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+  color:#fff;font-family:var(--f-body);animation:pt-destello .2s ease-out}
+.pt-cam__res--ok{background:color-mix(in srgb, var(--ok) 94%, transparent)}
+.pt-cam__res--ambar{background:color-mix(in srgb, var(--ambar) 94%, transparent)}
+.pt-cam__res--azul{background:color-mix(in srgb, var(--azul) 94%, transparent)}
+.pt-cam__res--mal{background:color-mix(in srgb, var(--mal) 94%, transparent)}
+.pt-cam__res--gris{background:color-mix(in srgb, var(--gris) 94%, transparent)}
+.pt-cam__res--leyendo{background:rgba(23,32,51,.55);animation:none}
+.pt-cam__icono{width:64px;height:64px;border-radius:50%;border:3px solid currentColor;
+  display:grid;place-items:center;font:800 2rem/1 var(--f-disp);margin-bottom:6px}
+.pt-cam__res--leyendo .pt-cam__icono{border-style:dashed;animation:pt-gira 1s linear infinite}
+.pt-cam__res b{font-family:var(--f-disp);font-weight:800;font-size:2.3rem;line-height:1;text-transform:uppercase}
+.pt-cam__nom{font-size:1.25rem;font-weight:700;line-height:1.2;margin-top:4px;overflow-wrap:anywhere}
+.pt-cam__res span:not(.pt-cam__icono):not(.pt-cam__nom){font-size:1rem;opacity:.95}
+.pt-cam__res small{font-size:.82rem;opacity:.85;margin-top:6px}
+
+@keyframes pt-destello{from{transform:scale(1.04);opacity:.4}to{transform:none;opacity:1}}
+@keyframes pt-gira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  .pt-cam__res,.pt-cam__res--leyendo .pt-cam__icono{animation:none}
+}
 
 /* --------------------------------------------------------------- resultado */
 .pt-res{position:relative;border-radius:20px;padding:20px 20px 16px;color:#fff;display:grid;gap:4px;
