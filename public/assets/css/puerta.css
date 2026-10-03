@@ -127,6 +127,11 @@
 .pt-cam__acc{display:flex;gap:10px}
 .pt-cam__acc .pt-btn--linea{flex:1}
 
+/* Cámara abierta y con resultado: el visor y la tarjeta de abajo forman una
+   sola pieza (sin hueco, sin esquinas redondas donde se tocan). */
+.pt-cam--activa.pt-cam--con-res .pt-cam__visor{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.pt-cam--activa.pt-cam--con-res + .pt-res{margin-top:-14px;border-top-left-radius:0;border-top-right-radius:0}
+
 /* El borde del visor toma el color del resultado. */
 .pt-cam__visor[data-tono="ok"]{outline-color:var(--ok)}
 .pt-cam__visor[data-tono="ambar"]{outline-color:var(--amarillo)}

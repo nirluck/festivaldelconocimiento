@@ -110,7 +110,15 @@ function mostrarPuerta() {
     <nav class="pt-acts" id="pt-acts" aria-label="Actividades en este teléfono"></nav>
     <section class="pt-act" id="pt-act"></section>
 
+    <!-- Botones arriba y visor abajo: así el visor y la tarjeta del resultado,
+         que va justo después, se leen como una sola pieza. -->
     <section class="pt-cam" id="pt-cam">
+      <div class="pt-cam__acc">
+        <button class="pt-btn pt-btn--principal pt-btn--enorme" type="button" id="pt-camara">
+          ${ICONO_CAMARA} Escanear boletos</button>
+        <button class="pt-btn pt-btn--linea" type="button" id="pt-luz" hidden aria-pressed="false">Linterna</button>
+      </div>
+      <p class="pt-error" id="pt-cam-error" role="alert" hidden></p>
       <div class="pt-cam__visor" id="pt-visor" hidden>
         <video id="pt-video" playsinline muted></video>
         <i class="pt-cam__marco" aria-hidden="true"></i>
@@ -118,12 +126,6 @@ function mostrarPuerta() {
         <span class="pt-cam__guia" aria-hidden="true">Pon el QR del boleto dentro del cuadro</span>
         <div class="pt-cam__res" id="pt-cam-res" role="status" hidden></div>
       </div>
-      <div class="pt-cam__acc">
-        <button class="pt-btn pt-btn--principal pt-btn--enorme" type="button" id="pt-camara">
-          ${ICONO_CAMARA} Escanear boletos</button>
-        <button class="pt-btn pt-btn--linea" type="button" id="pt-luz" hidden aria-pressed="false">Linterna</button>
-      </div>
-      <p class="pt-error" id="pt-cam-error" role="alert" hidden></p>
     </section>
 
     <section class="pt-res" id="pt-res" aria-live="assertive" aria-atomic="true"></section>
@@ -323,6 +325,7 @@ async function abrirCamara() {
     return;
   }
   btn.disabled = false;
+  $('#pt-cam').classList.add('pt-cam--activa');
   btn.innerHTML = 'Detener cámara';
   btn.classList.remove('pt-btn--principal', 'pt-btn--enorme');
   btn.classList.add('pt-btn--linea');
@@ -341,6 +344,7 @@ function detenerCamara() {
   if (!btn) return;
   $('#pt-visor').hidden = true;
   $('#pt-luz').hidden = true;
+  $('#pt-cam').classList.remove('pt-cam--activa');
   btn.innerHTML = `${ICONO_CAMARA} Escanear boletos`;
   btn.classList.add('pt-btn--principal', 'pt-btn--enorme');
   btn.classList.remove('pt-btn--linea');
@@ -392,6 +396,8 @@ const TONO = {
 function pintarResultado() {
   const caja = $('#pt-res');
   if (!caja) return;
+  // Con la cámara abierta, visor y tarjeta se pegan (ver puerta.css).
+  $('#pt-cam')?.classList.toggle('pt-cam--con-res', !!res);
   if (!res) { caja.hidden = true; caja.innerHTML = ''; return; }
   const r = res;
   // La tarjeta se pinta con lo que dice la vista en este momento: si se
