@@ -68,6 +68,23 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Voluntariado: la bolsa de vacantes no sale en el menú ni en buscadores; se
+# llega solo con la liga que se reparte a las instituciones invitadas.
+# Ojo: NO va en robots.txt, porque un buscador que no puede leer la página
+# tampoco ve este noindex y podría listar la dirección sola.
+[[headers]]
+  for = "/voluntariado/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# «Mis turnos» es de cada persona. El token del turno va tras el
+# «#» y no llega al servidor, pero que tampoco se filtre en el Referer.
+[[headers]]
+  for = "/mis-turnos/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "no-referrer"
+
 [[headers]]
   for = "/b/*"
   [headers.values]

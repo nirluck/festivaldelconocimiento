@@ -76,6 +76,7 @@ ejes · tipos · sedes
 | `sql/13-ponentes.sql` | **Fase C, ponentes.** Foto, semblanza y participación; bucket `ponentes`. Escrito el 29 de septiembre de 2026 |
 | `sql/17-puerta.sql` | **Fase F4.** Código de puerta corto, «Deshacer» corregido y ajuste de cuántos entraron. Escrito el 2 de octubre de 2026 |
 | `sql/18-eliminar-boletos.sql` | Eliminar boletos para siempre, aunque ya hayan entrado. Solo administración. Escrito el 3 de octubre de 2026 |
+| `sql/19-voluntariado.sql` | **Fase E.** Instituciones, puestos, voluntarios e inscripciones; directorio público, inscripción, asistencia y horas. Escrito el 4 de octubre de 2026 |
 | `sql/auditoria-seguridad.sql` | No cambia nada: revisa permisos, reglas por fila y funciones expuestas. Correr tras cada SQL nuevo |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
@@ -94,7 +95,7 @@ que se detiene y lo explica.
 - **El póster y los ponentes ya se capturan; la galería todavía no.** El póster
   se adelantó de la fase C (14 de septiembre) y sale en la cartelera, la ficha
   y la landing. Los ponentes llegaron el 29 de septiembre: nombres en la
-  cartelera, foto y semblanza en la ficha. Faltan galería y cupos de
+  cartelera, foto y semblanza en la ficha. Falta la galería; el voluntariado llegó el 4 de octubre (fase E). Antes faltaban también los cupos de
   voluntariado (resto de la fase C y las mitades de captura de E y G).
 - **Las vistas previas al compartir una actividad son genéricas.** Sin paso de
   compilación, `/programa/<slug>/` es la misma página para todas y las redes no
@@ -820,28 +821,104 @@ ficha.
 
 ---
 
-### Fase E · Voluntariado
+### Fase E · Voluntariado — **publicada el 4 de octubre de 2026** (oculta: solo con liga)
 
-**SQL** — `sql/12-voluntariado.sql`: `vacantes`, `voluntarios`, `postulaciones`.
+`sql/19-voluntariado.sql` ya corrió en Supabase. Si se reconstruye la base, va
+después de 18, y luego `sql/auditoria-seguridad.sql`, que ya vigila las tablas
+nuevas.
+**La sección 13 del aviso de privacidad es un borrador**: la asesoría legal
+tiene que aprobarla antes de abrir la inscripción (ver «Datos personales»).
 
-**Frontend**
+#### Decisiones del equipo (4 de octubre de 2026)
 
-- Módulo **Voluntarios** en el panel: crear vacantes (rol libre, cupo, horario),
-  ver quién se inscribió, dar de alta voluntarios directamente.
-- `/voluntariado/` público: bolsa de vacantes abiertas, tipo ofertas de trabajo,
-  filtrable por día y por tipo de apoyo.
-- `/voluntariado/?v=<id>` para inscribirse: nombre, correo, escuela, carrera,
-  más la casilla de consentimiento.
-- `/mi-postulacion/?t=<token>` para confirmar o cancelar sin cuenta.
+| Pregunta | Decisión |
+|---|---|
+| ¿Inscripción inmediata o con aprobación? | **Inmediata**: el lugar se toma al inscribirse y la vacante se llena sola. El coordinador puede quitar, mover o asignar a mano |
+| ¿Qué datos? | Nombre, correo, teléfono (WhatsApp), institución (catálogo u «Otra»), carrera, matrícula (opcional) y nombre —y opcionalmente contacto— de quien coordina su servicio social. La edad NO |
+| ¿Menores de edad? | **No**: solo mayores de 18, con una casilla. Evita el consentimiento de tutores |
+| ¿Asistencia y horas? | **Sí**: el coordinador marca «cumplió / no llegó» y las horas salen del horario del puesto, ajustables. La administración exporta por institución y responsable |
+| ¿Turnos empalmados? | **No se permiten**: una persona no puede estar en dos lugares. La base lo impide incluso al asignar a mano |
+| ¿Institución? | **Catálogo editable + «Otra»**, y una liga de invitación por institución: `/voluntariado/?i=uabc` |
 
-**Reglas de acceso**
+#### Por qué aquí sí se pide correo
 
-- El coordinador ve solo las postulaciones a vacantes de **sus** actividades.
-- La administración ve todas.
-- Cualquiera puede leer las vacantes abiertas; nadie puede leer `voluntarios`
-  sin ser coordinador de la vacante correspondiente o administrador.
+El público dejó de dar correo por la minimización de datos (12-datos-minimos).
+Un voluntario es otra cosa: el coordinador tiene que escribirle y llamarle, y
+la institución acredita horas a una persona identificable. El correo, además,
+es la identidad: con él se evita la doble inscripción y se cuidan los empalmes.
 
-**Depende de:** el correo (fase H) para confirmar inscripciones.
+#### Modelo
+
+```
+instituciones   id · clave (para la liga) · nombre · orden · activa
+puestos         id · actividad_id · categoria · titulo · descripcion
+                · fecha (nula = el día de la actividad) · hora_inicio · hora_fin
+                · vacantes · punto_encuentro · requisitos · contacto_dia
+                · en_directorio · orden · creado · creado_por
+voluntarios     id · nombre · correo (único) · telefono · institucion_id
+                · institucion_otra · carrera · matricula · responsable
+                · responsable_contacto · mayor_edad · consentimiento_en
+inscripciones   id · puesto_id · voluntario_id · estado {inscrito, cancelado}
+                · origen {directorio, panel} · token · cancelado_por
+                · asistencia {cumplio, falto} · horas · marcado_por · nota
+```
+
+`categoria` es fija (acceso, montaje, atención, apoyo, registro, difusión,
+otro): el título es libre, la categoría ordena los reportes de «qué se pide
+más». El horario del puesto es propio; el lugar, el de la sede de la
+actividad.
+
+#### Cómo se protege
+
+- Sin cuenta no se lee ninguna de las cuatro tablas, salvo el catálogo de
+  instituciones. El directorio, la inscripción, el comprobante y la
+  cancelación son funciones `security definer` con límite por IP
+  (`intentos.tipo = 'voluntario'`).
+- **El token es del turno, no de la persona.** Si alguien se inscribe con un
+  correo que ya existe, NO se reemplazan sus datos (sin correo verificado,
+  cualquiera podría cambiar el teléfono de otra persona) y, si ya estaba en
+  ese puesto, se responde `ya_inscrito` **sin** devolver el token.
+- La persona retirada por la coordinación no vuelve sola al mismo puesto.
+- Dos candados en `_inscribir`: el del puesto evita que dos personas tomen la
+  última vacante; el de la persona, que tome a la vez dos turnos empalmados.
+- El coordinador ve a la gente de SUS puestos por `voluntarios_de_actividad`;
+  la tabla `voluntarios` directo, solo la administración.
+- No se elimina un puesto con gente inscrita (perdería sus horas).
+
+#### Pantallas
+
+- **Pestaña «Voluntarios»** en el panel de cada actividad
+  (`modulos/voluntarios.js`): puestos con su cupo en asientos, gente con
+  correo, teléfono y WhatsApp, asignar a mano (con sobrecupo si se confirma),
+  mover, quitar, asistencia y horas, «todos cumplieron», copiar correos, CSV y
+  la liga de cada puesto (`/voluntariado/#p=<id>`).
+- **`/voluntariado/`**, el directorio público como bolsa de trabajo, en dos
+  niveles para no dar una lista enorme: primero las **actividades** que
+  buscan voluntarios, por día, con chips de categoría, sede y «solo con
+  lugar»; al tocar una (`#a=<slug>`), sus **puestos**. Lo lleno se queda a la
+  vista, apagado. La inscripción es un diálogo sobre la misma página.
+  **Oculta** (decisión del 4 de octubre de 2026): no sale en el menú, ni en
+  el sitemap, ni en buscadores (`noindex`); solo se llega con la liga.
+- **`/mis-turnos/`**, como «Mis boletos»: comprobantes guardados en el
+  teléfono, horas acumuladas y «ya no puedo ir».
+- **`/panel/voluntariado/`**: puestos por cubrir en todo el festival, base de
+  voluntarios (con «borrar sus datos» para el derecho de cancelación), horas
+  por institución y responsable, y el catálogo con la liga de cada una.
+
+Sin correo saliente (fase H): el comprobante se entrega en pantalla, se guarda
+en el teléfono, se agrega al calendario (.ics) y su liga se puede copiar.
+
+**Pruebas:** `bash pruebas/voluntariado/probar.sh` — 38 reglas sobre la base
+desechable y una de concurrencia (20 personas a la vez por una vacante).
+
+#### Pendiente
+
+- Aprobación de la sección 13 del aviso de privacidad.
+- Constancias en PDF: hoy se exporta el CSV de horas por institución.
+- Cuando exista el correo (fase H): confirmación y recordatorio del turno.
+- Los voluntarios de la puerta siguen entrando a `/puerta/` con la clave que
+  genera el coordinador en «Boletos»; no se reparte sola a quienes tienen ese
+  puesto.
 
 ---
 
@@ -1617,7 +1694,6 @@ Preguntar antes de construir la fase correspondiente.
 |---|---|---|
 | ¿Cuáles son los rangos de edad y las opciones de ocupación? | F2 | Deben servir para los reportes. Propuesta: 0–12, 13–17, 18–29, 30–59, 60+; estudiante, docente, investigación, otro empleo, hogar, otro |
 | ¿Quién redacta y aprueba el aviso de privacidad? | Apertura | Sin él no se abre el 1 de octubre |
-| ¿Un voluntario puede tomar turnos que se empalmen? | Fase E | Define si hay que avisar de choques de horario |
 | ¿La semblanza se edita en un solo lugar? | Fase C | Como está, editarla la cambia en todas las actividades de ese ponente |
 | ¿Qué proveedor de correo se contrata? | Fases E, F, G | Aplazado. Hay que resolverlo antes de poner en producción cualquier módulo que mande correo |
 
@@ -1636,6 +1712,7 @@ python -c "import pglast,pathlib; [pglast.parse_sql(f.read_text(encoding='utf-8'
 bash pruebas/boletos/preparar.sh
 docker exec -i fdc-prueba psql -U postgres -X < pruebas/boletos/funcional.sql
 bash pruebas/boletos/concurrencia.sh
+bash pruebas/voluntariado/probar.sh          # 19: reglas y concurrencia
 node pruebas/boletos/qr.test.mjs
 
 # probar las pantallas sin tocar la base real

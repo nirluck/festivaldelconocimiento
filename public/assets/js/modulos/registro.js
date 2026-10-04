@@ -23,5 +23,6 @@ import poster  from './poster.js';
 import ponentes from './ponentes.js';
 import avance  from './avance.js';
 import boletos from './boletos.js';
+import voluntarios from './voluntarios.js';
 
-export const MODULOS = [resumen, boletos, poster, ponentes, avance];
+export const MODULOS = [resumen, boletos, poster, ponentes, voluntarios, avance];

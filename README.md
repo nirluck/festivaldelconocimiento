@@ -129,6 +129,9 @@ alter table public.perfiles enable trigger perfiles_proteger_rol;
 | `/panel/` | Tablero con semáforos, seguimiento y exportación | Administrador |
 | `/panel/programa/` | Armar el programa: bandeja, los ocho días y empalmes | Administrador |
 | `/panel/sedes/` | Sedes y sus salas: dirección, mapa, capacidades, contacto; fusionar y borrar | Administrador |
+| `/panel/voluntariado/` | Voluntariado de todo el festival: puestos por cubrir, base de voluntarios, horas por institución, catálogo de instituciones | Administrador |
+| `/voluntariado/` | Directorio público de vacantes de voluntariado; `?i=<clave>` deja elegida la institución, `#p=<id>` abre un puesto | Cualquiera |
+| `/mis-turnos/` | Los turnos de voluntariado guardados en el teléfono; cancelar | Cualquiera |
 
 ---
 

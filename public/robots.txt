@@ -4,5 +4,6 @@ Disallow: /panel/
 Disallow: /mi-actividad/
 Disallow: /entrar/
 Disallow: /puerta/
+Disallow: /mis-turnos/
 
 Sitemap: https://festivaldelconocimiento.org/sitemap.xml

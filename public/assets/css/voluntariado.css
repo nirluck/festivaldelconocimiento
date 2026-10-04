@@ -1,0 +1,283 @@
+/* ============================================================================
+   VOLUNTARIADO · páginas públicas (/voluntariado/ y /mis-turnos/)
+   ----------------------------------------------------------------------------
+   Se apoya en programa.css (retícula, cabecera, barra de días, separadores de
+   fecha, botones) y en boletos.css (formulario y diálogo). Aquí solo va lo
+   propio: la tarjeta de vacante, el cupo, los pasos y el comprobante.
+
+   Sistema de diseño (DISEÑO.md): la cabecera va en turquesa pleno con texto
+   oscuro —cada página elige un color dominante: la cartelera es magenta, el
+   aviso de privacidad amarillo—; las tarjetas son blancas sobre marfil; el
+   color de cada CATEGORÍA de puesto es el pequeño código de color de la
+   tarjeta, en su versión pura para la gráfica y oscurecida para la letra.
+   ========================================================================== */
+
+.vf [hidden], .vo-dlg [hidden]{display:none!important}
+
+/* ---- cabecera turquesa ------------------------------------------------ */
+.vo-hero{background:var(--turquesa)}
+.vo-hero::after{filter:brightness(0);opacity:.16}
+.vo-hero .pg-kicker,
+.vo-hero .pg-hero__lede{color:var(--tx)}
+.vo-hero .pg-cifras{border-top-color:rgba(23,32,51,.25)}
+.vo-hero .pg-cifra span{color:var(--tx)}
+.vo-hero--corta{padding-bottom:clamp(24px,4vw,40px)}
+
+/* ---- cómo funciona: tres pasos ---------------------------------------- */
+.vo-pasos{display:grid;gap:12px;margin-top:clamp(24px,4vw,40px);counter-reset:paso;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.vo-pasos li{position:relative;padding:16px 18px 16px 62px;background:rgba(255,255,255,.88);
+  border-radius:var(--r);display:grid;gap:3px}
+.vo-pasos li::before{counter-increment:paso;content:counter(paso);position:absolute;left:16px;top:14px;
+  width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+  background:var(--tx);color:#fff;font:800 1rem/1 var(--f-disp)}
+.vo-pasos b{font-family:var(--f-disp);font-weight:800;font-size:1.1rem;letter-spacing:-.01em}
+.vo-pasos span{font-size:.88rem;color:var(--tx-2);line-height:1.45}
+
+/* ---- franja de invitación de una institución ------------------------- */
+.vo-invitacion{background:var(--amarillo);border-bottom:1px solid rgba(23,32,51,.12)}
+.vo-invitacion p{padding-block:12px;font-size:.95rem;color:var(--tx)}
+
+/* ---- filtros propios --------------------------------------------------- */
+.vo-libres{display:inline-flex;align-items:center;gap:7px;font-size:.86rem;font-weight:600;
+  color:var(--tx-2);cursor:pointer;padding:7px 4px}
+.vo-libres input{width:18px;height:18px;accent-color:var(--dark)}
+
+/* ============================================================================
+   LA TARJETA DE UNA VACANTE
+   Como una oferta de trabajo: qué, cuándo, dónde, cuántos lugares, y un solo
+   botón. El lomo superior y el punto llevan el color de la categoría.
+   ========================================================================== */
+.vo-lista{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+
+.vo-card{position:relative;display:flex;flex-direction:column;gap:10px;min-width:0;
+  background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--cat);
+  border-radius:var(--r);padding:18px 20px 18px;box-shadow:var(--sombra);
+  transition:box-shadow .18s ease, transform .18s ease}
+.vo-card:hover{box-shadow:var(--sombra-h);transform:translateY(-2px)}
+.vo-card:target{outline:3px solid var(--cat);outline-offset:3px}
+
+.vo-card__top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.vo-card__cat{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--cat-tx)}
+.vo-card__cat i{width:9px;height:9px;border-radius:50%;background:var(--cat);flex:0 0 auto}
+/* La hora como pastilla: se reconoce el turno sin leer la tarjeta. */
+.vo-card__hora{flex:0 0 auto;text-align:right;line-height:1.1}
+.vo-card__hora b{display:block;font-family:var(--f-disp);font-weight:800;font-size:1.12rem;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.vo-card__hora span{font-size:.74rem;color:var(--tx-3);font-weight:600}
+
+.vo-card__tit{font-family:var(--f-disp);font-weight:800;font-size:1.32rem;line-height:1.12;
+  letter-spacing:-.02em;text-wrap:balance}
+.vo-card__act{font-size:.9rem;color:var(--tx-2);margin-top:-4px}
+.vo-card__act a{color:var(--tx);font-weight:600;text-decoration:underline;
+  text-decoration-color:var(--cat);text-decoration-thickness:2px;text-underline-offset:3px}
+.vo-card__lugar{display:flex;gap:7px;align-items:flex-start;font-size:.88rem;color:var(--tx-2)}
+.vo-card__lugar svg{width:16px;height:16px;flex:0 0 auto;margin-top:3px;fill:none;stroke:var(--tx-3);
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vo-card__lugar em{font-style:normal;color:var(--tx-3)}
+.vo-card__desc{font-size:.9rem;color:var(--tx-2);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vo-card__req{font-size:.84rem;color:var(--tx-2);background:var(--marfil);border-radius:8px;padding:8px 11px;line-height:1.45}
+.vo-card__req b{color:var(--tx)}
+
+/* Pie: cupo a la izquierda, botón a la derecha; siempre al fondo. */
+.vo-card__pie{margin-top:auto;padding-top:10px;border-top:1px solid var(--line-2);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.vo-card__btn{min-height:44px;padding:10px 20px}
+.vo-card__btn:disabled{opacity:.55;cursor:default;transform:none;background:none;color:var(--tx-2);border-color:var(--line)}
+
+/* Llena o ya empezada: apagada, pero a la vista. */
+.vo-card--apagada{background:#FBFAF7}
+.vo-card--apagada .vo-card__tit,
+.vo-card--apagada .vo-card__hora b{color:var(--tx-2)}
+.vo-card--apagada:hover{transform:none;box-shadow:var(--sombra)}
+
+/* Mía: ya tengo este turno. */
+.vo-card--tuyo{border-color:var(--cat);box-shadow:0 0 0 2px color-mix(in srgb, var(--cat) 35%, transparent), var(--sombra)}
+.vo-tuyo{position:absolute;top:-12px;right:16px;background:var(--tx);color:#fff;
+  font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px}
+
+/* ---- el cupo ------------------------------------------------------------
+   Asientos cuando son pocos: ocupado = relleno oscuro, libre = aro con el
+   color de la categoría. Con muchas vacantes, una barra. */
+.vo-cupo{display:flex;align-items:center;gap:10px;font-size:.86rem;font-weight:600;color:var(--tx-2);min-width:0}
+.vo-asientos{display:flex;gap:4px;flex-wrap:wrap;max-width:132px}
+.vo-asientos i{width:12px;height:12px;border-radius:50%;border:2px solid var(--cat);background:#fff}
+.vo-asientos i.is-ocupado{background:var(--tx-3);border-color:var(--tx-3)}
+.vo-barra{width:90px;height:8px;border-radius:99px;background:var(--line-2);overflow:hidden;flex:0 0 auto}
+.vo-barra i{display:block;height:100%;background:var(--tx-3);border-radius:99px}
+.vo-cupo--pocos{color:var(--esp)}
+.vo-cupo--lleno{color:var(--tx-3)}
+.vo-cupo--lleno .vo-asientos i{border-color:var(--tx-3)}
+
+/* ============================================================================
+   DIÁLOGO DE INSCRIPCIÓN (sobre .bd de boletos.css)
+   ========================================================================== */
+.vo-resumen{background:var(--marfil);border-radius:var(--r-s);padding:12px 14px;margin-bottom:18px;
+  display:grid;gap:6px;font-size:.93rem;color:var(--tx-2)}
+.vo-resumen b{color:var(--tx)}
+.vo-resumen span{color:var(--tx-3)}
+.vf__nota{margin-top:-10px}
+.vf__grupo{border:1px solid var(--line);border-radius:var(--r-s);padding:14px 16px 16px;margin:0;
+  display:grid;gap:12px;min-width:0}
+.vf__grupo legend{padding:0 6px;font-weight:700}
+
+.vo-guardar{margin-top:16px;background:var(--esp-bg);color:var(--esp);border-radius:var(--r-s);
+  padding:14px 16px;display:grid;gap:12px;font-size:.92rem;line-height:1.45}
+.vo-guardar b{color:var(--tx)}
+.vo-guardar__acc{display:flex;gap:10px;flex-wrap:wrap}
+.vo-guardar__acc .pg-btn{flex:1 1 200px}
+
+/* ============================================================================
+   EL COMPROBANTE
+   ========================================================================== */
+.vo-comp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  box-shadow:var(--sombra)}
+.vo-comp__franja{display:grid;gap:2px;padding:14px 20px;background:var(--ok-bg);color:var(--ok)}
+.vo-comp__franja b{font-family:var(--f-disp);font-weight:800;font-size:1.2rem;letter-spacing:-.01em}
+.vo-comp__franja span{font-size:.88rem}
+.vo-comp--mal .vo-comp__franja{background:var(--mal-bg);color:var(--mal)}
+.vo-comp--gris .vo-comp__franja{background:var(--line-2);color:var(--tx-2)}
+
+.vo-comp__cuerpo{padding:18px 20px 20px;border-top:4px solid var(--cat);display:grid;gap:10px}
+.vo-comp__cat{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cat-tx)}
+.vo-comp__tit{font-family:var(--f-disp);font-weight:800;font-size:1.5rem;line-height:1.1;letter-spacing:-.02em}
+.vo-comp__act{color:var(--tx-2);font-size:.95rem;margin-top:-4px}
+.vo-comp__act a{color:var(--tx);font-weight:600}
+
+.vo-comp__datos{display:grid;gap:12px;margin:6px 0 2px}
+.vo-comp__datos > div{display:grid;grid-template-columns:22px 1fr;column-gap:10px}
+.vo-comp__datos svg{grid-row:span 2;width:20px;height:20px;margin-top:2px;fill:none;stroke:var(--cat-tx);
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vo-comp__datos dt{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-3)}
+.vo-comp__datos dd{margin:0;font-size:.98rem;color:var(--tx);line-height:1.45}
+.vo-comp__datos small{display:block;font-size:.84rem;color:var(--tx-3)}
+.vo-comp__dur{color:var(--tx-3)}
+.vo-comp__mapa{display:inline-block;margin-top:3px;font-size:.86rem;font-weight:600;color:var(--turquesa-tx)}
+.vo-comp__desc{font-size:.92rem;color:var(--tx-2);line-height:1.5}
+.vo-comp__desc b{color:var(--tx)}
+.vo-comp__nombre{font-size:.86rem;color:var(--tx-3);padding-top:8px;border-top:1px dashed var(--line)}
+.vo-comp__nombre b{color:var(--tx)}
+.vo-comp__acc{display:flex;gap:10px;flex-wrap:wrap;padding:0 20px 20px}
+.vo-comp__acc .pg-btn{flex:1 1 220px}
+
+/* ============================================================================
+   MIS TURNOS
+   ========================================================================== */
+.vo-mis{max-width:760px}
+.vo-mis__tit{font-family:var(--f-disp);font-weight:800;font-size:1.5rem;letter-spacing:-.02em;
+  margin:28px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.vo-mis__tit:first-child{margin-top:0}
+.vo-mis__lista{display:grid;gap:22px}
+.vo-mis__item{display:grid;gap:10px}
+.vo-mis__cancelar{display:grid;gap:8px;justify-items:start}
+.vo-mis__cancelar .bo-btn-peligro{min-height:44px;padding:10px 20px;border-radius:999px;border:1.5px solid;
+  font:600 .9rem var(--f-body);cursor:pointer}
+.vo-mis__olvidar{justify-self:start}
+.vo-mis__nota{font-size:.86rem;color:var(--tx-3);margin-bottom:12px}
+.vo-mis__vacio{padding:36px 20px}
+.vo-mis__pie{margin-top:32px;text-align:center}
+
+/* ============================================================================
+   NIVEL 1 · LA TARJETA DE UNA ACTIVIDAD
+   Primero se elige la actividad; sus puestos se ven al tocarla. Póster
+   cuadrado, qué tipo de apoyo pide (chips con el color de cada categoría) y,
+   abajo, cuántos lugares quedan: es lo que decide si vale la pena entrar.
+   Toda la tarjeta es un enlace (#a=<slug>).
+   ========================================================================== */
+.pg-barra[hidden]{display:none!important}
+
+.vo-acts{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))}
+
+.vo-act{position:relative;display:grid;grid-template-columns:112px minmax(0,1fr);
+  grid-template-areas:"poster cuerpo" "pie pie";gap:14px 18px;padding:16px;min-width:0;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sombra);
+  color:inherit;text-decoration:none;transition:box-shadow .18s ease, transform .18s ease}
+.vo-act:hover{box-shadow:var(--sombra-h);transform:translateY(-2px)}
+.vo-act:focus-visible{outline:3px solid var(--dark);outline-offset:3px}
+
+.vo-act__poster{grid-area:poster;display:block;width:112px;height:112px;object-fit:cover;
+  border-radius:9px;background:var(--marfil);transition:transform .18s ease}
+.vo-act:hover .vo-act__poster{transform:rotate(-1.5deg) scale(1.03)}
+/* Sin póster: un cuadro con el color del eje, para que la retícula no cojee. */
+.vo-act__poster--sin,
+.vo-acth__poster--sin{background:color-mix(in srgb, var(--eje) 24%, #fff);
+  background-image:radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--eje) 55%, #fff) 0 22%, transparent 23%)}
+
+.vo-act__cuerpo{grid-area:cuerpo;display:flex;flex-direction:column;gap:6px;min-width:0}
+.vo-act__eti{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--tx-2)}
+.vo-act__eti i{width:9px;height:9px;border-radius:50%;background:var(--eje);flex:0 0 auto}
+.vo-act__tit{font-family:var(--f-disp);font-weight:800;font-size:1.3rem;line-height:1.12;
+  letter-spacing:-.02em;text-wrap:balance}
+.vo-act__meta{font-size:.86rem;color:var(--tx-2);line-height:1.4}
+.vo-act__cats{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.vo-act__cats li{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;
+  border-radius:999px;background:var(--marfil);font-size:.74rem;font-weight:600;color:var(--tx-2)}
+.vo-act__cats i{width:8px;height:8px;border-radius:50%;background:var(--cat);flex:0 0 auto}
+
+.vo-act__pie{grid-area:pie;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line-2)}
+.vo-act__lugares{display:flex;align-items:baseline;gap:8px;line-height:1.1;min-width:0}
+.vo-act__lugares b{font-family:var(--f-disp);font-weight:900;font-size:1.75rem;letter-spacing:-.03em;
+  color:var(--tx);font-variant-numeric:tabular-nums}
+.vo-act__lugares span{font-size:.84rem;font-weight:600;color:var(--tx-2)}
+.vo-act__ir{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:10px 18px;
+  border-radius:999px;background:var(--dark);color:#fff;font-weight:700;font-size:.92rem}
+.vo-act__ir svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+.vo-act:hover .vo-act__ir svg{transform:translateX(3px)}
+
+/* Completa: apagada, pero se puede entrar a ver. */
+.vo-act--completa{background:#FBFAF7}
+.vo-act--completa .vo-act__tit{color:var(--tx-2)}
+.vo-act--completa .vo-act__lugares b{font-size:1.1rem;color:var(--tx-2)}
+.vo-act--completa .vo-act__ir{background:none;color:var(--tx-2);border:1px solid var(--line)}
+.vo-act--tuyo{border-color:var(--eje);box-shadow:0 0 0 2px color-mix(in srgb, var(--eje) 35%, transparent), var(--sombra)}
+
+@media (max-width:479px){
+  .vo-act{grid-template-columns:84px minmax(0,1fr);gap:12px 14px;padding:14px}
+  .vo-act__poster{width:84px;height:84px}
+  .vo-act__tit{font-size:1.15rem}
+}
+
+/* ============================================================================
+   NIVEL 2 · LA VISTA DE UNA ACTIVIDAD
+   Arriba la actividad (ya no se repite en cada puesto); abajo sus puestos.
+   ========================================================================== */
+.vo-volver{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-bottom:18px;
+  padding:8px 16px 8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);
+  color:var(--tx);font-weight:700;font-size:.92rem;text-decoration:none}
+.vo-volver:hover{border-color:var(--dark)}
+.vo-volver svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+.vo-acth{display:grid;grid-template-columns:140px minmax(0,1fr);gap:18px 24px;align-items:center;
+  padding:20px;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--eje);
+  border-radius:var(--r);box-shadow:var(--sombra)}
+.vo-acth__poster{display:block;width:140px;height:140px;object-fit:cover;border-radius:10px;background:var(--marfil)}
+.vo-acth__txt{min-width:0}
+.vo-acth__tit{font-family:var(--f-disp);font-weight:800;font-size:clamp(1.6rem,3.4vw,2.4rem);
+  line-height:1.04;letter-spacing:-.025em;margin:6px 0 10px;text-wrap:balance}
+.vo-acth__datos{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:.95rem;color:var(--tx-2)}
+.vo-acth__datos b{color:var(--tx);font-weight:600}
+.vo-acth__prog{display:inline-block;margin-top:10px;font-size:.9rem;font-weight:600;color:var(--tx);
+  text-decoration:underline;text-decoration-color:var(--eje);text-decoration-thickness:2px;text-underline-offset:3px}
+.vo-acth__res{margin:22px 0 16px;font-size:1rem;color:var(--tx-2);line-height:1.5}
+.vo-acth__res b{color:var(--tx)}
+
+@media (max-width:599px){
+  .vo-acth{grid-template-columns:88px minmax(0,1fr);gap:14px;padding:16px;align-items:start}
+  .vo-acth__poster{width:88px;height:88px}
+}
+
+/* En el diálogo va completo lo que la tarjeta del puesto resume. */
+.vo-dlg__desc{font-size:.95rem;line-height:1.55;color:var(--tx-2);margin:0 0 12px}
+.vo-dlg__req{margin:0 0 18px}
+
+@media (prefers-reduced-motion:reduce){
+  .vo-card, .vo-card:hover, .vo-act, .vo-act:hover{transition:none;transform:none}
+  .vo-act:hover .vo-act__poster, .vo-act:hover .vo-act__ir svg{transform:none}
+}

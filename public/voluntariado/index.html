@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voluntariado · Festival del Conocimiento 2026</title>
+<meta name="description" content="Súmate al equipo del Festival del Conocimiento 2026 en Ensenada: elige un turno de voluntariado, inscríbete en un minuto y acredita tus horas de servicio social.">
+<!-- Sin buscadores: solo se llega con la liga (ver netlify.toml). -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="theme-color" content="">
+
+<meta property="og:type"        content="website">
+<meta property="og:title"       content="Voluntariado · Festival del Conocimiento 2026">
+<meta property="og:description" content="Elige un turno, inscríbete en un minuto y forma parte del equipo del festival. Cuenta como servicio social.">
+<meta property="og:url"         content="https://festivaldelconocimiento.org/voluntariado/">
+<meta property="og:image"       content="https://festivaldelconocimiento.org/assets/img/festival-del-conocimiento.jpg">
+<meta name="twitter:card"       content="summary_large_image">
+
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/programa.css">
+<link rel="stylesheet" href="/assets/css/boletos.css">
+<link rel="stylesheet" href="/assets/css/voluntariado.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+</head>
+<body>
+
+<!-- ============================================================================
+     /voluntariado/ · LA BOLSA DE VACANTES
+     Se comparte por liga a las instituciones invitadas; con ?i=<clave> la
+     institución sale ya elegida (/voluntariado/?i=uabc). Primero se listan
+     las actividades; con #a=<slug> se ven los puestos de una, y con #p=<id>
+     se abre directo un puesto: es la liga que el coordinador copia del panel.
+     Lógica en assets/js/voluntariado/pagina-directorio.js; base de datos en
+     sql/19-voluntariado.sql.
+============================================================================= -->
+
+<div data-cabecera></div>
+
+<main id="pagina">
+  <header class="pg-hero vo-hero">
+    <div class="pg-wrap pg-hero__in">
+      <p class="pg-kicker">Voluntariado · 17 al 24 de octubre</p>
+      <div class="pg-hero__rejilla-top">
+        <h1>Haz que el festival suceda</h1>
+        <p class="pg-hero__lede">
+          Cada concierto, taller y charla necesita manos. Elige un turno,
+          inscríbete en un minuto y forma parte del equipo del Festival del
+          Conocimiento. Tus horas cuentan para tu servicio social.
+        </p>
+      </div>
+
+      <ol class="vo-pasos" aria-label="Cómo funciona">
+        <li><b>Elige una actividad</b><span>Tócala para ver los puestos que necesita: qué harás, a qué hora y cuántos lugares quedan.</span></li>
+        <li><b>Déjanos tus datos</b><span>Nombre, contacto, institución y quién coordina tu servicio social.</span></li>
+        <li><b>Guarda tu comprobante</b><span>Queda en este teléfono, en «Mis turnos», con todo lo que necesitas ese día.</span></li>
+      </ol>
+
+      <div class="pg-cifras" id="cifras" hidden></div>
+    </div>
+  </header>
+
+  <div class="vo-invitacion" id="invitacion" hidden></div>
+
+  <div class="pg-barra"><div class="pg-wrap pg-barra__in" id="barra"></div></div>
+
+  <div class="pg-cuerpo">
+    <div class="pg-wrap" id="lista">
+      <div class="pg-cargando">Cargando las vacantes…</div>
+    </div>
+  </div>
+</main>
+
+<dialog class="bd vo-dlg" id="dlg" aria-labelledby="dlg-tit">
+  <div class="bd__marco">
+    <div class="bd__cab">
+      <div>
+        <p id="dlg-kicker"></p>
+        <h2 id="dlg-tit"></h2>
+      </div>
+      <button class="bd__cerrar" type="button" aria-label="Cerrar" data-cerrar>×</button>
+    </div>
+    <div class="bd__cuerpo" id="dlg-cuerpo"></div>
+  </div>
+</dialog>
+
+<noscript>
+  <div class="pg-wrap" style="padding:40px 24px;text-align:center">
+    <p>El directorio de vacantes necesita JavaScript. Actívalo y vuelve a cargar la página.</p>
+  </div>
+</noscript>
+
+<footer class="pg-pie">
+  <div class="pg-wrap">
+    <p class="pg-pie__frase">El conocimiento nos une.</p>
+    <nav class="pg-pie__nav" aria-label="Pie de página">
+      <a href="/">Sitio del festival</a>
+      <a href="/programa/">Programa 2026</a>
+      <a href="/mis-turnos/">Mis turnos</a>
+      <a href="/#fdc-contacto">Contacto</a>
+      <a href="/privacidad/#voluntariado">Aviso de privacidad</a>
+    </nav>
+    <div class="pg-pie__logos">
+      <span>Una iniciativa de</span>
+      <img src="/assets/img/logounam.png" alt="Universidad Nacional Autónoma de México" style="height:52px" loading="lazy">
+      <img src="/assets/img/logounmcomplemento.png" alt="UNAM · La Universidad de la Nación" style="height:42px" loading="lazy">
+      <img src="/assets/img/logo-unam-475.png" alt="475 años de la UNAM" style="height:46px" loading="lazy">
+      <img class="pg-pie__cnyn" src="/assets/img/logocnyn.png" alt="Centro de Nanociencias y Nanotecnología, UNAM" style="height:46px" loading="lazy">
+    </div>
+    <p class="pg-pie__legal">© 2026 Festival del Conocimiento · Centro de Nanociencias y Nanotecnología, UNAM · Ensenada, Baja California, México.</p>
+  </div>
+</footer>
+
+<script type="module" src="/assets/js/voluntariado/pagina-directorio.js"></script>
+</body>
+</html>

@@ -39,6 +39,8 @@ import { sincronizarColorNavegador } from './marca.js';
    conserva esa sección, con su botón, para quien baja leyendo. */
 const PUBLICO = [
   ['/programa/',    'Programa'],
+  // /voluntariado/ NO va aquí a propósito: decisión del 4 de octubre de 2026,
+  // solo entra quien recibe la liga de su institución o de un coordinador.
   ['#fdc-ejes',     'El festival'],
   ['#fdc-sedes',    'Sedes'],
   ['#fdc-boletos',  'Cómo asistir'],
@@ -79,6 +81,7 @@ const MENU_SISTEMA = {
     ['/panel/',          'Tablero',         ['/actividad/']],
     ['/mi-actividad/',   'Mis actividades'],
     ['/panel/boletos/',  'Boletos'],
+    ['/panel/voluntariado/', 'Voluntariado'],
     ['/panel/programa/', 'Armar programa'],
     ['/panel/sedes/',    'Sedes'],
   ],
@@ -108,6 +111,16 @@ const esSistema = RUTAS_SISTEMA.some(r => ruta.startsWith(r));
 /* ¿Este navegador guardó boletos? Se lee directo del almacenamiento para no
    importar el módulo de boletos en todas las páginas. Solo entonces aparece
    «Mis boletos» en el menú: a quien no tiene ninguno no le dice nada. */
+/* Lo mismo para los turnos de voluntariado (voluntariado/almacen.js). */
+function tieneTurnos() {
+  try {
+    const t = JSON.parse(localStorage.getItem('fdc_turnos') || '{}');
+    return Object.values(t).some(x => x && x.estado === 'inscrito');
+  } catch (e) {
+    return false;
+  }
+}
+
 function tieneBoletos() {
   try {
     const t = JSON.parse(localStorage.getItem('fdc_boletos') || '{}');
@@ -200,6 +213,9 @@ function cabeceraPublica(quien) {
 
   if (tieneBoletos() || ruta.startsWith('/mis-boletos/')) {
     piezas.push(enlace('/mis-boletos/', 'Mis boletos'));
+  }
+  if (tieneTurnos() || ruta.startsWith('/mis-turnos/')) {
+    piezas.push(enlace('/mis-turnos/', 'Mis turnos'));
   }
 
   // El público no tiene cuenta. «Entrar» es para el personal y va discreto,

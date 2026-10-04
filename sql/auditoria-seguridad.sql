@@ -40,13 +40,15 @@ select 2, 'Ninguna regla deja ESCRIBIR a quien no tiene cuenta',
             then 'REVISAR' else 'BIEN' end
 
 union all
-select 3, 'Sin cuenta no se leen boletos, puertas, intentos ni lugares',
+select 3, 'Sin cuenta no se leen boletos, puertas, intentos, lugares ni voluntariado',
        coalesce((select string_agg(t, ', ') from unnest(array['boletos','puertas','intentos',
-                  'lugares_municipios','lugares_colonias','sedes_internas']) t
+                  'lugares_municipios','lugares_colonias','sedes_internas',
+                  'voluntarios','inscripciones','puestos']) t
                   where to_regclass('public.' || t) is not null
                     and has_table_privilege('anon', 'public.' || t, 'select,insert,update,delete')), 'ninguna'),
        case when exists (select 1 from unnest(array['boletos','puertas','intentos',
-                  'lugares_municipios','lugares_colonias','sedes_internas']) t
+                  'lugares_municipios','lugares_colonias','sedes_internas',
+                  'voluntarios','inscripciones','puestos']) t
                   where to_regclass('public.' || t) is not null
                     and has_table_privilege('anon', 'public.' || t, 'select,insert,update,delete'))
             then 'REVISAR' else 'BIEN' end
@@ -76,12 +78,20 @@ select 6, 'Funciones internas cerradas al público',
        coalesce((select string_agg(distinct proname, ', ') from f
                   where proname in ('es_personal', 'codigo_puerta_nuevo', 'codigo_nuevo', 'token_nuevo',
                                     '_emitir_boleto', '_cancelar_boleto', '_agrupar_boletos',
-                                    'puerta_por_clave', 'ip_peticion', 'actividad_para_boleto', 'clave_persona')
+                                    'puerta_por_clave', 'ip_peticion', 'actividad_para_boleto', 'clave_persona',
+                                    '_inscribir', '_voluntario', '_turno_json', '_choque_voluntario',
+                                    '_revisar_voluntario', '_puesto_editable', '_dia_puesto',
+                                    'voluntarios_de_actividad', 'asignar_voluntario', 'quitar_voluntario',
+                                    'mover_voluntario', 'marcar_asistencia', 'eliminar_puesto', 'ocupacion_puestos')
                     and has_function_privilege('anon', oid, 'execute')), 'cerradas'),
        case when exists (select 1 from f
                   where proname in ('es_personal', 'codigo_puerta_nuevo', 'codigo_nuevo', 'token_nuevo',
                                     '_emitir_boleto', '_cancelar_boleto', '_agrupar_boletos',
-                                    'puerta_por_clave', 'ip_peticion', 'actividad_para_boleto', 'clave_persona')
+                                    'puerta_por_clave', 'ip_peticion', 'actividad_para_boleto', 'clave_persona',
+                                    '_inscribir', '_voluntario', '_turno_json', '_choque_voluntario',
+                                    '_revisar_voluntario', '_puesto_editable', '_dia_puesto',
+                                    'voluntarios_de_actividad', 'asignar_voluntario', 'quitar_voluntario',
+                                    'mover_voluntario', 'marcar_asistencia', 'eliminar_puesto', 'ocupacion_puestos')
                     and has_function_privilege('anon', oid, 'execute'))
             then 'REVISAR' else 'BIEN' end
 

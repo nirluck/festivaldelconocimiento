@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis turnos · Voluntariado · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="theme-color" content="">
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/programa.css">
+<link rel="stylesheet" href="/assets/css/boletos.css">
+<link rel="stylesheet" href="/assets/css/voluntariado.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+</head>
+<body>
+
+<!-- /mis-turnos/ · los turnos de voluntariado guardados en este teléfono.
+     Con #<token> se suma ese turno (la liga del comprobante, abierta en otro
+     dispositivo). Lógica en assets/js/voluntariado/pagina-mis-turnos.js. -->
+
+<div data-cabecera></div>
+
+<main id="pagina">
+  <header class="pg-hero vo-hero vo-hero--corta">
+    <div class="pg-wrap pg-hero__in">
+      <p class="pg-kicker">Voluntariado</p>
+      <div class="pg-hero__rejilla-top">
+        <h1>Mis turnos</h1>
+        <p class="pg-hero__lede" id="resumen">Tus turnos de voluntariado, guardados en este teléfono.</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="pg-cuerpo">
+    <div class="pg-wrap vo-mis" id="lista">
+      <div class="pg-cargando">Cargando tus turnos…</div>
+    </div>
+  </div>
+</main>
+
+<noscript>
+  <div class="pg-wrap" style="padding:40px 24px;text-align:center">
+    <p>Esta página necesita JavaScript. Actívalo y vuelve a cargarla.</p>
+  </div>
+</noscript>
+
+<footer class="pg-pie">
+  <div class="pg-wrap">
+    <p class="pg-pie__frase">El conocimiento nos une.</p>
+    <nav class="pg-pie__nav" aria-label="Pie de página">
+      <a href="/">Sitio del festival</a>
+      <a href="/voluntariado/">Voluntariado</a>
+      <a href="/programa/">Programa 2026</a>
+      <a href="/#fdc-contacto">Contacto</a>
+      <a href="/privacidad/#voluntariado">Aviso de privacidad</a>
+    </nav>
+    <p class="pg-pie__legal">© 2026 Festival del Conocimiento · Centro de Nanociencias y Nanotecnología, UNAM · Ensenada, Baja California, México.</p>
+  </div>
+</footer>
+
+<script type="module" src="/assets/js/voluntariado/pagina-mis-turnos.js"></script>
+</body>
+</html>

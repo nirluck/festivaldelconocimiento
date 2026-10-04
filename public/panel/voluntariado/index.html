@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voluntariado · Tablero · Festival del Conocimiento</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/icono-festcon.png">
+<link rel="stylesheet" href="/assets/css/marca.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/cabecera.css">
+<style>
+  .resumen{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:22px}
+  @media(min-width:760px){.resumen{grid-template-columns:repeat(4,1fr)}}
+  .dato{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+        padding:18px 20px;box-shadow:var(--sombra)}
+  .dato b{display:block;font-family:var(--f-disp);font-size:2rem;line-height:1;
+          font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .dato span{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-3)}
+  .sub{display:block;font-size:.8rem;color:var(--tx-3);margin-top:2px}
+  .cat{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--tx-2)}
+  .cat i{width:9px;height:9px;border-radius:50%;background:var(--cat)}
+  .grupo-inst{margin-top:22px}
+  .grupo-inst h3{font-family:var(--f-disp);font-size:1.1rem;margin-bottom:8px}
+  .grupo-inst h4{font-size:.86rem;color:var(--tx-2);margin:12px 0 6px}
+  .total{font-weight:700;color:var(--tx)}
+</style>
+</head>
+<body>
+
+<div data-cabecera></div>
+
+<main class="hoja vol" id="pagina">
+  <div class="cargando">Cargando el voluntariado…</div>
+</main>
+
+<footer class="pie">Festival del Conocimiento · Administración</footer>
+
+<script type="module">
+/* ============================================================================
+   /panel/voluntariado/ · EL VOLUNTARIADO DE TODO EL FESTIVAL
+   ----------------------------------------------------------------------------
+   Para la administración. El día a día de cada actividad vive en su pestaña
+   «Voluntarios»; aquí se ve el conjunto:
+
+     · Puestos        qué falta cubrir, en todo el festival
+     · Voluntarios    la base de personas, con sus turnos y horas
+     · Horas          el reporte por institución y responsable: lo que se
+                      manda a cada oficina de servicio social
+     · Instituciones  el catálogo, y la liga de invitación de cada una
+
+   Lee las tablas directo: la administración tiene permiso por RLS
+   (sql/19-voluntariado.sql). Los cambios a turnos van por las funciones.
+   ========================================================================== */
+
+import { db, exigirSesion, explicar, edicionActiva, escapar, fechaDia, hora } from '/assets/js/app.js';
+import { montarCabecera } from '/assets/js/cabecera.js';
+import { categoria, estiloCategoria, horario } from '/assets/js/voluntariado/util.js';
+
+const $ = (s) => document.querySelector(s);
+const pagina = $('#pagina');
+
+let ED = null, PUESTOS = [], INSC = [], VOLS = [], INST = [];
+let pestana = (location.hash || '').replace('#', '') || 'puestos';
+const filtro = { texto: '', estado: 'falta', inst: '' };
+
+(async function iniciar() {
+  const yo = await exigirSesion('administrador');
+  if (!yo) return;
+  montarCabecera(yo);
+  await cargar();
+})();
+
+async function cargar() {
+  try { ED = await edicionActiva(); }
+  catch (e) { pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(e))}</div>`; return; }
+
+  const [p, i, v, n] = await Promise.all([
+    db.from('puestos').select('*, actividades(id, titulo, slug, fecha, sede, publica, archivada, edicion_id)'),
+    db.from('inscripciones').select('id, puesto_id, voluntario_id, estado, asistencia, horas, origen, creado'),
+    db.from('voluntarios').select('*'),
+    db.from('instituciones').select('*').order('orden').order('nombre'),
+  ]);
+  const fallo = [p, i, v, n].find(r => r.error);
+  if (fallo) { pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(fallo.error))}</div>`; return; }
+
+  PUESTOS = (p.data || [])
+    .filter(x => x.actividades && x.actividades.edicion_id === ED.id && !x.actividades.archivada)
+    .map(x => ({ ...x, dia: x.fecha || x.actividades.fecha }))
+    .sort((a, b) => String(a.dia).localeCompare(String(b.dia)) || String(a.hora_inicio).localeCompare(String(b.hora_inicio)));
+  INSC = i.data || [];
+  VOLS = v.data || [];
+  INST = n.data || [];
+  pintar();
+}
+
+/* ------------------------------------------------------------ ayudas --- */
+const activas = (puestoId) => INSC.filter(x => x.puesto_id === puestoId && x.estado === 'inscrito');
+const nombreInst = (v) => (INST.find(i => i.id === v.institucion_id) || {}).nombre || v.institucion_otra || 'Sin institución';
+const horasDe = (volId) => INSC.filter(x => x.voluntario_id === volId && x.estado === 'inscrito' && x.asistencia === 'cumplio')
+                               .reduce((s, x) => s + Number(x.horas || 0), 0);
+const fmtH = (h) => (Number.isInteger(h) ? h : h.toFixed(1)) + ' h';
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function avisar(tipo, texto) {
+  const c = $('#aviso');
+  c.className = 'aviso aviso--' + tipo; c.textContent = texto; c.hidden = false;
+  c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function descargarCSV(nombre, cols, filas) {
+  const esc = (x) => '"' + String(x ?? '').replace(/"/g, '""') + '"';
+  const texto = [cols.map(esc).join(',')].concat(filas.map(f => f.map(esc).join(','))).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + texto], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* ============================================================ pintar === */
+function pintar() {
+  const vacantes = PUESTOS.reduce((s, p) => s + p.vacantes, 0);
+  const cubiertas = PUESTOS.reduce((s, p) => s + Math.min(p.vacantes, activas(p.id).length), 0);
+  const conTurno = new Set(INSC.filter(x => x.estado === 'inscrito' && PUESTOS.some(p => p.id === x.puesto_id)).map(x => x.voluntario_id));
+  const horas = INSC.filter(x => x.estado === 'inscrito' && x.asistencia === 'cumplio').reduce((s, x) => s + Number(x.horas || 0), 0);
+
+  pagina.innerHTML = `
+    <div class="titulo">
+      <p class="kicker">Administración</p>
+      <h1>Voluntariado</h1>
+      <p class="entrada">Cada actividad administra sus puestos y su gente en su pestaña «Voluntarios».
+        Aquí está el conjunto: lo que falta cubrir, quién participa y las horas para las constancias.</p>
+      <p style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn btn--linea btn--chico" href="/voluntariado/" target="_blank" rel="noopener">Ver el directorio público ↗</a>
+        <button class="btn btn--linea btn--chico" type="button" id="copiar-general">Copiar la liga para compartir</button>
+      </p>
+    </div>
+
+    <div class="resumen">
+      <div class="dato"><b>${cubiertas}<small style="font-size:.5em;color:var(--tx-3)"> / ${vacantes}</small></b><span>Vacantes cubiertas</span></div>
+      <div class="dato"><b>${PUESTOS.filter(p => activas(p.id).length < p.vacantes).length}</b><span>Puestos por cubrir</span></div>
+      <div class="dato"><b>${conTurno.size}</b><span>Personas con turno</span></div>
+      <div class="dato"><b>${fmtH(horas)}</b><span>Horas cumplidas</span></div>
+    </div>
+
+    <div class="aviso" id="aviso" hidden></div>
+
+    <div class="vadm-pest" role="tablist">
+      ${[['puestos', 'Puestos'], ['voluntarios', 'Voluntarios'], ['horas', 'Horas por institución'], ['instituciones', 'Instituciones']]
+        .map(([k, t]) => `<button type="button" role="tab" data-pest="${k}" aria-selected="${pestana === k}">${t}</button>`).join('')}
+    </div>
+    <section class="tarjeta" id="contenido"></section>`;
+
+  pagina.querySelectorAll('[data-pest]').forEach(b => b.addEventListener('click', () => {
+    pestana = b.dataset.pest; history.replaceState(null, '', '#' + pestana); pintar();
+  }));
+  $('#copiar-general').addEventListener('click', async (e) => {
+    const url = location.origin + '/voluntariado/';
+    try { await navigator.clipboard.writeText(url); e.target.textContent = 'Liga copiada'; }
+    catch (err) { prompt('Copia la liga:', url); }
+  });
+
+  ({ puestos: pintarPuestos, voluntarios: pintarVoluntarios, horas: pintarHoras, instituciones: pintarInstituciones }[pestana]
+    || pintarPuestos)();
+}
+
+/* ---------------------------------------------------------- puestos --- */
+function pintarPuestos() {
+  const c = $('#contenido');
+  c.innerHTML = `
+    <div class="vadm-filtros">
+      <input type="search" id="f-texto" placeholder="Buscar por puesto, actividad o sede" value="${escapar(filtro.texto)}">
+      <select id="f-estado">
+        <option value="falta"${filtro.estado === 'falta' ? ' selected' : ''}>Por cubrir</option>
+        <option value="lleno"${filtro.estado === 'lleno' ? ' selected' : ''}>Cubiertos</option>
+        <option value=""${filtro.estado === '' ? ' selected' : ''}>Todos</option>
+      </select>
+    </div>
+    <div id="tabla"></div>`;
+  const tabla = () => {
+    const t = norm(filtro.texto);
+    const filas = PUESTOS.filter(p => {
+      const n = activas(p.id).length;
+      return (!filtro.estado || (filtro.estado === 'falta' ? n < p.vacantes : n >= p.vacantes)) &&
+             (!t || norm(p.titulo + ' ' + p.actividades.titulo + ' ' + p.actividades.sede).includes(t));
+    });
+    $('#tabla').innerHTML = filas.length ? `
+      <div class="tabla-caja"><table>
+        <thead><tr><th>Día y hora</th><th>Puesto</th><th>Actividad</th><th>Ocupación</th><th></th></tr></thead>
+        <tbody>${filas.map(p => {
+          const n = activas(p.id).length;
+          return `<tr>
+            <td><strong>${escapar(fechaDia(p.dia))}</strong><span class="sub">${escapar(horario(p))}</span></td>
+            <td><span class="cat" style="${estiloCategoria(p.categoria)}"><i></i>${escapar(categoria(p.categoria).corto)}</span>
+              <strong style="display:block">${escapar(p.titulo)}</strong>
+              ${p.en_directorio ? '' : '<span class="chip chip--gris">Oculto</span>'}</td>
+            <td>${escapar(p.actividades.titulo)}<span class="sub">${escapar(p.actividades.sede || '')}${p.actividades.publica ? '' : ' · sin publicar'}</span></td>
+            <td class="vadm-cupo ${n >= p.vacantes ? 'is-lleno' : 'is-falta'}">${n} de ${p.vacantes}${n < p.vacantes ? `<span class="sub">faltan ${p.vacantes - n}</span>` : ''}</td>
+            <td><a class="bol-mini" href="/actividad/?id=${p.actividades.id}#voluntarios">Abrir</a></td>
+          </tr>`; }).join('')}</tbody></table></div>`
+      : `<p class="bol-vacio">${PUESTOS.length ? 'Nada con esos filtros.' : 'Ninguna actividad ha dado de alta puestos todavía.'}</p>`;
+  };
+  $('#f-texto').addEventListener('input', e => { filtro.texto = e.target.value; tabla(); });
+  $('#f-estado').addEventListener('change', e => { filtro.estado = e.target.value; tabla(); });
+  tabla();
+}
+
+/* ------------------------------------------------------ voluntarios --- */
+function pintarVoluntarios() {
+  const c = $('#contenido');
+  c.innerHTML = `
+    <div class="vadm-filtros">
+      <input type="search" id="f-texto" placeholder="Buscar por nombre, correo o carrera" value="${escapar(filtro.texto)}">
+      <select id="f-inst">
+        <option value="">Todas las instituciones</option>
+        ${[...new Set(VOLS.map(nombreInst))].sort().map(n => `<option${n === filtro.inst ? ' selected' : ''}>${escapar(n)}</option>`).join('')}
+      </select>
+      <button class="btn btn--linea btn--chico" type="button" id="csv">Descargar CSV</button>
+    </div>
+    <div id="tabla"></div>`;
+
+  const filtrados = () => {
+    const t = norm(filtro.texto);
+    return VOLS.filter(v => (!filtro.inst || nombreInst(v) === filtro.inst) &&
+                            (!t || norm(v.nombre + ' ' + v.correo + ' ' + (v.carrera || '')).includes(t)))
+               .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  };
+  const tabla = () => {
+    const d = filtrados();
+    $('#tabla').innerHTML = d.length ? `
+      <div class="tabla-caja"><table>
+        <thead><tr><th>Persona</th><th>Contacto</th><th>Institución</th><th class="num">Turnos</th><th class="num">Horas</th><th></th></tr></thead>
+        <tbody>${d.map(v => {
+          const turnos = INSC.filter(x => x.voluntario_id === v.id && x.estado === 'inscrito');
+          return `<tr>
+            <td><strong>${escapar(v.nombre)}</strong><span class="sub">${escapar(v.carrera || '')}${v.matricula ? ' · ' + escapar(v.matricula) : ''}</span></td>
+            <td><a href="mailto:${escapar(v.correo)}">${escapar(v.correo)}</a><span class="sub">${escapar(v.telefono)}</span></td>
+            <td>${escapar(nombreInst(v))}<span class="sub">Resp.: ${escapar(v.responsable)}</span></td>
+            <td class="num">${turnos.length}</td>
+            <td class="num">${fmtH(horasDe(v.id))}</td>
+            <td><button class="bol-mini bol-mini--peligro" type="button" data-borrar="${v.id}">Borrar sus datos</button></td>
+          </tr>`; }).join('')}</tbody></table></div>
+      <p class="sub" style="margin-top:10px">«Borrar sus datos» es para cuando la persona lo pide (derecho de cancelación): elimina a la persona y todos sus turnos.</p>`
+      : `<p class="bol-vacio">${VOLS.length ? 'Nada con esos filtros.' : 'Todavía no se inscribe nadie.'}</p>`;
+    $('#tabla').querySelectorAll('[data-borrar]').forEach(b => b.addEventListener('click', () => borrar(b.dataset.borrar)));
+  };
+  $('#f-texto').addEventListener('input', e => { filtro.texto = e.target.value; tabla(); });
+  $('#f-inst').addEventListener('change', e => { filtro.inst = e.target.value; tabla(); });
+  $('#csv').addEventListener('click', () => descargarCSV('voluntarios-festival.csv',
+    ['Nombre', 'Correo', 'Teléfono', 'Institución', 'Carrera', 'Matrícula', 'Responsable', 'Contacto del responsable', 'Turnos', 'Horas cumplidas', 'Registro'],
+    filtrados().map(v => [v.nombre, v.correo, v.telefono, nombreInst(v), v.carrera, v.matricula, v.responsable,
+      v.responsable_contacto, INSC.filter(x => x.voluntario_id === v.id && x.estado === 'inscrito').length,
+      horasDe(v.id), String(v.creado).slice(0, 10)])));
+  tabla();
+}
+
+async function borrar(id) {
+  const v = VOLS.find(x => x.id === id);
+  if (!confirm(`¿Borrar para siempre los datos de ${v.nombre}?\n\nSe eliminan la persona y todos sus turnos, incluidas sus horas. No se puede deshacer.`)) return;
+  const { error } = await db.from('voluntarios').delete().eq('id', id);
+  if (error) return avisar('mal', explicar(error));
+  await cargar();
+  avisar('ok', `Se borraron los datos de ${v.nombre}.`);
+}
+
+/* ----------------------------------------------------------- horas ---- */
+function pintarHoras() {
+  const c = $('#contenido');
+  // Institución → responsable → personas. Es lo que se manda a cada oficina.
+  const grupos = new Map();
+  VOLS.forEach(v => {
+    const turnos = INSC.filter(x => x.voluntario_id === v.id && x.estado === 'inscrito');
+    if (!turnos.length) return;
+    const i = nombreInst(v), r = v.responsable || 'Sin responsable';
+    if (!grupos.has(i)) grupos.set(i, new Map());
+    if (!grupos.get(i).has(r)) grupos.get(i).set(r, []);
+    grupos.get(i).get(r).push({ v, turnos, horas: horasDe(v.id),
+      pendientes: turnos.filter(x => !x.asistencia).length });
+  });
+
+  c.innerHTML = `
+    <p class="leyenda">Las horas cuentan solo los turnos marcados como «cumplió» por la coordinación de
+      cada actividad. «Sin marcar» son turnos que todavía no ocurren o que nadie ha revisado.</p>
+    <p><button class="btn btn--principal btn--chico" type="button" id="csv">Descargar el reporte de horas (CSV)</button></p>
+    ${grupos.size ? [...grupos].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([inst, resps]) => `
+      <div class="grupo-inst">
+        <h3>${escapar(inst)}</h3>
+        ${[...resps].map(([resp, gente]) => `
+          <h4>Responsable: ${escapar(resp)}</h4>
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Persona</th><th>Matrícula</th><th class="num">Turnos</th><th class="num">Sin marcar</th><th class="num">Horas</th></tr></thead>
+            <tbody>${gente.sort((a, b) => a.v.nombre.localeCompare(b.v.nombre, 'es')).map(g => `
+              <tr><td><strong>${escapar(g.v.nombre)}</strong><span class="sub">${escapar(g.v.correo)}</span></td>
+                <td>${escapar(g.v.matricula || '—')}</td>
+                <td class="num">${g.turnos.length}</td><td class="num">${g.pendientes || ''}</td>
+                <td class="num total">${fmtH(g.horas)}</td></tr>`).join('')}</tbody>
+          </table></div>`).join('')}
+      </div>`).join('') : '<p class="bol-vacio">Todavía no hay turnos.</p>'}`;
+
+  $('#csv').addEventListener('click', () => {
+    const filas = [];
+    INSC.filter(x => x.estado === 'inscrito').forEach(x => {
+      const v = VOLS.find(y => y.id === x.voluntario_id), p = PUESTOS.find(y => y.id === x.puesto_id);
+      if (!v || !p) return;
+      filas.push([nombreInst(v), v.responsable, v.responsable_contacto, v.nombre, v.matricula, v.carrera, v.correo,
+        p.actividades.titulo, p.titulo, p.dia, hora(p.hora_inicio), hora(p.hora_fin),
+        x.asistencia === 'cumplio' ? 'Cumplió' : x.asistencia === 'falto' ? 'No llegó' : 'Sin marcar', x.horas ?? '']);
+    });
+    filas.sort((a, b) => String(a[0] + a[1] + a[3]).localeCompare(String(b[0] + b[1] + b[3]), 'es'));
+    descargarCSV('horas-voluntariado-por-institucion.csv',
+      ['Institución', 'Responsable', 'Contacto del responsable', 'Nombre', 'Matrícula', 'Carrera', 'Correo',
+       'Actividad', 'Puesto', 'Fecha', 'Inicio', 'Fin', 'Asistencia', 'Horas'], filas);
+  });
+}
+
+/* --------------------------------------------------- instituciones ---- */
+function clave(nombre) {
+  return norm(nombre).replace(/\(([^)]*)\)/g, ' $1 ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'inst';
+}
+
+function pintarInstituciones() {
+  const c = $('#contenido');
+  c.innerHTML = `
+    <p class="leyenda">Las que aparecen en la lista del formulario. Cada una tiene su liga de invitación:
+      quien entra por ella encuentra su institución ya elegida. Desactivar una la quita de la lista
+      sin tocar a quienes ya se inscribieron con ella.</p>
+    <div class="tabla-caja"><table>
+      <thead><tr><th>Institución</th><th>Liga de invitación</th><th class="num">Personas</th><th></th></tr></thead>
+      <tbody>${INST.map(i => `
+        <tr${i.activa ? '' : ' style="opacity:.55"'}>
+          <td><strong>${escapar(i.nombre)}</strong>${i.activa ? '' : ' <span class="chip chip--gris">inactiva</span>'}</td>
+          <td><span class="vadm-liga">${escapar(location.origin)}/voluntariado/?i=${escapar(i.clave)}</span>
+            <button class="bol-mini" type="button" data-copiar="${escapar(i.clave)}">Copiar</button></td>
+          <td class="num">${VOLS.filter(v => v.institucion_id === i.id).length}</td>
+          <td class="bol-acc">
+            <button class="bol-mini" type="button" data-renombrar="${i.id}">Renombrar</button>
+            <button class="bol-mini" type="button" data-activa="${i.id}">${i.activa ? 'Desactivar' : 'Activar'}</button>
+          </td>
+        </tr>`).join('')}</tbody>
+    </table></div>
+
+    <form class="bol-nueva" id="nueva" novalidate>
+      <div class="campo"><label for="ni-nombre">Agregar institución</label>
+        <input type="text" id="ni-nombre" maxlength="160" placeholder="Universidad Xochicalco"></div>
+      <button class="btn btn--principal btn--chico" type="submit">Agregar</button>
+    </form>
+
+    ${otras().length ? `
+    <h3 style="margin-top:26px;font-family:var(--f-disp)">Escritas a mano con «Otra institución»</h3>
+    <p class="leyenda">Si alguna se repite, conviene agregarla a la lista.</p>
+    <ul>${otras().map(([n, k]) => `<li>${escapar(n)} · ${k} ${k === 1 ? 'persona' : 'personas'}</li>`).join('')}</ul>` : ''}`;
+
+  c.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', async () => {
+    const url = `${location.origin}/voluntariado/?i=${b.dataset.copiar}`;
+    try { await navigator.clipboard.writeText(url); b.textContent = 'Copiada'; } catch (e) { prompt('Copia la liga:', url); }
+  }));
+  c.querySelectorAll('[data-activa]').forEach(b => b.addEventListener('click', async () => {
+    const i = INST.find(x => x.id === b.dataset.activa);
+    const { error } = await db.from('instituciones').update({ activa: !i.activa }).eq('id', i.id);
+    if (error) return avisar('mal', explicar(error));
+    await cargar();
+  }));
+  c.querySelectorAll('[data-renombrar]').forEach(b => b.addEventListener('click', async () => {
+    const i = INST.find(x => x.id === b.dataset.renombrar);
+    const n = prompt('Nuevo nombre de la institución:', i.nombre);
+    if (!n || n.trim() === i.nombre) return;
+    const { error } = await db.from('instituciones').update({ nombre: n.trim() }).eq('id', i.id);
+    if (error) return avisar('mal', explicar(error));
+    await cargar();
+    avisar('ok', 'Institución renombrada. La liga de invitación no cambia.');
+  }));
+  $('#nueva').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nombre = $('#ni-nombre').value.trim();
+    if (nombre.length < 2) return avisar('mal', 'Escribe el nombre de la institución.');
+    let k = clave(nombre), n = 2;
+    while (INST.some(i => i.clave === k)) k = clave(nombre).slice(0, 27) + '-' + n++;
+    const orden = (Math.max(0, ...INST.map(i => i.orden)) || 0) + 10;
+    const { error } = await db.from('instituciones').insert({ nombre, clave: k, orden });
+    if (error) return avisar('mal', /duplicate|unique/i.test(error.message) ? 'Esa institución ya está en la lista.' : explicar(error));
+    await cargar();
+    avisar('ok', `Agregada. Su liga: ${location.origin}/voluntariado/?i=${k}`);
+  });
+}
+
+/** Instituciones escritas a mano, de más a menos repetidas. */
+function otras() {
+  const m = new Map();
+  VOLS.filter(v => !v.institucion_id && v.institucion_otra).forEach(v => {
+    const k = v.institucion_otra.trim();
+    m.set(k, (m.get(k) || 0) + 1);
+  });
+  return [...m].sort((a, b) => b[1] - a[1]);
+}
+</script>
+</body>
+</html>
