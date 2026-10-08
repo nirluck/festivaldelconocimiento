@@ -67,7 +67,17 @@ export async function huella(token) {
 /** Inicio y fin de la actividad en milisegundos, con el reloj del teléfono. */
 export function ventana(a) {
   if (!a?.fecha) return null;
-  const [y, m, d] = String(a.fecha).slice(0, 10).split('-').map(Number);
+  // Varios días (sql/20): el horario es el de cada día, así que la ventana es
+  // la de HOY si hoy cae en el rango; antes, la del primer día; después, la
+  // del último.
+  let dia = String(a.fecha).slice(0, 10);
+  if (a.fecha_fin && String(a.fecha_fin) > dia) {
+    const t = new Date();
+    const hoy = [t.getFullYear(), String(t.getMonth() + 1).padStart(2, '0'), String(t.getDate()).padStart(2, '0')].join('-');
+    const fin = String(a.fecha_fin).slice(0, 10);
+    dia = hoy < dia ? dia : hoy > fin ? fin : hoy;
+  }
+  const [y, m, d] = dia.split('-').map(Number);
   const en = (t) => {
     const [h, mi] = String(t || '00:00').split(':').map(Number);
     return new Date(y, m - 1, d, h, mi).getTime();

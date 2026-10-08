@@ -42,7 +42,7 @@ function resumir(b) {
     nombre: b.nombre,
     asistio_en: b.asistio_en || null,
     actividad: {
-      titulo: a.titulo, slug: a.slug, fecha: a.fecha,
+      titulo: a.titulo, slug: a.slug, fecha: a.fecha, fecha_fin: a.fecha_fin || null,
       hora_inicio: a.hora_inicio, hora_fin: a.hora_fin,
       sede: a.sede, sede_direccion: a.sede_direccion,
       sala: a.sala || null, sede_mapa: a.sede_mapa || null,

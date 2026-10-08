@@ -48,6 +48,7 @@
 import { db, exigirSesion, explicar,
          fecha, fechaDia, fechaHora, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { rangoCorto } from '/assets/js/rango-fechas.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -78,6 +79,13 @@ async function cargar() {
   }
   filas = data || [];
   esperado = filas.length ? filas[0].esperado : 0;
+  // La fecha de término (sql/20) no viene en la vista del semáforo: aparte,
+  // y si la base aún no la tiene, la lista sale igual.
+  if (filas.length) {
+    const { data: ff } = await db.from('actividades').select('id, fecha_fin').in('id', filas.map(f => f.id));
+    const finDe = Object.fromEntries((ff || []).map(r => [r.id, r.fecha_fin]));
+    filas.forEach(f => { f.fecha_fin = finDe[f.id] || null; });
+  }
   pintar();
 }
 
@@ -217,7 +225,7 @@ function tabla() {
                 <a class="fila-tit" href="/actividad/?id=${encodeURIComponent(f.id)}"><strong>${escapar(f.titulo)}</strong></a>
                 <span class="motivo">
                   <span class="eje">${escapar(f.eje || '—')}</span>
-                  ${escapar(f.tipo || '')}${f.fecha ? ' · ' + escapar(fechaDia(f.fecha)) : ''}${f.hora_inicio ? ' · ' + escapar(hora(f.hora_inicio)) + ' h' : ''}
+                  ${escapar(f.tipo || '')}${f.fecha ? ' · ' + escapar(rangoCorto(f) || fechaDia(f.fecha)) : ''}${f.hora_inicio ? ' · ' + escapar(hora(f.hora_inicio)) + ' h' : ''}
                   ${f.sede ? '· ' + escapar(f.sede) : ''}
                 </span>
               </td>
@@ -308,7 +316,7 @@ function exportar() {
     ['Edición','anio'],
     ['Actividad','titulo'], ['Responsable','responsable'], ['Correo','correo'],
     ['Teléfono','telefono'], ['Eje','eje'], ['Tipo','tipo'], ['Sede','sede'],
-    ['Fecha','fecha'], ['Hora','hora_inicio'], ['Hora fin','hora_fin'],
+    ['Fecha','fecha'], ['Fecha fin','fecha_fin'], ['Hora','hora_inicio'], ['Hora fin','hora_fin'],
     ['Avance %','avance'], ['Esperado %','esperado'],
     ['Días sin reportar','dias_sin'], ['Reportes','envios'], ['Alerta declarada','alerta'],
     ['Avances','avances'], ['Necesidades','necesidades'], ['Problemática','problematica'],

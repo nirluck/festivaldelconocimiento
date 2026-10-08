@@ -17,6 +17,7 @@ import { colorOscuro } from '../marca.js';
 import { cancelarBoleto, mensaje } from './api.js';
 import { guardarBoleto } from './almacen.js';
 import { lugarLargo, urlMapa } from '../lugar.js';
+import { rangoLargo, diasQueDura } from '../rango-fechas.js';
 import {
   escapar, hora, aFecha, diaLargo, rangoHoras, codigoLegible, lugaresTexto,
   urlBoleto, descargar, aLas,
@@ -76,7 +77,7 @@ export function htmlBoleto(b) {
       <p class="bo__codigo"><small>Código</small><b>${escapar(codigoLegible(b.codigo))}</b></p>
 
       <dl class="bo__datos">
-        <div><dt>Cuándo</dt><dd>${escapar(a.fecha ? diaLargo(a.fecha) : 'Por confirmar')}
+        <div><dt>Cuándo</dt><dd>${escapar(rangoLargo(a) || (a.fecha ? diaLargo(a.fecha) : 'Por confirmar'))}
           <small>${escapar(rangoHoras(a))}</small></dd></div>
         <div><dt>Dónde</dt><dd>${lugarTxt}</dd></div>
         <div><dt>A nombre de</dt><dd>${escapar(b.nombre || '—')}</dd></div>
@@ -317,7 +318,7 @@ export async function imagenBoleto(b) {
     }
     y += alto + 50;
   };
-  fila('Cuándo', a.fecha ? diaLargo(a.fecha) : 'Por confirmar', rangoHoras(a));
+  fila('Cuándo', rangoLargo(a) || (a.fecha ? diaLargo(a.fecha) : 'Por confirmar'), rangoHoras(a));
   fila('Dónde', lugarLargo(a) || 'Por confirmar', a.sede_direccion || '');
   // Nombre y lugares en dos columnas
   const yNombre = y;
@@ -416,8 +417,11 @@ export function ics(b) {
       fin = sello(f) + 'T' + String(Math.min(h + 1, 23)).padStart(2, '0') + String(m).padStart(2, '0') + '00';
     }
     lineas.push(`DTSTART;TZID=America/Tijuana:${ini}`, `DTEND;TZID=America/Tijuana:${fin}`);
+    // Varios días (sql/20): el mismo horario, cada día del rango.
+    if (diasQueDura(a) > 1) lineas.push(`RRULE:FREQ=DAILY;COUNT=${diasQueDura(a)}`);
   } else if (f) {
-    const siguiente = new Date(f); siguiente.setDate(siguiente.getDate() + 1);
+    // Sin hora: un evento de día completo que abarca todo el rango.
+    const siguiente = new Date(f); siguiente.setDate(siguiente.getDate() + diasQueDura(a));
     lineas.push(`DTSTART;VALUE=DATE:${sello(f)}`, `DTEND;VALUE=DATE:${sello(siguiente)}`);
   }
 

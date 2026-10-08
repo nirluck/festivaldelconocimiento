@@ -77,6 +77,7 @@ ejes · tipos · sedes
 | `sql/17-puerta.sql` | **Fase F4.** Código de puerta corto, «Deshacer» corregido y ajuste de cuántos entraron. Escrito el 2 de octubre de 2026 |
 | `sql/18-eliminar-boletos.sql` | Eliminar boletos para siempre, aunque ya hayan entrado. Solo administración. Escrito el 3 de octubre de 2026 |
 | `sql/19-voluntariado.sql` | **Fase E.** Instituciones, puestos, voluntarios e inscripciones; directorio público, inscripción, asistencia y horas. Escrito el 4 de octubre de 2026 |
+| `sql/20-fecha-fin.sql` | Actividades de varios días: `fecha_fin` opcional, en el programa, el boleto y la puerta (la clave vence tras el último día). Escrito el 8 de octubre de 2026 |
 | `sql/auditoria-seguridad.sql` | No cambia nada: revisa permisos, reglas por fila y funciones expuestas. Correr tras cada SQL nuevo |
 | `sql/00-verificar.sql` | No crea nada: comprueba que todo quedó bien |
 
@@ -186,9 +187,15 @@ ediciones         id · anio · nombre · fecha_inicio · fecha_fin
 actividades       id · edicion_id · responsable_id → perfiles
                   titulo · slug · resumen · descripcion · requerimientos
                   eje · tipo · sede
-                  fecha · hora_inicio · hora_fin · cupo · poster
+                  fecha · fecha_fin · hora_inicio · hora_fin · cupo · poster
                   publica · archivada · publicada_en · creado · actualizado
                   ↑ «poster» es la RUTA en Storage, no la URL. Ver fase C
+                  ↑ «fecha_fin» (sql/20): nula = un solo día. Llena = rango,
+                    «Del 12 al 15 de octubre». «fecha» sigue siendo el primer
+                    día: por ella se ordena, se agrupa y cierran los boletos.
+                    Desde el 8 de octubre de 2026 la fecha puede caer FUERA
+                    del festival: hay talleres antes. Los formularios ya no
+                    la acotan (la base nunca lo hizo).
 ```
 
 ### Catálogos

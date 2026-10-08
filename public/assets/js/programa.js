@@ -20,6 +20,7 @@ import { montarCabecera } from '/assets/js/cabecera.js';
 import { boletoDeActividad } from '/assets/js/boletos/almacen.js';
 import { fechaHoraTexto } from '/assets/js/boletos/util.js';
 import { lugarCorto, urlMapa } from '/assets/js/lugar.js';
+import { esRango, rangoLargo, diasQueDura } from '/assets/js/rango-fechas.js';
 
 const pagina = document.getElementById('pagina');
 
@@ -79,6 +80,27 @@ function diasDeLaEdicion(ed) {
     out.push(iso(new Date(f)));
   }
   return out;
+}
+
+/* Las actividades pueden caer fuera del festival y durar varios días
+   (sql/20-fecha-fin.sql). La barra muestra los días del festival MÁS los días
+   en que empieza algo fuera de él: un taller del 12 al 15 de octubre trae su
+   pastilla del 12. */
+function diasDelPrograma(ed, acts) {
+  const s = new Set(diasDeLaEdicion(ed));
+  acts.forEach(a => { if (a.fecha) s.add(String(a.fecha).slice(0, 10)); });
+  return [...s].sort();
+}
+
+/** ¿La actividad ocurre ese día? Las de varios días, en cualquiera del rango:
+    quien elige el 18 ve el taller que va del 16 al 19. */
+function ocurreEl(a, d) {
+  return a.fecha === d || (esRango(a) && a.fecha <= d && d <= a.fecha_fin);
+}
+
+/** «Del 12 al 15 de octubre · 4 días», para las de varios días; si no, null. */
+function textoRango(a) {
+  return esRango(a) ? `${rangoLargo(a)} · ${diasQueDura(a)} días` : null;
 }
 
 /** «10:00 – 12:00», «10:00» o «Por confirmar». */
@@ -170,7 +192,7 @@ async function pintarCartelera() {
 
   ACTS = data || [];
   PONENTES = agruparPonentes(ponentes);
-  DIAS = diasDeLaEdicion(ed);
+  DIAS = diasDelPrograma(ed, ACTS);
 
   if (!ACTS.length) { pintarSinPrograma(ed); return; }
 
@@ -189,7 +211,7 @@ async function pintarCartelera() {
   const hoy = iso(new Date());
   const delHash = location.hash.replace(/^#/, '');
   if (delHash === 'todo' || DIAS.includes(delHash)) diaActivo = delHash;
-  else if (DIAS.includes(hoy) && ACTS.some(a => a.fecha === hoy)) diaActivo = hoy;
+  else if (DIAS.includes(hoy) && ACTS.some(a => ocurreEl(a, hoy))) diaActivo = hoy;
 
   pagina.innerHTML = `
     ${cabeceraCartelera(ed)}
@@ -251,7 +273,7 @@ function pintarBarra() {
 
   const pastilla = (d) => {
     const { semana, numero } = diaCorto(d);
-    const hay = ACTS.some(a => a.fecha === d);
+    const hay = ACTS.some(a => ocurreEl(a, d));
     return `<button class="pg-dia-btn" type="button" data-dia="${d}"
               aria-pressed="${diaActivo === d}" ${hay ? '' : 'disabled'}
               title="${hay ? escapar(diaLargo(d)) : escapar(diaLargo(d)) + ' · sin actividades todavía'}">
@@ -370,7 +392,7 @@ function filtradas() {
     (!sedeOn || a.sede === sedeOn) &&
     (!tipoOn || a.tipo === tipoOn) &&
     (diaActivo === 'todo'
-      || (diaActivo === 'abierto' ? !a.fecha : a.fecha === diaActivo))
+      || (diaActivo === 'abierto' ? !a.fecha : ocurreEl(a, diaActivo)))
   );
 }
 
@@ -400,10 +422,13 @@ function pintarLista() {
     return;
   }
 
-  // Agrupar por día conservando el orden que ya trajo la base.
+  // Agrupar por día conservando el orden que ya trajo la base. Con «Todo», la
+  // de varios días va una sola vez, en el día en que empieza; con un día
+  // elegido, va bajo ese día aunque haya empezado antes.
+  const unDia = diaActivo !== 'todo' && diaActivo !== 'abierto';
   const grupos = new Map();
   d.forEach(a => {
-    const k = a.fecha || 'abierto';
+    const k = unDia ? diaActivo : (a.fecha || 'abierto');
     if (!grupos.has(k)) grupos.set(k, []);
     grupos.get(k).push(a);
   });
@@ -463,6 +488,7 @@ function tarjeta(a) {
       ${lineaPonentes(a)}
       ${a.resumen ? `<p class="pg-act__res">${escapar(a.resumen)}</p>` : ''}
       <p class="pg-act__meta">
+        ${esRango(a) ? `<span class="pg-rango">${ICO.calend}${escapar(textoRango(a))}</span>` : ''}
         ${a.sede ? `<span class="pg-sede">${ICO.pin}${escapar(lugarCorto(a))}</span>` : ''}
       </p>
       ${accesoTarjeta(a)}
@@ -772,7 +798,8 @@ async function pintarFicha(slug) {
   const meta = document.querySelector('meta[name="description"]');
   if (meta && a.resumen) meta.setAttribute('content', a.resumen);
 
-  const cuandoDia = a.fecha ? diaLargo(a.fecha) : null;
+  // Las de varios días dicen el rango: «Del 12 al 15 de octubre».
+  const cuandoDia = rangoLargo(a) || (a.fecha ? diaLargo(a.fecha) : null);
   const poster    = a.poster ? urlPoster(a.poster) : '';
 
   // El resumen suele traer varios párrafos —el de Los Panchos trae cuatro— y se
@@ -823,7 +850,7 @@ async function pintarFicha(slug) {
             <div class="pg-ficha__fila">${ICO.calend}
               <div><dt>Cuándo</dt>
                 <dd>${cuandoDia ? escapar(cuandoDia) : 'Por confirmar'}
-                  ${a.fecha ? `<small>${escapar(String(a.fecha).slice(0, 4))}</small>` : ''}
+                  ${a.fecha ? `<small>${esRango(a) ? `${diasQueDura(a)} días · ` : ''}${escapar(String(a.fecha).slice(0, 4))}</small>` : ''}
                 </dd></div>
             </div>
             <div class="pg-ficha__fila">${ICO.reloj}

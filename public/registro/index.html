@@ -97,10 +97,17 @@
         </div>
 
         <div class="campo">
-          <label for="fecha">Fecha</label>
+          <label for="fecha">Fecha de inicio</label>
           <input type="date" id="fecha" name="fecha">
-          <span class="pista" id="pista-fecha">Dentro de los días del festival. Si aún no la defines, déjala vacía.</span>
+          <span class="pista" id="pista-fecha">Si aún no la defines, déjala vacía.</span>
           <span class="error-campo" id="e-fecha" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="fecha_fin">Fecha de término <span class="opcional">opcional</span></label>
+          <input type="date" id="fecha_fin" name="fecha_fin">
+          <span class="pista">Solo si dura varios días, como un taller del 12 al 15. Si es un solo día, déjala vacía.</span>
+          <span class="error-campo" id="e-fecha_fin" hidden></span>
         </div>
 
         <div class="campo">
@@ -209,20 +216,25 @@ const selectorPoster = montarSelector($('#poster-selector'), {
     llenar($('#tipo'), cat.tipos, 'Elige un tipo');
     campoSede.llenarSedes($('#sede'), cat.sedes, { placeholder: 'Elige una sede', salas: cat.salas });
 
-    // El campo de fecha se acota a los días del festival. El navegador no deja
-    // elegir fuera del rango con el calendario, pero sí escribiendo: la
-    // validación de abajo es la que de verdad manda.
-    const campoFecha = $('#fecha');
-    campoFecha.min = edicion.fecha_inicio;
-    campoFecha.max = edicion.fecha_fin;
+    // Las fechas del festival se dicen como referencia, pero ya no acotan el
+    // campo (8 de octubre de 2026): hay talleres antes del festival, y de
+    // varios días.
     $('#pista-fecha').textContent =
-      'Del ' + fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin) +
-      ' de ' + edicion.anio + '. Si aún no la defines, déjala vacía.';
+      'El festival es del ' + fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin) +
+      ', pero tu actividad puede ser otro día. Si aún no la defines, déjala vacía.';
+    // El calendario del término abre en el mes del inicio, y no deja elegir antes.
+    $('#fecha').addEventListener('change', () => { $('#fecha_fin').min = $('#fecha').value || ''; });
   } catch (e) {
     aviso(cajaAviso, 'mal', explicar(e));
     document.querySelector('#enviar').disabled = true;
   }
 })();
+
+/** El término del rango, o '' si no hay rango (vacío, o el mismo día). */
+function fechaFin() {
+  const f = $('#fecha').value, ff = $('#fecha_fin').value;
+  return f && ff && ff > f ? ff : '';
+}
 
 /* ------------------------------------------------------------ validación -- */
 function marcar(id, mensaje) {
@@ -249,14 +261,12 @@ function validar() {
   pedir('eje',  'Elige un eje.',  !$('#eje').value);
   pedir('tipo', 'Elige un tipo.', !$('#tipo').value);
 
-  // La fecha es opcional, pero si la escriben tiene que caer dentro del
-  // festival. «min» y «max» solo guían al calendario del navegador; con
-  // novalidate no impiden enviar una fecha escrita a mano.
-  const f = $('#fecha').value;
-  pedir('fecha',
-    edicion ? 'La fecha tiene que caer dentro del festival: del ' +
-      fechaDia(edicion.fecha_inicio) + ' al ' + fechaDia(edicion.fecha_fin, true) + '.' : '',
-    !!f && !!edicion && (f < edicion.fecha_inicio || f > edicion.fecha_fin));
+  // Las fechas son opcionales y pueden caer fuera del festival. Solo se cuida
+  // que el rango tenga sentido: el término necesita un inicio y va después.
+  const f = $('#fecha').value, ff = $('#fecha_fin').value;
+  pedir('fecha_fin',
+    !f ? 'Pon primero la fecha de inicio.' : 'La fecha de término tiene que ser posterior a la de inicio.',
+    !!ff && (!f || ff < f));
 
   // Modo de acceso y cupo: es una propuesta, la administración la confirma al
   // publicar. «boleto» sin cupo no se puede guardar (lo exige la base).
@@ -296,6 +306,9 @@ forma.addEventListener('submit', async (ev) => {
     // Los campos de fecha y hora vacíos se mandan como null, no como cadena
     // vacía: las columnas son «date» y «time» y rechazarían ''.
     fecha:          $('#fecha').value || null,
+    // El término, solo si es otro día que el inicio («del 12 al 12» es un solo
+    // día). Si no hay rango, ni se manda: así el registro no depende de 20.
+    ...(fechaFin() ? { fecha_fin: fechaFin() } : {}),
     hora_inicio:    $('#hora_inicio').value || null,
     hora_fin:       $('#hora_fin').value || null,
     // Modo de acceso y cupo; el cupo vacío va como null.

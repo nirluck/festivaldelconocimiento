@@ -16,6 +16,7 @@ import { Puerta, ventana } from './estado.js';
 import { Escaner } from './escaner.js';
 import { escapar, hora, rangoHoras, codigoLegible, lugaresTexto, aLas, aFecha } from '../boletos/util.js';
 import { lugarCorto } from '../lugar.js';
+import { esRango, rangoCorto } from '../rango-fechas.js';
 import { sincronizarColorNavegador } from '../marca.js';
 
 sincronizarColorNavegador();
@@ -244,12 +245,17 @@ function pintarActs() {
   caja.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => puerta.fijar(b.dataset.act)));
 }
 
-/** «10:00» si es hoy; «sáb 18 · 10:00» si no. */
+/** «10:00» si es hoy; «sáb 18 · 10:00» si no; «12–15 oct · 10:00» si es de
+    varios días y hoy no cae en el rango. */
 function cuando(a) {
   const f = aFecha(a.fecha);
   const hoy = new Date();
   const h = hora(a.hora_inicio) || 'sin hora';
   if (!f || f.toDateString() === hoy.toDateString()) return h;
+  if (esRango(a)) {
+    const fin = aFecha(a.fecha_fin); hoy.setHours(0, 0, 0, 0);
+    return hoy >= f && hoy <= fin ? h : rangoCorto(a) + ' · ' + h;
+  }
   return f.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' }).replace('.', '') + ' · ' + h;
 }
 

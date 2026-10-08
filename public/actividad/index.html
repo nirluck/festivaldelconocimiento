@@ -41,6 +41,7 @@
 <script type="module">
 import { db, exigirSesion, explicar, fechaDia, hora, escapar } from '/assets/js/app.js';
 import { montarCabecera } from '/assets/js/cabecera.js';
+import { rangoLargo } from '/assets/js/rango-fechas.js';
 import { MODULOS } from '/assets/js/modulos/registro.js';
 
 const $ = s => document.querySelector(s);
@@ -93,6 +94,9 @@ async function traer() {
   // pierda todo lo de arriba.
   const { data: conSala } = await db.from('actividades').select('sala_id').eq('id', id).maybeSingle();
   actividad.sala_id = conSala?.sala_id || null;
+  // La fecha de término (sql/20), igual: aparte.
+  const { data: conFin } = await db.from('actividades').select('fecha_fin').eq('id', id).maybeSingle();
+  actividad.fecha_fin = conFin?.fecha_fin || null;
   return true;
 }
 
@@ -113,7 +117,7 @@ function pintar() {
     a.eje ? `<span class="eje">${escapar(a.eje)}</span>` : '',
     a.tipo ? `<span>${escapar(a.tipo)}</span>` : '',
     a.sede ? `<span>· ${escapar(a.sede)}</span>` : '',
-    a.fecha ? `<span>· ${escapar(fechaDia(a.fecha, true))}</span>` : '',
+    a.fecha ? `<span>· ${escapar(rangoLargo(a) || fechaDia(a.fecha, true))}</span>` : '',
     a.hora_inicio ? `<span>· ${escapar(hora(a.hora_inicio))} h</span>` : '',
     a.acceso === 'boleto' ? `<span>· con boleto, ${a.cupo} boletos</span>`
       : a.acceso === 'registro' ? '<span>· confirmar asistencia</span>'

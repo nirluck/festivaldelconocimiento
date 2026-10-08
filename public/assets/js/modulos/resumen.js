@@ -12,7 +12,7 @@
    ========================================================================== */
 
 import { db, catalogos, edicionActiva, llenar,
-         aviso, limpiarAviso, explicar, escapar } from '/assets/js/app.js';
+         aviso, limpiarAviso, explicar, escapar, fechaDia } from '/assets/js/app.js';
 import * as campoAcceso from '/assets/js/campos-acceso.js';
 import * as campoSede from '/assets/js/campo-sede.js';
 
@@ -26,8 +26,8 @@ export default {
   async montar(contenedor, actividad, perfil, ctx) {
     const esAdmin = perfil.rol === 'administrador';
 
-    // Los catálogos y la edición se necesitan para las listas y para acotar la
-    // fecha. Si fallara, se dice qué pasó en vez de dejar la pantalla a medias.
+    // Los catálogos y la edición se necesitan para las listas y para decir las
+    // fechas del festival junto a la fecha. Si fallara, se dice qué pasó en vez de dejar la pantalla a medias.
     let cat, edicion;
     try {
       [cat, edicion] = await Promise.all([catalogos(), edicionActiva()]);
@@ -81,10 +81,17 @@ export default {
             </div>
 
             <div class="campo">
-              <label for="r-fecha">Fecha</label>
-              <input type="date" id="r-fecha" value="${v(actividad.fecha)}"
-                     min="${v(edicion.fecha_inicio)}" max="${v(edicion.fecha_fin)}">
+              <label for="r-fecha">Fecha de inicio</label>
+              <input type="date" id="r-fecha" value="${v(actividad.fecha)}">
+              <span class="pista">El festival es del ${v(fechaDia(edicion.fecha_inicio))} al ${v(fechaDia(edicion.fecha_fin))}, pero la actividad puede ser otro día.</span>
               <span class="error-campo" id="r-e-fecha" hidden></span>
+            </div>
+
+            <div class="campo">
+              <label for="r-fecha_fin">Fecha de término <span class="opcional">opcional</span></label>
+              <input type="date" id="r-fecha_fin" value="${v(actividad.fecha_fin)}" min="${v(actividad.fecha)}">
+              <span class="pista">Solo si dura varios días. Si es un solo día, déjala vacía.</span>
+              <span class="error-campo" id="r-e-fecha_fin" hidden></span>
             </div>
 
             <div class="campo">
@@ -146,6 +153,11 @@ export default {
     const forma = $('#r-forma', contenedor);
     const caja  = $('#r-aviso', contenedor);
 
+    // El calendario del término no deja elegir antes del inicio.
+    $('#r-fecha', contenedor).addEventListener('change', (e) => {
+      $('#r-fecha_fin', contenedor).min = e.target.value || '';
+    });
+
     const marca = (id, msg) => {
       const c = $('#r-' + id, contenedor), e = $('#r-e-' + id, contenedor);
       if (c) c.setAttribute('aria-invalid', msg ? 'true' : 'false');
@@ -166,9 +178,14 @@ export default {
       if (!titulo) { marca('titulo', 'Ponle nombre a la actividad.'); ok = false; } else marca('titulo', '');
       if (!eje)    { marca('eje', 'Elige un eje.');   ok = false; } else marca('eje', '');
       if (!tipo)   { marca('tipo', 'Elige un tipo.'); ok = false; } else marca('tipo', '');
-      if (fecha && (fecha < edicion.fecha_inicio || fecha > edicion.fecha_fin)) {
-        marca('fecha', 'La fecha tiene que caer dentro del festival.'); ok = false;
-      } else marca('fecha', '');
+      // La fecha ya no tiene que caer dentro del festival (8 de octubre de
+      // 2026). Solo se cuida que el rango tenga sentido.
+      const fechaFin = $('#r-fecha_fin', contenedor).value;
+      if (fechaFin && !fecha) {
+        marca('fecha_fin', 'Pon primero la fecha de inicio.'); ok = false;
+      } else if (fechaFin && fechaFin < fecha) {
+        marca('fecha_fin', 'La fecha de término tiene que ser posterior a la de inicio.'); ok = false;
+      } else marca('fecha_fin', '');
       const acceso = campoAcceso.leer(contenedor, 'r');
       if (acceso.error) ok = false;
       const lecturaSede = campoSede.leer($('#r-sede', contenedor));
@@ -204,6 +221,11 @@ export default {
       };
       // Solo si la sede tiene salas; si no, la base suelta la vieja sola.
       if ('sala_id' in lecturaSede) cambios.sala_id = lecturaSede.sala_id;
+      // El término, solo si es otro día («del 12 al 12» es un día). Se manda
+      // si hay rango o si había uno que quitar: así, sin rango, guardar no
+      // depende de sql/20.
+      const fin = fechaFin && fechaFin > fecha ? fechaFin : null;
+      if (fin || actividad.fecha_fin) cambios.fecha_fin = fin;
       if (esAdmin) cambios.publica = $('#r-publica', contenedor).checked;
 
       const { error } = await db.from('actividades').update(cambios).eq('id', actividad.id);

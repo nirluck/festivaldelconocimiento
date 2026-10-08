@@ -228,6 +228,8 @@
   .dlg__sub{font-size:.86rem;color:var(--tx-3);margin-bottom:20px}
   .dlg .campos{gap:14px}
   .dlg__propuso{font-size:.78rem;color:var(--naranja-tx);font-weight:600;margin-top:3px}
+  #dlg [hidden]{display:none!important}
+  #dlg-fecha-otra{margin-top:8px}
   .dlg__acc{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;align-items:center}
   .dlg__aviso{margin-bottom:16px}
   .horas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -284,8 +286,10 @@ import { db, exigirSesion, explicar, catalogos, edicionActiva,
 import { montarCabecera } from '/assets/js/cabecera.js';
 import { estiloEje } from '/assets/js/color.js';
 import { urlPosterMini } from '/assets/js/archivos.js';
+import { esRango, rangoCorto } from '/assets/js/rango-fechas.js';
 
 const $ = s => document.querySelector(s);
+const OTRA_FECHA = '__otra';
 const pagina = $('#pagina');
 
 const CAPACIDADES = {};   // sede → capacidad registrada
@@ -294,7 +298,7 @@ let EDICION = null;
 let SEDES   = [];
 let CAT_SALAS = [];       // las activas, para elegir en el diálogo
 let ACTS    = [];      // actividades no archivadas de la edición activa
-let DIAS    = [];      // los días del festival, en ISO
+let DIAS    = [];      // los días del festival y los de inicio fuera de él, en ISO
 
 /* Estado de la pantalla. Sobrevive a los repintados: cada cambio vuelve a
    leer la base y a dibujar, y la persona no debe perder dónde estaba. */
@@ -326,7 +330,6 @@ async function cargar() {
     CAT_SALAS = cat.salas;
     const { data: sl } = await db.from('salas').select('id, nombre, capacidad');
     (sl || []).forEach(r => { SALAS[r.id] = r; });
-    DIAS    = diasDe(ed);
     cat.ejes.forEach(e => EJES_COLOR[e.nombre] = e.color);
   } catch (e) {
     pagina.innerHTML = `<div class="aviso aviso--mal">${escapar(explicar(e))}</div>`;
@@ -366,7 +369,17 @@ async function cargar() {
       .select('id, sala_id').in('id', ACTS.map(a => a.id));
     const salaDe = Object.fromEntries((ss || []).map(r => [r.id, r.sala_id]));
     ACTS.forEach(a => { a.sala_id = salaDe[a.id] || null; });
+    // La fecha de término (sql/20), también aparte, por la misma razón.
+    const { data: ff } = await db.from('actividades')
+      .select('id, fecha_fin').in('id', ACTS.map(a => a.id));
+    const finDe = Object.fromEntries((ff || []).map(r => [r.id, r.fecha_fin]));
+    ACTS.forEach(a => { a.fecha_fin = finDe[a.id] || null; });
   }
+
+  // Los días: los del festival y, además, los días en que empieza algo fuera
+  // de él (un taller del 12 al 15 de octubre trae el 12). Ya no hay fechas
+  // prohibidas (8 de octubre de 2026).
+  DIAS = [...new Set([...diasDe(EDICION), ...ACTS.map(a => a.fecha).filter(Boolean)])].sort();
 
   elegirVistaInicial();
   pintar();
@@ -625,7 +638,7 @@ function pintarPendientes() {
 function tarjetaPendiente(a) {
   const falta = faltaPara(a);
   const propone = a.fecha
-    ? `Propone <b>${escapar(fechaDia(a.fecha))}</b>${a.hora_inicio ? ' · <b>' + escapar(hora(a.hora_inicio)) + '</b>' : ''}${a.sede && a.sede !== 'Por definir' ? ' · ' + escapar(a.sede) : ''}`
+    ? `Propone <b>${escapar(rangoCorto(a) || fechaDia(a.fecha))}</b>${a.hora_inicio ? ' · <b>' + escapar(hora(a.hora_inicio)) + '</b>' : ''}${a.sede && a.sede !== 'Por definir' ? ' · ' + escapar(a.sede) : ''}`
     : 'Sin fecha propuesta';
 
   return `
@@ -750,6 +763,7 @@ function fila(a, pub) {
           <span>${escapar(a.eje || '')}${a.tipo ? ' · ' + escapar(a.tipo) : ''}</span>
         </p>
         <div class="etqs">
+          ${esRango(a) ? `<span class="etq etq--acceso">Varios días · ${escapar(rangoCorto(a))}</span>` : ''}
           <span class="etq etq--acceso">${escapar(etiquetaAcceso(a))}</span>
           ${choca.length ? `<span class="etq etq--choque">⚠ Empalma con «${escapar(choca[0].titulo)}»</span>` : ''}
           ${!a.poster ? '<span class="etq etq--poster">Sin póster</span>' : ''}
@@ -867,14 +881,16 @@ async function soltar(id, destino) {
   // Ya publicada y solo cambia de día: se escribe directo, con «Deshacer» en
   // el mensaje. Pedir confirmación sería estorbo: es reversible y se ve.
   if (a.publica && !faltaPara(a).length) {
-    const antes = a.fecha;
+    const antes = a.fecha, antesFin = a.fecha_fin;
+    // Con rango, el término se recorre lo mismo que el inicio.
+    const finNuevo = esRango(a) ? sumarDias(a.fecha_fin, diasEntre(a.fecha, destino)) : null;
     resaltar = a.id;
     vistaDia = destino;
-    await guardar(a.id, { fecha: destino }, `«${a.titulo}» se movió al ${fechaDia(destino)}.`, {
+    await guardar(a.id, conFechas(a, destino, finNuevo), `«${a.titulo}» se movió al ${fechaDia(destino)}.`, {
       deshacer: async () => {
         resaltar = a.id;
         vistaDia = antes;
-        await guardar(a.id, { fecha: antes }, `«${a.titulo}» volvió al ${fechaDia(antes)}.`);
+        await guardar(a.id, conFechas(a, antes, antesFin), `«${a.titulo}» volvió al ${fechaDia(antes)}.`);
       },
     });
     return;
@@ -900,8 +916,16 @@ function dialogoHtml() {
         <div class="campo">
           <label for="dlg-fecha">Día</label>
           <select id="dlg-fecha" required></select>
+          <input type="date" id="dlg-fecha-otra" aria-label="Otra fecha" hidden>
           <span class="dlg__propuso" id="dlg-propuso" hidden></span>
           <span class="error-campo" id="dlg-e-fecha" hidden></span>
+        </div>
+
+        <div class="campo">
+          <label for="dlg-fecha-fin">Hasta <span class="opcional">opcional</span></label>
+          <input type="date" id="dlg-fecha-fin">
+          <span class="pista">Solo si dura varios días, como un taller del 12 al 15.</span>
+          <span class="error-campo" id="dlg-e-fecha-fin" hidden></span>
         </div>
 
         <div class="horas">
@@ -941,8 +965,47 @@ function conectarDialogo() {
   $('#dlg-forma').addEventListener('submit', enviarDialogo);
 
   // Revisar el empalme en vivo: que se entere antes de publicar, no después.
-  ['#dlg-fecha', '#dlg-inicio', '#dlg-fin', '#dlg-sede'].forEach(s =>
+  ['#dlg-fecha', '#dlg-fecha-otra', '#dlg-inicio', '#dlg-fin', '#dlg-sede'].forEach(s =>
     $(s).addEventListener('change', revisarChoque));
+
+  $('#dlg-fecha').addEventListener('change', () => {
+    const otra = $('#dlg-fecha').value === OTRA_FECHA;
+    $('#dlg-fecha-otra').hidden = !otra;
+    if (otra) $('#dlg-fecha-otra').focus();
+    recorrerFin();
+  });
+  $('#dlg-fecha-otra').addEventListener('change', recorrerFin);
+}
+
+/* El día que dice el diálogo: el de la lista o, con «Otra fecha…», el del
+   calendario. '' si todavía no hay. */
+function fechaDialogo() {
+  const v = $('#dlg-fecha').value;
+  return v === OTRA_FECHA ? $('#dlg-fecha-otra').value : v;
+}
+
+/* Al cambiar el día de una actividad de varios días, el término se recorre
+   lo mismo: del 12–15 al 13 queda 13–16. */
+let inicioPrevio = '';
+function recorrerFin() {
+  const nuevo = fechaDialogo(), fin = $('#dlg-fecha-fin');
+  if (nuevo && inicioPrevio && fin.value) fin.value = sumarDias(fin.value, diasEntre(inicioPrevio, nuevo));
+  fin.min = nuevo || '';
+  inicioPrevio = nuevo;
+}
+
+const diasEntre = (a, b) => Math.round((aFecha(b) - aFecha(a)) / 86400000);
+function sumarDias(isoTx, n) {
+  const f = aFecha(isoTx);
+  f.setDate(f.getDate() + n);
+  return iso(f);
+}
+
+/* Los cambios de fecha para la base. Con rango, el término viaja con el
+   inicio; sin rango, ni se menciona (así no depende de sql/20). */
+function conFechas(a, fecha, fechaFin) {
+  const fin = fechaFin && fechaFin > fecha ? fechaFin : null;
+  return (fin || a.fecha_fin) ? { fecha, fecha_fin: fin } : { fecha };
 }
 
 function abrirDialogo(a, diaSugerido) {
@@ -964,10 +1027,21 @@ function abrirDialogo(a, diaSugerido) {
 
   // El día: el que se pidió al soltar; si no, el que propuso el coordinador;
   // si no propuso ninguno, el día que se está viendo a la derecha.
+  // «Otra fecha…» al final: la actividad puede caer fuera del festival
+  // (8 de octubre de 2026), y entonces se escribe en el calendario.
   const selF = $('#dlg-fecha');
   selF.innerHTML = '<option value="">Elige el día</option>' +
-    DIAS.map(d => `<option value="${d}">${escapar(etiquetaDia(d))} · ${escapar(fechaDia(d, true))}</option>`).join('');
+    DIAS.map(d => `<option value="${d}">${escapar(etiquetaDia(d))} · ${escapar(fechaDia(d, true))}</option>`).join('') +
+    `<option value="${OTRA_FECHA}">Otra fecha…</option>`;
   selF.value = diaSugerido || a.fecha || (vistaDia && vistaDia !== 'todos' ? vistaDia : '');
+  $('#dlg-fecha-otra').value = '';
+  $('#dlg-fecha-otra').hidden = true;
+
+  // El término. Si se cambia el día, el rango se recorre con él: un taller de
+  // cuatro días sigue durando cuatro.
+  $('#dlg-fecha-fin').value = esRango(a) ? a.fecha_fin : '';
+  $('#dlg-fecha-fin').min = fechaDialogo() || '';
+  inicioPrevio = fechaDialogo();
 
   const selS = $('#dlg-sede');
   // «Por definir» se queda fuera a propósito: es justo lo que esta pantalla
@@ -996,7 +1070,7 @@ function abrirDialogo(a, diaSugerido) {
   // El tipo no se cambia en este diálogo: se pasa fijo.
   campoAcceso.conectar($('#dlg'), 'dlg', { tipo: a.tipo || '' });
 
-  ['fecha', 'inicio', 'sede'].forEach(c => marca(c, ''));
+  ['fecha', 'fecha-fin', 'inicio', 'sede'].forEach(c => marca(c, ''));
   // El selector de sala lo crea campoSede: se engancha aquí, ya que existe.
   $('#dlg-sede-sala').onchange = revisarChoque;
   revisarChoque();
@@ -1015,7 +1089,7 @@ function revisarChoque() {
   const tentativa = {
     id: editando.id, sede: $('#dlg-sede').value,
     sala_id: campoSede.salaElegida($('#dlg-sede')),
-    fecha: $('#dlg-fecha').value,
+    fecha: fechaDialogo(),
     hora_inicio: $('#dlg-inicio').value, hora_fin: $('#dlg-fin').value,
   };
   const ch = choquesDe(tentativa, publicadas());
@@ -1036,13 +1110,17 @@ async function enviarDialogo(ev) {
   ev.preventDefault();
   if (!editando) return;
 
-  const fecha  = $('#dlg-fecha').value;
-  const inicio = $('#dlg-inicio').value;
-  const fin    = $('#dlg-fin').value;
-  const sede   = $('#dlg-sede').value;
+  const fecha    = fechaDialogo();
+  const fechaFin = $('#dlg-fecha-fin').value;
+  const inicio   = $('#dlg-inicio').value;
+  const fin      = $('#dlg-fin').value;
+  const sede     = $('#dlg-sede').value;
 
   let ok = true;
-  if (!fecha)  { marca('fecha', 'Elige el día del festival.'); ok = false; } else marca('fecha', '');
+  if (!fecha)  { marca('fecha', 'Elige el día.'); ok = false; } else marca('fecha', '');
+  if (fecha && fechaFin && fechaFin < fecha) {
+    marca('fecha-fin', 'Tiene que ser posterior al día en que empieza.'); ok = false;
+  } else marca('fecha-fin', '');
   if (!inicio) { marca('inicio', 'Pon la hora de inicio.');    ok = false; } else marca('inicio', '');
   if (!sede)   { marca('sede', 'Elige la sede.');              ok = false; } else marca('sede', '');
   if (ok && fin && fin <= inicio) {
@@ -1080,7 +1158,8 @@ async function enviarDialogo(ev) {
   try { sedeFinal = await campoSede.guardar(lecturaSede); } catch (e) { fallo(e); return; }
 
   const { error } = await db.from('actividades').update({
-    fecha, hora_inicio: inicio, hora_fin: fin || null, sede: sedeFinal, publica: true,
+    ...conFechas(editando, fecha, fechaFin),
+    hora_inicio: inicio, hora_fin: fin || null, sede: sedeFinal, publica: true,
     ...('sala_id' in lecturaSede ? { sala_id: lecturaSede.sala_id } : {}),
     ...acceso.cambios,
   }).eq('id', editando.id);

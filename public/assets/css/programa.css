@@ -375,6 +375,8 @@ a{color:var(--turquesa-tx)}
 .pg-act__meta span{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .pg-act__meta svg{width:14px;height:14px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
 .pg-act__meta .pg-sede{color:var(--tx-2);font-weight:500}
+/* Actividad de varios días (sql/20): el rango, antes que la sede. */
+.pg-act__meta .pg-rango{color:var(--tx);font-weight:600}
 
 /* ---- póster en la tarjeta: cuadrado, 120 px. Es el mismo recorte que enseña
    la vista previa del selector (app.css, .poster__mini). ---- */

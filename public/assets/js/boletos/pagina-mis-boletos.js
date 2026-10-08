@@ -7,6 +7,7 @@
    ========================================================================== */
 
 import { montarCabecera } from '../cabecera.js';
+import { rangoLargo, ultimoDia } from '../rango-fechas.js';
 import { estiloEje } from '../color.js';
 import { verBoleto, recuperarBoletos, mensaje } from './api.js';
 import { boletosGuardados, guardarBoleto, olvidarBoleto } from './almacen.js';
@@ -36,7 +37,8 @@ async function actualizar() {
 }
 
 function pasado(b) {
-  const f = aFecha(b.actividad?.fecha);
+  // Una de varios días no pasa hasta su último día.
+  const f = aFecha(ultimoDia(b.actividad));
   if (!f) return false;
   const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
   return f < hoy;
@@ -153,7 +155,7 @@ function fila(b) {
       </span>
       <span class="mb-bol__cuerpo">
         <b class="mb-bol__tit">${escapar(a.titulo || 'Actividad')}</b>
-        <span class="mb-bol__meta">${escapar(a.fecha ? diaLargo(a.fecha) : '')} · ${escapar(rangoHoras(a))}${a.sede ? ' · ' + escapar(a.sede) : ''}</span>
+        <span class="mb-bol__meta">${escapar(rangoLargo(a) || (a.fecha ? diaLargo(a.fecha) : ''))} · ${escapar(rangoHoras(a))}${a.sede ? ' · ' + escapar(a.sede) : ''}</span>
         <span class="mb-bol__meta">Código <b>${escapar(codigoLegible(b.codigo))}</b> · ${escapar(lugaresTexto(b.lugares || 1))}</span>
       </span>
       ${etiqueta ? `<span class="mb-bol__estado">${escapar(etiqueta)}</span>` : ''}

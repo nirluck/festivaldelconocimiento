@@ -25,6 +25,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { urlPosterMini } from './archivos.js';
 import { lugarCorto } from './lugar.js';
+import { rangoCorto, ultimoDia } from './rango-fechas.js';
 
 const HERO   = document.getElementById('fdc-hero-prog');
 const PROX   = document.getElementById('fdc-proximas');
@@ -52,9 +53,11 @@ arrancar();
 async function arrancar() {
   const campos = 'slug,titulo,resumen,poster,eje,eje_color,tipo,sede,sede_direccion,fecha,hora_inicio,hora_fin,acceso,estado_boletos';
   const orden = '&order=fecha.asc,hora_inicio.asc,titulo.asc&limit=400';
-  // «sala» y «sede_corta» llegan con sql/16-sedes-salas.sql. Si la base aún
-  // no las tiene, la portada sale igual que antes en vez de quedarse vacía.
-  const acts = await pedir(`${campos},sala,sede_corta${orden}`) || await pedir(campos + orden);
+  // «sala» y «sede_corta» llegan con sql/16-sedes-salas.sql, y «fecha_fin»
+  // con sql/20-fecha-fin.sql. Si la base aún no las tiene, la portada sale
+  // igual que antes en vez de quedarse vacía.
+  const acts = await pedir(`${campos},sala,sede_corta,fecha_fin${orden}`)
+            || await pedir(`${campos},sala,sede_corta${orden}`) || await pedir(campos + orden);
   if (!acts || !acts.length) return;
 
   if (HERO)  pintarDestacadas(acts);
@@ -80,7 +83,8 @@ async function pedir(consulta) {
    las tres primeras del programa: es lo que alguien querría ver en enero. */
 function pintarDestacadas(acts) {
   const hoy = hoyLocal();
-  let conPoster = acts.filter(a => a.poster && a.fecha && a.fecha >= hoy);
+  // Una de varios días sigue contando mientras no termine.
+  let conPoster = acts.filter(a => a.poster && a.fecha && ultimoDia(a) >= hoy);
   if (!conPoster.length) conPoster = acts.filter(a => a.poster);
   if (!conPoster.length) return;
 
@@ -132,9 +136,11 @@ function tarjeta(a, n) {
 function pintarProximas(acts) {
   const hoy = hoyLocal();
   const porDia = new Map();
-  acts.filter(a => a.fecha && a.fecha >= hoy).forEach(a => {
-    if (!porDia.has(a.fecha)) porDia.set(a.fecha, []);
-    porDia.get(a.fecha).push(a);
+  // Una de varios días que ya empezó, pero no ha terminado, cuenta como de hoy.
+  acts.filter(a => a.fecha && ultimoDia(a) >= hoy).forEach(a => {
+    const d = a.fecha < hoy ? hoy : a.fecha;
+    if (!porDia.has(d)) porDia.set(d, []);
+    porDia.get(d).push(a);
   });
   const dias = [...porDia.keys()].sort().slice(0, DIAS_PROX);
   if (!dias.length) return;
@@ -327,10 +333,12 @@ function piezasFecha(a) {
   };
 }
 
-/** «Sáb 18 de oct · 10:00» */
+/** «Sáb 18 de oct · 10:00» · «Del 12 al 15 oct · 10:00» si dura varios días. */
 function cuando(a) {
   const f = aFecha(a.fecha);
   if (!f) return 'Fecha por confirmar';
+  const r = rangoCorto(a);
+  if (r) return 'Del ' + r.replace(/\s*–\s*/, ' al ') + (a.hora_inicio ? ' · ' + String(a.hora_inicio).slice(0, 5) : '');
   const dia = f.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
   const h = a.hora_inicio ? String(a.hora_inicio).slice(0, 5) : '';
   return mayuscula(dia) + (h ? ' · ' + h : '');

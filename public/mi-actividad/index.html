@@ -111,6 +111,7 @@ import { montarCabecera } from '/assets/js/cabecera.js';
 import { guardar as guardarSede } from '/assets/js/campo-sede.js';
 import { urlPosterMini } from '/assets/js/archivos.js';
 import { estiloEje } from '/assets/js/color.js';
+import { rangoCorto } from '/assets/js/rango-fechas.js';
 
 const $ = s => document.querySelector(s);
 const pagina = $('#pagina');
@@ -181,6 +182,12 @@ async function verLista() {
     (ps || []).forEach(r => { posters[r.id] = r.poster; });
   }
   data.forEach(a => { a.poster = posters[a.id] || null; a._conPoster = a.id in posters; });
+  // La fecha de término (sql/20), aparte: si la base aún no la tiene, nada cambia.
+  if (data.length) {
+    const { data: ff } = await db.from('actividades')
+      .select('id, fecha_fin').in('id', data.map(a => a.id));
+    (ff || []).forEach(r => { const a = data.find(x => x.id === r.id); if (a) a.fecha_fin = r.fecha_fin; });
+  }
 
   // El color de cada eje, para la franja de la tarjeta. Si el catálogo no
   // llega, las tarjetas salen con el turquesa de respaldo y nada más.
@@ -297,7 +304,7 @@ const ICO = {
 function tarjeta(a) {
   const liga = `/actividad/?id=${a.id}`;
   const cuando = a.fecha
-    ? `${escapar(fechaDia(a.fecha))}${a.hora_inicio ? ' · ' + escapar(hora(a.hora_inicio)) + ' h' : ''}`
+    ? `${escapar(rangoCorto(a) || fechaDia(a.fecha))}${a.hora_inicio ? ' · ' + escapar(hora(a.hora_inicio)) + ' h' : ''}`
     : '<span class="sin">Fecha por definir</span>';
   const sede = a.sede && a.sede !== 'Por definir'
     ? escapar(a.sede) : '<span class="sin">Sede por definir</span>';
