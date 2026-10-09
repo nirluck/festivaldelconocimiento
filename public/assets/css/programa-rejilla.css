@@ -1,0 +1,531 @@
+/* ============================================================================
+   PROGRAMA · LA CARTELERA EN PARRILLA
+   ----------------------------------------------------------------------------
+   La cartelera, pensada para verla de un vistazo (9 de octubre de 2026).
+   Sustituyó a la lista por días. programa.css sigue dando los tokens y la
+   ficha de cada actividad; aquí todo lleva el prefijo «pgr-».
+
+   La planta, de arriba abajo:
+
+     1. Cabecera rosa con el título y nada más.
+     2. La fila de días, a todo el ancho y pegada al bajar.
+     3. Filtros en una columna angosta a la izquierda; el programa a la
+        derecha, en una parrilla continua de tres por fila.
+
+   Medidas que mandan:
+     · La columna de filtros mide 200 px. Con 272, a 1280 px de pantalla las
+       tarjetas se quedaban en 268 px y el programa se veía apretado.
+     · Las columnas de la parrilla dependen del ancho que de verdad le queda al
+       programa (consulta de contenedor), no del de la ventana: tres cuando
+       cada tarjeta puede medir al menos ~280 px, dos si no.
+     · 26 px entre tarjetas y 34 entre filas.
+
+   Hereda los tokens de color, tipografía y radios de programa.css, que se
+   carga antes. Aquí no se redeclara ninguno.
+   ========================================================================== */
+
+/* ============================================================================
+   ANCHO
+   ----------------------------------------------------------------------------
+   El sitio entero topa en 1440 px con un margen que crece con la pantalla
+   (5vw). En un monitor de 1920 eso deja el contenido en 1248 px al centro, con
+   336 px vacíos a cada lado, y las tarjetas salían más angostas que en una
+   laptop de 1440. Una parrilla de programa es justo la página que necesita el
+   ancho, así que aquí el tope sube a 1680 px. La cabecera del sitio sube con
+   ella para que el logotipo siga en la misma vertical que el contenido. Hasta
+   1440 px de pantalla no cambia nada.
+   ========================================================================== */
+.pgr-ancha .pg-wrap{max-width:1680px}
+/* La cabecera sube con él por «.pagina-ancha», en cabecera.css: la portada
+   usa el mismo ancho. */
+
+/* ============================================================================
+   1 · CABECERA · solo el título
+   ========================================================================== */
+.pgr-hero{
+  position:relative; overflow:hidden; isolation:isolate;
+  background:#D4116F; color:#fff;
+  padding:clamp(32px,4.4vw,60px) 0 clamp(30px,4vw,54px);
+}
+/* La foto multiplicada, igual que en la cabecera de siempre: es parte de la
+   identidad de las cabeceras de color. */
+.pgr-hero::before{
+  content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:var(--foto) center/cover no-repeat;
+  filter:grayscale(1) contrast(1.1); opacity:.26; mix-blend-mode:multiply;
+}
+/* Los aros del logotipo, en blanco, asomando por la esquina. */
+.pgr-hero::after{
+  content:''; position:absolute; right:-70px; top:-110px;
+  width:340px; height:340px; pointer-events:none; opacity:.3;
+  filter:brightness(0) invert(1);
+  background:
+    radial-gradient(circle at 32% 30%, transparent 54px, var(--turquesa) 54px, var(--turquesa) 55.2px, transparent 56.4px),
+    radial-gradient(circle at 62% 36%, transparent 54px, var(--magenta)  54px, var(--magenta)  55.2px, transparent 56.4px),
+    radial-gradient(circle at 28% 62%, transparent 54px, var(--naranja)  54px, var(--naranja)  55.2px, transparent 56.4px),
+    radial-gradient(circle at 58% 68%, transparent 54px, var(--verde)    54px, var(--verde)    55.2px, transparent 56.4px);
+}
+.pgr-hero__in{position:relative;z-index:1}
+/* Más chico que el titular de la vista de siempre porque es una frase entera y
+   no dos palabras: a 3.4rem rompía en tres renglones. */
+.pgr-hero h1{
+  font-family:var(--f-disp); font-weight:800;
+  font-size:clamp(2rem,3.6vw,3.3rem); line-height:1;
+  letter-spacing:-.03em; text-wrap:balance; margin:0; max-width:30ch;
+}
+@media (max-width:899px){
+  .pgr-hero::after{transform:scale(.6);transform-origin:top right;opacity:.26}
+}
+
+/* ============================================================================
+   2 · LA FILA DE DÍAS
+   ----------------------------------------------------------------------------
+   El mando principal y la primera vista de pájaro: en una línea se ve qué días
+   tiene el festival y cuáles están llenos. Pegada bajo la cabecera del sitio
+   («--cab-alto» lo mide cabecera.js en vivo).
+   ========================================================================== */
+.pgr-testigo{height:1px;margin-bottom:-1px}
+/* La caja de fuera se pega y reserva el alto original; es transparente y no
+   recibe clics, así que cuando la de dentro se condensa, lo que queda debajo
+   se ve y se puede tocar. */
+.pgr-barra{
+  position:sticky; top:var(--cab-alto,72px); z-index:40;
+  min-height:var(--pgr-barra-alta,0px); pointer-events:none;
+}
+.pgr-barra__caja{
+  pointer-events:auto;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding-block:14px 16px;
+}
+
+/* Pegada: solo lo que sirve para cambiar de día. El rótulo y las cuentas ya
+   se leyeron arriba. Pasa de 149 a 62 px. */
+.pgr-barra--pegada .pgr-barra__caja{padding-block:8px;box-shadow:0 8px 20px rgba(23,32,51,.07)}
+.pgr-barra--pegada .pgr-rotulo{display:none}
+.pgr-barra--pegada .pgr-dia-btn{flex-direction:row;align-items:center;gap:7px;padding:8px 6px 11px}
+.pgr-barra--pegada .pgr-dia-btn b{line-height:1}
+.pgr-barra--pegada .pgr-dia-btn u{display:none}
+.pgr-barra--pegada .pgr-dia-btn b{font-size:1.55rem}
+.pgr-barra--pegada .pgr-dia-btn--todo b{font-size:1.15rem;padding-block:0}
+.pgr-rotulo{
+  display:flex; align-items:baseline; gap:10px;
+  font-family:var(--f-body); font-size:1rem; font-weight:700;
+  color:var(--tx);
+  margin-bottom:10px;
+}
+.pgr-cuenta{
+  margin-left:auto; font-size:1rem; font-weight:500; color:var(--tx-2);
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+  letter-spacing:.01em; text-transform:none;
+}
+
+/* Flex con «flex:1 1 0» y no columnas fijas: el número de días no es fijo
+   (los del festival más los días en que empieza algo fuera de él, ver
+   sql/20-fecha-fin.sql), y así reparten el ancho que haya. */
+.pgr-dias{display:flex;gap:6px;align-items:stretch}
+.pgr-dia-btn{
+  flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:4px; padding:12px 2px 14px;
+  background:var(--surface); color:var(--tx);
+  border:1.5px solid var(--line); border-radius:14px;
+  /* Un filo del color del día al pie del botón: el mismo color que lleva cada
+     tarjeta de ese día arriba, para que se reconozcan. */
+  box-shadow:inset 0 -4px 0 var(--dia,transparent);
+  font-family:var(--f-disp); cursor:pointer; text-align:center;
+  transition:border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+}
+.pgr-dia-btn small{
+  font-family:var(--f-body); font-size:1rem; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--tx-2);
+}
+.pgr-dia-btn b{
+  font-size:clamp(1.9rem,2.6vw,2.5rem); font-weight:900; line-height:1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+.pgr-dia-btn u{
+  /* En League Spartan y no en Inter: «11 actividades» mide 93 px contra 107,
+     y así cabe en una línea desde 1280 px de pantalla. Por debajo pasa a dos
+     líneas; por eso los botones alinean arriba y no al centro. */
+  text-decoration:none; font-family:var(--f-disp); font-size:1rem;
+  font-weight:600; color:var(--tx-2); line-height:1.15; letter-spacing:-.01em;
+}
+.pgr-dia-btn:hover:not(:disabled){border-color:var(--dark);transform:translateY(-2px)}
+.pgr-dia-btn[aria-pressed="true"]{background:var(--dark);border-color:var(--dark);color:#fff}
+.pgr-dia-btn[aria-pressed="true"] small{color:rgba(255,255,255,.7)}
+.pgr-dia-btn[aria-pressed="true"] u{color:rgba(255,255,255,.85)}
+.pgr-dia-btn:disabled{opacity:.42;cursor:default}
+/* «Todo» y «Sin fecha»: la palabra en lugar del número. */
+.pgr-dia-btn--todo b{font-size:clamp(1.3rem,1.8vw,1.6rem);letter-spacing:-.01em;padding-block:.12em}
+/* El de hoy, si el festival está ocurriendo: punto amarillo arriba. */
+.pgr-dia-btn--hoy{position:relative}
+.pgr-dia-btn--hoy::after{
+  content:''; position:absolute; top:7px; right:8px;
+  width:8px; height:8px; border-radius:50%; background:var(--amarillo);
+}
+
+/* En pantalla angosta el ancho completo dejaría botones de 30 px: pasan a un
+   carril que se desplaza, con medida mínima propia. 112 px es lo que mide
+   «11 actividades» a 16 px con su relleno. */
+@media (max-width:759px){
+  .pgr-dias{
+    overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:4px;
+    scrollbar-width:thin; margin-inline:calc(-1 * clamp(20px,5vw,120px));
+    padding-inline:clamp(20px,5vw,120px);
+    /* Sin esto, el ajuste de desplazamiento alinea el primer botón al borde
+       de la pantalla, sin respetar el relleno, y «Todo» salía cortado. */
+    scroll-padding-inline:clamp(20px,5vw,120px);
+  }
+  .pgr-dias::-webkit-scrollbar{height:5px}
+  .pgr-dias::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+  .pgr-dia-btn{flex:0 0 auto;min-width:112px;padding-inline:8px;scroll-snap-align:start}
+}
+
+/* ============================================================================
+   3 · EL CUERPO · filtros a la izquierda, programa a la derecha
+   ========================================================================== */
+.pgr-cuerpo{background:var(--marfil);padding:clamp(28px,3.4vw,44px) 0 110px}
+.pgr-cuerpo__in{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+
+@media (min-width:1024px){
+  .pgr-cuerpo__in{grid-template-columns:200px minmax(0,1fr);gap:44px;align-items:start}
+  /* Pegada justo debajo de la fila de días, que también está pegada. El alto
+     de la fila lo mide el JS («--pgr-barra-alto») porque cambia con el
+     ancho. */
+  .pgr-lado{
+    position:sticky;
+    top:calc(var(--cab-alto,72px) + var(--pgr-barra-alto,120px) + 24px);
+  }
+}
+
+/* ---- los filtros ---- */
+.pgr-filtros__tit{
+  font-family:var(--f-disp); font-size:1.3rem; font-weight:800;
+  letter-spacing:-.01em; color:var(--tx);
+  margin-bottom:16px;
+}
+.pgr-grupo{display:block;margin-bottom:20px}
+.pgr-grupo__rot{
+  display:block; margin-bottom:8px;
+  font-family:var(--f-body); font-size:1rem; font-weight:700; color:var(--tx);
+}
+.pgr-ejes{display:flex;flex-direction:column;gap:6px}
+.pgr-eje{
+  display:flex; align-items:center; gap:9px; width:100%;
+  padding:9px 12px; border-radius:10px; cursor:pointer; text-align:left;
+  background:var(--surface); border:1px solid var(--line);
+  font-family:var(--f-body); font-size:1rem; font-weight:600; color:var(--tx-2);
+  transition:border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pgr-eje i{width:10px;height:10px;border-radius:50%;background:var(--eje);flex:0 0 auto}
+.pgr-eje:hover{border-color:var(--dark);color:var(--tx)}
+.pgr-eje[aria-pressed="true"]{
+  border-color:var(--eje); color:var(--eje-tx);
+  background:color-mix(in srgb, var(--eje) 12%, #fff);
+}
+@supports not (background:color-mix(in srgb, red 10%, white)){
+  .pgr-eje[aria-pressed="true"]{background:var(--surface)}
+}
+.pgr-sel{
+  width:100%; font:inherit; font-size:1rem; color:var(--tx);
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; padding:9px 12px; cursor:pointer;
+  text-overflow:ellipsis;
+}
+.pgr-sel:hover{border-color:var(--dark)}
+.pgr-sel:focus{outline:none;border-color:var(--dark);box-shadow:0 0 0 3px rgba(16,171,196,.25)}
+.pgr-limpiar{
+  background:none; border:0; padding:4px 0; cursor:pointer;
+  font:inherit; font-size:1rem; font-weight:600; color:var(--magenta-tx);
+  text-decoration:underline; text-underline-offset:3px;
+}
+.pgr-abrir{display:none}
+
+/* Sin espacio para la columna, los filtros quedan detrás de un botón encima
+   del programa, y al abrirse van en renglones en lugar de en columna. */
+@media (max-width:1023px){
+  .pgr-abrir{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:9px 16px; border-radius:99px; cursor:pointer;
+    background:var(--surface); border:1px solid var(--line);
+    font-family:var(--f-body); font-size:1rem; font-weight:600; color:var(--tx);
+  }
+  .pgr-abrir b{background:var(--dark);color:#fff;border-radius:99px;padding:1px 9px;font-size:1rem}
+  .pgr-banda:not(.pgr-banda--abierta) .pgr-filtros{display:none}
+  .pgr-filtros{
+    margin-top:12px; padding:16px; border-radius:14px;
+    background:var(--surface); border:1px solid var(--line);
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:4px 18px;
+  }
+  .pgr-filtros__tit{display:none}
+  .pgr-grupo{margin-bottom:12px}
+  .pgr-ejes{flex-direction:row;flex-wrap:wrap}
+  .pgr-eje{width:auto}
+  .pgr-limpiar{justify-self:start}
+}
+
+/* ============================================================================
+   EL PROGRAMA
+   ========================================================================== */
+/* El ancho del programa es lo que manda en la parrilla, no el de la ventana:
+   la columna de filtros aparece y desaparece y cambia lo que queda. */
+.pgr-programa{container:programa / inline-size;min-width:0}
+
+/* El encabezado, solo con un día elegido. Con «Todo» no hay encabezados: un
+   encabezado de ancho completo rompe la fila. */
+.pgr-dia{
+  display:flex; align-items:baseline; gap:6px 14px; flex-wrap:wrap;
+  padding-bottom:12px; margin-bottom:26px;
+  border-bottom:3px solid var(--dia,var(--dark));
+}
+.pgr-dia__que{
+  font-family:var(--f-disp); font-size:clamp(1.9rem,3vw,2.7rem);
+  font-weight:800; line-height:1; letter-spacing:-.025em;
+  color:var(--dia-tx,var(--tx));
+}
+.pgr-dia__cuenta{
+  margin-left:auto; font-family:var(--f-body); font-size:1rem; font-weight:600;
+  color:var(--tx-2);
+}
+.pgr-dia__hoy{
+  padding:4px 10px; border-radius:999px; background:var(--amarillo); color:var(--dark);
+  font-family:var(--f-body); font-size:1rem; font-weight:700;
+  font-style:normal;
+}
+
+/* Tres por fila cuando cada tarjeta puede medir ~280 px o más; dos si no; una
+   en teléfono. Columnas explícitas y no «auto-fill», que saltaba a cuatro. */
+.pgr-rejilla{display:grid;grid-template-columns:minmax(0,1fr);gap:34px 26px;grid-auto-flow:row dense}
+@container programa (min-width:560px){ .pgr-rejilla{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@container programa (min-width:880px){ .pgr-rejilla{grid-template-columns:repeat(3,minmax(0,1fr))} }
+/* «dense»: una tarjeta del doble de ancho que no cabe al final de una fila
+   baja a la siguiente, y sin esto dejaba un hueco detrás. Con él, la tarjeta
+   siguiente sube a ocuparlo y las filas siguen llenas. */
+
+/* ---- una tarjeta --------------------------------------------------------
+   El póster arriba, cuadrado como lo guarda el sistema (640 × 640), entero y
+   limpio. Debajo, en el orden en que se decide: cuándo, qué, con quién y
+   dónde, y cómo se entra.
+   ========================================================================== */
+.pgr-act{
+  position:relative; display:flex; flex-direction:column;
+  background:var(--surface);
+  border:1px solid var(--line); border-radius:16px;
+  overflow:hidden; color:inherit;
+  transition:box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+/* El filo de arriba lleva el color del día. Bajando la parrilla, cuando el
+   color cambia es que empezó otro día; es lo que sustituye a las bandas que
+   rompían las filas. */
+.pgr-act::before{
+  content:''; position:absolute; inset:0 0 auto; height:5px; z-index:2;
+  background:var(--dia,var(--eje));
+}
+.pgr-act:hover{transform:translateY(-4px);box-shadow:var(--sombra-h);border-color:transparent}
+
+/* El enlace del título se estira sobre toda la tarjeta. La tarjeta no es un
+   <a> porque dentro va el enlace del boleto, y un enlace no admite otro. */
+.pgr-act__enlace{color:inherit;text-decoration:none}
+.pgr-act__enlace::after{content:'';position:absolute;inset:0;z-index:1;border-radius:inherit}
+.pgr-act__enlace:focus-visible{outline:none}
+.pgr-act:has(.pgr-act__enlace:focus-visible){outline:3px solid var(--dia,var(--eje));outline-offset:3px}
+
+/* ---- el póster ---- */
+.pgr-act__media{
+  position:relative; aspect-ratio:1/1; overflow:hidden;
+  background:color-mix(in srgb, var(--eje) 12%, #fff);
+  display:grid; place-items:center;
+}
+@supports not (background:color-mix(in srgb, red 10%, white)){
+  .pgr-act__media{background:var(--marfil)}
+}
+.pgr-act__media img{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; transition:transform .5s ease;
+}
+.pgr-act:hover .pgr-act__media img{transform:scale(1.035)}
+/* Sin póster: los aros del logotipo en el color del eje, a la misma medida,
+   para que la fila no se desempareje por un hueco. */
+.pgr-act__media svg{width:46%;height:46%;fill:none;stroke:var(--eje);stroke-width:2.2;opacity:.55}
+
+/* ---- el texto ---- */
+.pgr-act__cuerpo{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+
+/* 1 · cuándo: el día en su color y la hora al lado. */
+.pgr-act__cuando{
+  display:flex; align-items:baseline; gap:4px 10px; flex-wrap:wrap;
+  font-variant-numeric:tabular-nums; line-height:1.2;
+}
+.pgr-act__cuando b{
+  font-family:var(--f-disp); font-size:1.3rem; font-weight:800;
+  letter-spacing:-.01em; color:var(--dia-tx,var(--tx));
+}
+.pgr-act__cuando span{font-family:var(--f-body);font-size:1.08rem;font-weight:600;color:var(--tx-2)}
+
+/* 2 · qué: la clase de actividad y el título. */
+.pgr-act__tipo{
+  display:flex; align-items:center; gap:4px 14px; flex-wrap:wrap;
+  font-family:var(--f-body); font-size:1rem; line-height:1.3;
+}
+.pgr-act__tipo b{font-weight:700;color:var(--tx)}
+.pgr-act__tipo span{display:inline-flex;align-items:center;gap:7px;font-weight:500;color:var(--eje-tx)}
+.pgr-act__tipo i{width:9px;height:9px;border-radius:50%;background:var(--eje);flex:0 0 auto}
+/* Título a tres líneas: con 94 caracteres en el más largo de 2026, dos
+   cortaban a media idea y cuatro descuadraban la fila. */
+.pgr-act__tit{
+  font-family:var(--f-disp); font-weight:700;
+  font-size:1.42rem; line-height:1.14; letter-spacing:-.015em;
+  text-wrap:pretty; color:var(--tx);
+  display:-webkit-box; -webkit-line-clamp:3; line-clamp:3;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+.pgr-act:hover .pgr-act__tit{color:var(--eje-tx)}
+
+/* 3 · dónde. */
+.pgr-act__sede{display:flex;align-items:center;gap:8px;min-width:0;font-size:1rem;color:var(--tx-2)}
+.pgr-act__sede span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgr-act__sede svg{
+  width:15px;height:15px;flex:0 0 auto;stroke:var(--tx-3);fill:none;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+}
+
+/* 4 · cómo se entra. «margin-top:auto» lo empuja al fondo, así que en una
+   fila todos los pies quedan alineados. */
+.pgr-act__pie{
+  margin-top:auto; padding:0 18px 18px;
+  display:flex; align-items:center; gap:8px 12px; flex-wrap:wrap;
+}
+/* La etiqueta: misma altura y forma que los botones, para que una fila con
+   botones y etiquetas se vea pareja, pero tintada y sin flecha ni efecto al
+   pasar el cursor, porque no se pulsa. */
+.pgr-ent{
+  display:inline-flex; align-items:center; gap:8px;
+  /* El borde transparente iguala su alto con el de los botones, que llevan
+     borde de 1.5 px: sin él quedaba 3 px más baja en la misma fila. */
+  min-height:44px; padding:8px 16px; border-radius:999px;
+  border:1.5px solid transparent;
+  background:var(--gris); color:var(--tx-2);
+  font-family:var(--f-body); font-size:1rem; font-weight:700; line-height:1.2;
+}
+.pgr-ent svg{width:17px;height:17px;flex:0 0 auto;stroke:currentColor;fill:none;
+  stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+/* Entrada libre en el verde de la marca, en su variante para texto. El tinte
+   del fondo va al 12 %: al 18 % el contraste bajaba a 4.46:1, y a 16 px en
+   negritas el mínimo es 4.5. */
+.pgr-ent--libre{background:color-mix(in srgb, var(--verde) 12%, #fff);color:var(--verde-tx)}
+@supports not (background:color-mix(in srgb, red 10%, white)){
+  .pgr-ent--libre{background:#F3F8E8}
+}
+
+/* Enlace de boleto: por encima del enlace que cubre la tarjeta (z-index) para
+   que el clic sea suyo. */
+.pgr-pedir{
+  position:relative; z-index:2;
+  display:inline-flex; align-items:center; gap:8px;
+  /* Misma altura de línea y mínimo que la etiqueta de entrada libre: así
+     botones y etiquetas miden lo mismo en una fila. 44 px es lo cómodo para
+     un dedo. */
+  min-height:44px; padding:8px 16px; border-radius:999px; line-height:1.2;
+  background:#D4116F; color:#fff; border:1.5px solid #D4116F;
+  text-decoration:none; font-family:var(--f-body); font-size:1rem;
+  font-weight:700; white-space:nowrap;
+  transition:background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.pgr-pedir svg{width:15px;height:15px;flex:0 0 auto;stroke:currentColor;fill:none;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s ease}
+.pgr-pedir:hover{background:var(--dark);border-color:var(--dark);transform:translateY(-1px)}
+.pgr-pedir:hover svg:last-child{transform:translateX(3px)}
+.pgr-pedir:focus-visible{outline:3px solid var(--dia,var(--eje));outline-offset:3px}
+.pgr-pedir--espera{background:#fff;color:var(--magenta-tx)}
+.pgr-pedir--espera:hover{color:#fff}
+.pgr-pedir--tuyo{background:var(--verde);border-color:var(--verde);color:var(--dark)}
+.pgr-pedir--tuyo:hover{color:#fff}
+/* Confirmar asistencia es opcional: con contorno y no relleno, para que no se
+   lea como un boleto obligatorio. */
+.pgr-pedir--suave{background:#fff;color:var(--magenta-tx)}
+.pgr-pedir--suave:hover{color:#fff}
+
+/* ============================================================================
+   UNA ACTIVIDAD QUE AGRUPA A OTRAS (la Feria del Conocimiento)
+   ----------------------------------------------------------------------------
+   El doble de ancho. Arriba, el póster y los datos lado a lado; debajo, lo que
+   incluye, cada una con su miniatura y su título y llevando a su ficha. No se
+   repite su día, su hora ni su lugar: son los de la feria.
+
+   La tarjeta es contenedor de sí misma: su planta interna depende de su
+   ancho, que cambia según quepan dos columnas de la parrilla o una.
+   ========================================================================== */
+@container programa (min-width:560px){ .pgr-act--grupo{grid-column:span 2} }
+.pgr-act--grupo{container:grupo / inline-size}
+
+.pgr-grupo__cab{display:grid;grid-template-columns:minmax(0,1fr)}
+.pgr-act--grupo .pgr-act__cuerpo{padding:20px 22px 22px}
+.pgr-act--grupo .pgr-act__tit{font-size:clamp(1.42rem,2.2vw,1.8rem);-webkit-line-clamp:4;line-clamp:4}
+.pgr-act--grupo .pgr-act__pie{margin-top:auto;padding:10px 0 0}
+
+/* Lo que incluye: encima del enlace que cubre la tarjeta (z-index), para que
+   cada miniatura lleve a su propia ficha y no a la de la feria. */
+.pgr-grupo__hijos{
+  position:relative; z-index:2;
+  padding:18px 22px 22px; border-top:1px solid var(--line-2);
+}
+.pgr-grupo__tit{
+  font-family:var(--f-body); font-size:1rem; font-weight:700; color:var(--tx);
+  margin-bottom:12px;
+}
+.pgr-grupo__hijos ul{display:grid;grid-template-columns:minmax(0,1fr);gap:8px 16px}
+.pgr-hijo{
+  display:flex; align-items:center; gap:12px;
+  padding:6px; margin:-6px; border-radius:12px;
+  text-decoration:none; color:var(--tx);
+  transition:background .15s ease;
+}
+.pgr-hijo:hover{background:var(--marfil)}
+.pgr-hijo:hover .pgr-hijo__tit{color:var(--eje-tx)}
+.pgr-hijo:focus-visible{outline:3px solid var(--eje);outline-offset:2px}
+.pgr-hijo__mini{
+  position:relative; flex:0 0 auto; width:60px; height:60px;
+  border-radius:10px; overflow:hidden; display:grid; place-items:center;
+  background:color-mix(in srgb, var(--eje) 12%, #fff);
+}
+.pgr-hijo__mini img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pgr-hijo__mini svg{width:62%;height:62%;fill:none;stroke:var(--eje);stroke-width:3;opacity:.6}
+.pgr-hijo__tit{
+  /* Tres renglones caben en el alto de la miniatura (60 px): con dos se
+     cortaban «Castillo vs Dragones: Cañó…» y otros, sin ganar nada a cambio. */
+  font-family:var(--f-disp); font-size:1.05rem; font-weight:700; line-height:1.18;
+  display:-webkit-box; -webkit-line-clamp:3; line-clamp:3;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+
+@container grupo (min-width:420px){
+  .pgr-grupo__hijos ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container grupo (min-width:560px){
+  .pgr-grupo__cab{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  /* Lado a lado, el póster mide la mitad de la tarjeta y queda tan alto como
+     el de una tarjeta normal: la fila no se descuadra. */
+}
+/* Tres columnas de talleres solo cuando cada uno tiene ~200 px; más angostas,
+   los títulos se cortaban aun con tres renglones. */
+@container grupo (min-width:660px){
+  .pgr-grupo__hijos ul{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* ============================================================================
+   EL PIE DE ESTA PÁGINA
+   Nada por debajo de 16 px, como en el resto de la propuesta. Va con
+   «.pgr-ancha» para que la vista de siempre, que es contra la que se compara,
+   no cambie.
+   ========================================================================== */
+.pgr-ancha .pg-pie__nav a{font-size:1.06rem}
+.pgr-ancha .pg-pie__logos span{font-size:1rem;letter-spacing:.02em;text-transform:none;color:rgba(255,255,255,.75)}
+.pgr-ancha .pg-pie__legal{font-size:1rem;color:rgba(255,255,255,.7)}
+
+
+@media (prefers-reduced-motion:reduce){
+  .pgr-act,.pgr-act:hover,.pgr-act__media img,.pgr-act:hover .pgr-act__media img,
+  .pgr-dia-btn,.pgr-dia-btn:hover,.pgr-pedir{transition:none;transform:none}
+}

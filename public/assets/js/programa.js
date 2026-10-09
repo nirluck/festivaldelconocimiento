@@ -7,6 +7,11 @@
      /programa/            cartelera: los ocho días, filtrable
      /programa/<slug>/     la ficha de una actividad
 
+   La cartelera la pinta programa-rejilla.js: una parrilla de tarjetas con
+   póster, la fila de días a todo el ancho y los filtros a la izquierda. Desde
+   el 9 de octubre de 2026 sustituye a la lista por días que vivía aquí. Este
+   archivo carga los datos, guarda el estado de los filtros y pinta la ficha.
+
    Lee de «vista_programa», que es lo que el esquema abre a quien no tiene
    cuenta. Esa vista no trae requerimientos ni responsable: si algún día hacen
    falta aquí, el problema no es de esta página. Los ponentes llegan de
@@ -173,6 +178,10 @@ let sedeOn = '';
 let tipoOn = '';
 let PONENTES = new Map(); // id de actividad → sus ponentes, en orden
 
+/* El módulo que pinta la cartelera. Se carga al abrir /programa/ y no en la
+   ficha de una actividad, que no lo necesita. */
+let REJILLA = null;
+
 async function pintarCartelera() {
   const ed = await edicionActiva();
 
@@ -213,10 +222,10 @@ async function pintarCartelera() {
   if (delHash === 'todo' || DIAS.includes(delHash)) diaActivo = delHash;
   else if (DIAS.includes(hoy) && ACTS.some(a => ocurreEl(a, hoy))) diaActivo = hoy;
 
-  pagina.innerHTML = `
-    ${cabeceraCartelera(ed)}
-    <div class="pg-barra"><div class="pg-wrap pg-barra__in" id="barra"></div></div>
-    <div class="pg-cuerpo"><div class="pg-wrap" id="lista"></div></div>`;
+  REJILLA = await import('/assets/js/programa-rejilla.js');
+  REJILLA.montar(contextoRejilla(ed));
+  pagina.innerHTML = REJILLA.plantilla(ed);
+  REJILLA.vigilarBarra();
 
   pintarBarra();
   pintarLista();
@@ -230,162 +239,52 @@ async function pintarCartelera() {
   });
 }
 
-function cabeceraCartelera(ed) {
-  const conFecha = ACTS.filter(a => a.fecha);
-  const dias  = new Set(conFecha.map(a => a.fecha)).size;
-  const sedes = new Set(ACTS.map(a => a.sede).filter(Boolean)).size;
+/* La barra (días y filtros) y la parrilla, por separado: un cambio de filtro
+   repinta las dos, y volver atrás con el navegador también. */
+function pintarBarra() { REJILLA.pintarBarra(); }
+function pintarLista() { REJILLA.pintarLista(); }
 
-  return `
-  <header class="pg-hero pg-hero--color" style="--foto:url(/assets/img/concierto.jpg)">
-    <div class="pg-wrap pg-hero__in">
-      <div class="pg-hero__rejilla-top">
-        <div>
-          <p class="pg-kicker">Programa · Ciencia · Arte · Tecnología · Humanidades</p>
-          <h1>${escapar(ed.nombre || 'Programa ' + ed.anio)}</h1>
-        </div>
-        <p class="pg-hero__lede">
-          Ocho días de ciencia, arte, tecnología y humanidades en Ensenada.
-          Todas las actividades son gratuitas; las que tienen cupo piden boleto,
-          también gratuito, que puedes conseguir aquí mismo.
-        </p>
-      </div>
-      <div class="pg-cifras">
-        <div class="pg-cifra"><b>${ACTS.length}</b><span>Actividades</span></div>
-        <div class="pg-cifra"><b>${dias}</b><span>${dias === 1 ? 'Día' : 'Días'} con programa</span></div>
-        <div class="pg-cifra"><b>${sedes}</b><span>${sedes === 1 ? 'Sede' : 'Sedes'}</span></div>
-      </div>
-    </div>
-  </header>`;
+/* Un cambio de día o de filtro, venga de donde venga: se aplica al estado de
+   esta página y se repinta. La parrilla no toca las variables de filtro, las
+   pide por aquí. */
+function alCambiar(c) {
+  if (c.limpiar) { ejesOn.clear(); sedeOn = ''; tipoOn = ''; }
+  if (c.eje) ejesOn.has(c.eje) ? ejesOn.delete(c.eje) : ejesOn.add(c.eje);
+  if (c.sede !== undefined) sedeOn = c.sede;
+  if (c.tipo !== undefined) tipoOn = c.tipo;
+  if (c.dia) {
+    diaActivo = c.dia;
+    // En el trozo de dirección y no en la ruta: la ruta con un segmento más la
+    // tomaría la ficha de actividad. Conserva lo que haya tras «?» (los
+    // filtros con que llegó desde la portada).
+    history.replaceState(null, '',
+      diaActivo === 'todo' ? location.pathname + location.search : '#' + diaActivo);
+  }
+  pintarBarra(); pintarLista();
 }
 
-/* ------------------------------------------------------------- la barra --- */
-/** Las dos variantes de un color, para los sitios donde hacen falta sueltas. */
-function tono(hex) {
-  const puro = hex || '#10ABC4';
-  return { puro, texto: colorTexto(puro) };
-}
-
-function pintarBarra() {
-  const ejes  = listaUnica(ACTS, 'eje');
-  const sedes = listaUnica(ACTS, 'sede');
-  const tipos = listaUnica(ACTS, 'tipo');
-  const sinFecha = ACTS.some(a => !a.fecha);
-
-  const pastilla = (d) => {
-    const { semana, numero } = diaCorto(d);
-    const hay = ACTS.some(a => ocurreEl(a, d));
-    return `<button class="pg-dia-btn" type="button" data-dia="${d}"
-              aria-pressed="${diaActivo === d}" ${hay ? '' : 'disabled'}
-              title="${hay ? escapar(diaLargo(d)) : escapar(diaLargo(d)) + ' · sin actividades todavía'}">
-              <small>${escapar(semana)}</small><b>${escapar(numero)}</b>
-            </button>`;
+/* Todo lo que la parrilla necesita de esta página. Lo que no esté aquí, no lo
+   puede usar: es a propósito, para que la regla de negocio siga viviendo en un
+   solo sitio y la parrilla sea solo la forma de pintarla. */
+function contextoRejilla(ed) {
+  return {
+    ed,
+    acts: ACTS,
+    dias: DIAS,
+    ponentes: PONENTES,
+    estado: () => ({ diaActivo, ejesOn, sedeOn, tipoOn }),
+    filtradas,
+    alCambiar,
+    u: {
+      escapar, hora, ICO,
+      urlPosterMini, lugarCorto, estiloEje, colorTexto, boletoDeActividad,
+      esRango, diaCorto, diaLargo, ocurreEl,
+      hoy: () => iso(new Date()),
+    },
   };
-
-  document.getElementById('barra').innerHTML = `
-    <div class="pg-dias" role="group" aria-label="Días del festival">
-      <button class="pg-dia-btn pg-dia-btn--todo" type="button" data-dia="todo"
-              aria-pressed="${diaActivo === 'todo'}">
-        <small>Ver</small><b>Todo</b>
-      </button>
-      ${DIAS.map(pastilla).join('')}
-      ${sinFecha ? `
-      <button class="pg-dia-btn pg-dia-btn--todo" type="button" data-dia="abierto"
-              aria-pressed="${diaActivo === 'abierto'}">
-        <small>Sin</small><b>fecha</b>
-      </button>` : ''}
-    </div>
-
-    <button class="pg-abrir-filtros" type="button" id="f-abrir"
-            aria-expanded="false" aria-controls="f-caja">
-      Filtrar${cuantosFiltros() ? ` <b>${cuantosFiltros()}</b>` : ''}
-    </button>
-
-    <div class="pg-filtros" id="f-caja">
-      <div class="pg-ejes" role="group" aria-label="Filtrar por eje">
-        ${ejes.map(e => {
-          const t = tono(colorDelEje(e));
-          return `<button class="pg-eje-btn" type="button" data-eje="${escapar(e)}"
-                    aria-pressed="${ejesOn.has(e)}"
-                    style="--eje:${t.puro};--eje-tx:${t.texto}">
-                    <i></i>${escapar(e)}
-                  </button>`;
-        }).join('')}
-      </div>
-
-      ${sedes.length > 1 ? selector('f-sede', 'Todas las sedes', sedes, sedeOn) : ''}
-      ${tipos.length > 1 ? selector('f-tipo', 'Todos los tipos', tipos, tipoOn) : ''}
-
-      ${hayFiltro() ? '<button class="pg-limpiar" type="button" id="f-limpiar">Limpiar filtros</button>' : ''}
-      <span class="pg-cuenta" id="f-cuenta"></span>
-    </div>`;
-
-  const barra = document.getElementById('barra');
-
-  // Repintar la barra rehace el botón, así que el estado desplegado vive en la
-  // clase del contenedor exterior, que sobrevive.
-  const caja = barra.parentElement;                 // .pg-barra
-  const abrir = document.getElementById('f-abrir');
-  abrir.setAttribute('aria-expanded', caja.classList.contains('pg-barra--abierta'));
-  abrir.addEventListener('click', () => {
-    const ahora = caja.classList.toggle('pg-barra--abierta');
-    abrir.setAttribute('aria-expanded', ahora);
-  });
-
-  barra.querySelectorAll('[data-dia]').forEach(b =>
-    b.addEventListener('click', () => {
-      diaActivo = b.dataset.dia;
-      // En el hash y no en la ruta: la ruta con un segmento más la tomaría la
-      // ficha de actividad. Además deja compartir «el programa del sábado».
-      history.replaceState(null, '', diaActivo === 'todo' ? location.pathname : '#' + diaActivo);
-      pintarBarra(); pintarLista();
-    }));
-
-  barra.querySelectorAll('[data-eje]').forEach(b =>
-    b.addEventListener('click', () => {
-      const e = b.dataset.eje;
-      ejesOn.has(e) ? ejesOn.delete(e) : ejesOn.add(e);
-      pintarBarra(); pintarLista();
-    }));
-
-  const sel = (id, fn) => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('change', () => { fn(el.value); pintarBarra(); pintarLista(); });
-  };
-  sel('f-sede', v => sedeOn = v);
-  sel('f-tipo', v => tipoOn = v);
-
-  const limpiar = document.getElementById('f-limpiar');
-  if (limpiar) limpiar.addEventListener('click', () => {
-    ejesOn.clear(); sedeOn = ''; tipoOn = '';
-    pintarBarra(); pintarLista();
-  });
 }
 
-function selector(id, placeholder, valores, actual) {
-  return `<select class="pg-sel" id="${id}" aria-label="${escapar(placeholder)}">
-    <option value="">${escapar(placeholder)}</option>
-    ${valores.map(v =>
-      `<option value="${escapar(v)}"${v === actual ? ' selected' : ''}>${escapar(v)}</option>`
-    ).join('')}
-  </select>`;
-}
-
-function listaUnica(filas, campo) {
-  return [...new Set(filas.map(f => f[campo]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
-}
-
-function colorDelEje(nombre) {
-  const a = ACTS.find(x => x.eje === nombre && x.eje_color);
-  return a ? a.eje_color : '#10ABC4';
-}
-
-function hayFiltro() { return ejesOn.size || sedeOn || tipoOn; }
-
-/** Cuántos filtros hay puestos. Va en el botón de celular, donde los filtros
-    están plegados y de otro modo no habría manera de saber que están activos. */
-function cuantosFiltros() { return ejesOn.size + (sedeOn ? 1 : 0) + (tipoOn ? 1 : 0); }
-
-/* -------------------------------------------------------------- la lista -- */
+/* --------------------------------------------------------- los filtros -- */
 function filtradas() {
   return ACTS.filter(a =>
     (!ejesOn.size || ejesOn.has(a.eje)) &&
@@ -396,66 +295,10 @@ function filtradas() {
   );
 }
 
-function pintarLista() {
-  const d = filtradas();
-  const cuenta = document.getElementById('f-cuenta');
-  if (cuenta) {
-    cuenta.textContent = d.length === ACTS.length
-      ? `${ACTS.length} actividades`
-      : `${d.length} de ${ACTS.length}`;
-  }
-
-  if (!d.length) {
-    document.getElementById('lista').innerHTML = `
-      <div class="pg-vacio">
-        <h2>Nada con esos filtros</h2>
-        <p>Prueba con otro día o quita algún filtro. El programa sigue creciendo:
-           vuelve en unos días.</p>
-        <button class="pg-btn" type="button" id="v-limpiar">Ver todo el programa</button>
-      </div>`;
-    const b = document.getElementById('v-limpiar');
-    if (b) b.addEventListener('click', () => {
-      ejesOn.clear(); sedeOn = ''; tipoOn = ''; diaActivo = 'todo';
-      history.replaceState(null, '', location.pathname);
-      pintarBarra(); pintarLista();
-    });
-    return;
-  }
-
-  // Agrupar por día conservando el orden que ya trajo la base. Con «Todo», la
-  // de varios días va una sola vez, en el día en que empieza; con un día
-  // elegido, va bajo ese día aunque haya empezado antes.
-  const unDia = diaActivo !== 'todo' && diaActivo !== 'abierto';
-  const grupos = new Map();
-  d.forEach(a => {
-    const k = unDia ? diaActivo : (a.fecha || 'abierto');
-    if (!grupos.has(k)) grupos.set(k, []);
-    grupos.get(k).push(a);
-  });
-
-  const hoy = iso(new Date());
-  document.getElementById('lista').innerHTML = [...grupos.entries()].map(([k, acts]) => {
-    const abierto = k === 'abierto';
-    const { semana, numero, mes } = abierto ? {} : diaCorto(k);
-    const cuenta = `${acts.length} ${acts.length === 1 ? 'actividad' : 'actividades'}`;
-    return `
-    <section class="pg-dia${abierto ? ' pg-dia--abierto' : ''}" id="dia-${escapar(k)}"
-             aria-label="${abierto ? 'Fecha por confirmar' : escapar(diaLargo(k))}">
-      <div class="pg-dia__tit">
-        <div class="pg-dia__fecha${k === hoy ? ' is-hoy' : ''}">
-          ${abierto
-            ? `<b>Fecha por confirmar</b>`
-            : `<small>${escapar(semana)}</small><b>${escapar(numero)}</b><span>${escapar(mes)}</span>
-               ${k === hoy ? '<em class="pg-dia__hoy">Hoy</em>' : ''}`}
-          <span class="pg-dia__cuenta">${cuenta}</span>
-        </div>
-        <h2 class="sr">${abierto ? 'Fecha por confirmar' : escapar(diaLargo(k))}</h2>
-      </div>
-      <div class="pg-lista">${acts.map(tarjeta).join('')}</div>
-    </section>`;
-  }).join('');
-}
-
+/* La tarjeta de renglón: hora, eje, título, ponentes, sede y cómo se entra.
+   Era la de la cartelera en lista; hoy la usa la ficha de cada actividad en
+   «Ese mismo día» (pintarMismoDia), donde un renglón sigue siendo la forma
+   más compacta de mostrar tres o cuatro actividades. */
 function tarjeta(a) {
   const i = hora(a.hora_inicio), f = hora(a.hora_fin);
 
@@ -956,10 +799,17 @@ function enumerar(nombres, envolver = escapar, max = 3) {
   return `${partes.slice(0, -1).join(', ')} ${y} ${partes[partes.length - 1]}`;
 }
 
-function lineaPonentes(a) {
+/* «Con Dra. Fulana, Mengano y 2 más», ya escapado por enumerar(). Suelto del
+   párrafo que lo envuelve porque cada versión de la cartelera lo coloca en el
+   suyo. */
+function conQuien(a) {
   const gente = PONENTES.get(a.id);
-  return gente && gente.length
-    ? `<p class="pg-act__con">Con ${enumerar(gente.map(p => p.nombre))}</p>` : '';
+  return gente && gente.length ? `Con ${enumerar(gente.map(p => p.nombre))}` : '';
+}
+
+function lineaPonentes(a) {
+  const t = conQuien(a);
+  return t ? `<p class="pg-act__con">${t}</p>` : '';
 }
 
 const GRADOS = /^(dr|dra|mtro|mtra|m|lic|ing|arq|prof|profa|mc|phd)$/;
