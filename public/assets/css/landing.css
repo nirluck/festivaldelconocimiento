@@ -45,7 +45,11 @@
 
   /* Métrica */
   --fdc-wrap:       1180px;
-  --fdc-wrap-ancho: 1440px;
+  /* 1680 y no 1440 desde el 9 de octubre de 2026: a 1920 px de pantalla el
+     contenido quedaba en 1248 px con 336 vacíos a cada lado. Es el mismo
+     tope que el programa; la cabecera del sitio sube con él en las dos
+     páginas («.pagina-ancha» en cabecera.css). */
+  --fdc-wrap-ancho: 1680px;
   --fdc-r:          18px;
   --fdc-r-s:        12px;
   --fdc-shadow:     0 1px 2px rgba(23,32,51,.04), 0 8px 24px rgba(23,32,51,.06);
@@ -237,8 +241,21 @@
   fill: none; stroke-width: 1; opacity: .45;
   animation: fdc-spin 100s linear infinite;
 }
-.fdc-hero__rings--izq { width: min(34vw, 460px); left: -9vw; bottom: -12vw; }
-.fdc-hero__rings--der { width: min(22vw, 300px); right: -5vw; top: -2vw; animation-direction: reverse; }
+/* Junto al borde del contenido y no en el de la pantalla, y enteros: antes
+   asomaban por las esquinas y el de abajo quedaba cortado por la sección
+   siguiente, que parecía montarse encima. «50% − 744px» es el borde del
+   contenido cuando llega a su tope de 1680 px (1488 de contenido). */
+.fdc-hero__rings--izq {
+  width: min(26vw, 380px);
+  left: max(1vw, calc(50% - 744px - 150px));
+  bottom: clamp(36px, 5vw, 96px);
+}
+.fdc-hero__rings--der {
+  width: min(20vw, 290px);
+  right: max(1vw, calc(50% - 744px - 130px));
+  top: calc(var(--cab-alto, 72px) + 18px);
+  animation-direction: reverse;
+}
 .fdc-hero__rings circle:nth-child(1) { stroke: var(--fdc-turquesa); }
 .fdc-hero__rings circle:nth-child(2) { stroke: var(--fdc-verde); }
 .fdc-hero__rings circle:nth-child(3) { stroke: var(--fdc-magenta); }
@@ -247,16 +264,18 @@
 
 .fdc-hero .fdc-wrap { position: relative; z-index: 1; }
 .fdc-hero__grid {
+  /* 1.6 : 1 y un hueco menor entre columnas: el logotipo gana ~8 % (de 435
+     a ~470 px a 1920) y el collage cede apenas un 2 %. */
   display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  align-items: center; gap: clamp(28px, 5vw, 88px);
+  align-items: center; gap: clamp(24px, 3.4vw, 64px);
   margin-bottom: clamp(32px, 4vw, 56px);
 }
 
 /* ---- texto ---- */
 .fdc-hero__marca { display: flex; align-items: flex-end; gap: clamp(20px, 2.8vw, 44px); margin-bottom: clamp(32px, 3.4vw, 48px); }
 .fdc-hero__logo {
-  /* Ocupa todo lo que deja la fecha, hasta 680 px. */
-  flex: 1 1 0; min-width: 0; width: 100%; max-width: 680px;
+  /* Ocupa todo lo que deja la fecha, hasta 820 px. */
+  flex: 1 1 0; min-width: 0; width: 100%; max-width: 820px;
   /* logo.png mide 700 × 705 y el dibujo acaba en 578: se recorta el margen
      transparente para que el borde inferior sea la base real del logotipo. */
   aspect-ratio: 700 / 578; object-fit: cover; object-position: top;
@@ -268,10 +287,10 @@
 }
 .fdc-hero__fecha p { margin: 0; }
 .fdc-hero__rango { display: flex; align-items: center; gap: clamp(8px, 1.2vw, 16px); }
-.fdc-hero__rango strong { font-size: clamp(3em, 5.8vw, 7em); font-weight: 800; line-height: .9; letter-spacing: -.03em; }
+.fdc-hero__rango strong { font-size: clamp(3em, 6.2vw, 8.4em); font-weight: 800; line-height: .9; letter-spacing: -.03em; }
 .fdc-hero__dash { width: clamp(20px, 2.8vw, 48px); height: 6px; border-radius: 3px; background: var(--fdc-amarillo); }
-.fdc-hero__mes  { margin-top: 10px !important; font-size: clamp(1.1em, 2.2vw, 2.2em); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-tx-2); }
-.fdc-hero__anio { font-size: clamp(1.3em, 2.6vw, 2.6em); font-weight: 800; color: var(--fdc-magenta); letter-spacing: .02em; }
+.fdc-hero__mes  { margin-top: 10px !important; font-size: clamp(1.1em, 2.3vw, 2.7em); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-tx-2); }
+.fdc-hero__anio { font-size: clamp(1.3em, 2.8vw, 3.2em); font-weight: 800; color: var(--fdc-magenta); letter-spacing: .02em; }
 
 .fdc-hero__cta { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 26px; }
 .fdc-hero__video {
@@ -289,26 +308,52 @@
 .fdc-hero__video:hover .fdc-hero__play { border-color: var(--fdc-tx); background: var(--fdc-marfil); }
 
 /* ---- collage ---- */
-.fdc-hero__collage { position: relative; aspect-ratio: 1; max-width: 680px; width: 100%; justify-self: end; }
+.fdc-hero__collage { position: relative; aspect-ratio: 1; max-width: 800px; width: 100%; justify-self: end; }
 .fdc-hero__blob, .fdc-hero__punto, .fdc-hero__anillo, .fdc-hero__foto {
   position: absolute; border-radius: 50%; aspect-ratio: 1;
-  animation: fdc-entra .6s cubic-bezier(.2,.7,.2,1) both;
+  /* Entran una tras otra (fdc-entra, sobre transform) y después cada una
+     orbita despacio alrededor de su sitio (fdc-orbita, sobre translate). Son
+     propiedades distintas, así que las dos animaciones conviven sin pisarse.
+     Cada pieza lleva su radio (--o), su vuelta (--t), su fase y su sentido:
+     si todas giraran igual, el collage se movería en bloque y no se leería
+     como círculos que orbitan entre sí. */
+  animation-name: fdc-entra, fdc-orbita;
+  animation-duration: .6s, var(--t, 28s);
+  animation-timing-function: cubic-bezier(.2,.7,.2,1), linear;
+  animation-fill-mode: both, none;
+  animation-iteration-count: 1, infinite;
+  animation-delay: var(--d, 0s), var(--fase, 0s);
+  animation-direction: normal, var(--sentido, normal);
+  will-change: translate;
 }
-.fdc-hero__blob--magenta  { width: 52%; right: 2%; top: 2%;   background: var(--fdc-magenta);  animation-delay: .15s; }
-.fdc-hero__blob--amarillo { width: 42%; left: 4%; bottom: 2%; background: var(--fdc-amarillo); animation-delay: .25s; }
-.fdc-hero__blob--turquesa { width: 14%; left: 0;  top: 36%;   background: var(--fdc-turquesa); animation-delay: .45s; }
+.fdc-hero__blob--magenta  { width: 52%; right: 2%; top: 2%;   background: var(--fdc-magenta);  --d: .15s; --o: 14px; --t: 34s; --fase: -4s; }
+.fdc-hero__blob--amarillo { width: 42%; left: 4%; bottom: 2%; background: var(--fdc-amarillo); --d: .25s; --o: 16px; --t: 30s; --fase: -17s; --sentido: reverse; }
+.fdc-hero__blob--turquesa { width: 14%; left: 0;  top: 36%;   background: var(--fdc-turquesa); --d: .45s; --o: 22px; --t: 22s; --fase: -9s; }
+/* Las fotos a color, como se tomaron: en gris el collage perdía atractivo. */
 .fdc-hero__foto {
   object-fit: cover; display: block;
-  filter: grayscale(1) contrast(1.08);
   box-shadow: 0 0 0 5px #fff, var(--fdc-shadow);
 }
-.fdc-hero__foto--musica { width: 54%; left: 10%; top: 6%;     object-position: 50% 35%; animation-delay: 0s; }
-.fdc-hero__foto--danza  { width: 40%; right: 0;  bottom: 16%; object-position: 50% 30%; animation-delay: .3s; }
-.fdc-hero__foto--charla { width: 28%; left: 34%; bottom: 0;   object-position: 50% 45%; animation-delay: .4s; }
-.fdc-hero__anillo { width: 62%; left: 24%; top: 24%; border: 1.5px solid var(--fdc-tx); opacity: .75; animation-delay: .55s; }
-.fdc-hero__punto--verde   { width: 7%; background: var(--fdc-verde);   right: 14%; top: -2%; animation-delay: .6s; }
-.fdc-hero__punto--naranja { width: 5%; background: var(--fdc-naranja); left: 6%;   top: 14%; animation-delay: .65s; }
+.fdc-hero__foto--musica { width: 54%; left: 10%; top: 6%;     object-position: 50% 35%; --d: 0s;   --o: 10px; --t: 38s; --fase: -12s; --sentido: reverse; }
+.fdc-hero__foto--danza  { width: 40%; right: 0;  bottom: 16%; object-position: 50% 30%; --d: .3s;  --o: 13px; --t: 32s; --fase: -25s; }
+.fdc-hero__foto--charla { width: 28%; left: 34%; bottom: 0;   object-position: 50% 45%; --d: .4s;  --o: 15px; --t: 26s; --fase: -6s;  --sentido: reverse; }
+.fdc-hero__anillo { width: 62%; left: 24%; top: 24%; border: 1.5px solid var(--fdc-tx); opacity: .75; --d: .55s; --o: 18px; --t: 42s; --fase: -20s; }
+.fdc-hero__punto--verde   { width: 7%; background: var(--fdc-verde);   right: 14%; top: -2%; --d: .6s;  --o: 24px; --t: 18s; --fase: -3s; --sentido: reverse; }
+.fdc-hero__punto--naranja { width: 5%; background: var(--fdc-naranja); left: 6%;   top: 14%; --d: .65s; --o: 26px; --t: 20s; --fase: -11s; }
 @keyframes fdc-entra { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+/* Una vuelta completa en ocho puntos: con cuatro, la trayectoria se notaba
+   cuadrada. 0.7071 es el seno de 45°. */
+@keyframes fdc-orbita {
+  0%    { translate: var(--o) 0; }
+  12.5% { translate: calc(var(--o) * .7071) calc(var(--o) * .7071); }
+  25%   { translate: 0 var(--o); }
+  37.5% { translate: calc(var(--o) * -.7071) calc(var(--o) * .7071); }
+  50%   { translate: calc(var(--o) * -1) 0; }
+  62.5% { translate: calc(var(--o) * -.7071) calc(var(--o) * -.7071); }
+  75%   { translate: 0 calc(var(--o) * -1); }
+  87.5% { translate: calc(var(--o) * .7071) calc(var(--o) * -.7071); }
+  100%  { translate: var(--o) 0; }
+}
 
 /* ---- banda institucional ---- */
 .fdc-insti {
@@ -330,24 +375,194 @@
   font-size: .72em; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--fdc-tx-2);
 }
 
-/* ---- tarjetas destacadas ---- */
+/* ---- carrusel: «El festival siempre tiene algo para ti» ----------------
+   El título y las flechas en una columna; la cinta en el resto. No se mueve
+   sola: se recorre con las flechas, arrastrando con el ratón o con el dedo
+   (programa-portada.js). Los desvanecidos de las orillas aparecen solo donde
+   hay algo más que ver. */
 .fdc-hero__prog[hidden] { display: none; }
-.fdc-destacadas {
+.fdc-carrusel {
   display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 72px); align-items: start;
+  gap: clamp(16px, 2.4vw, 40px); align-items: center;
 }
-.fdc-destacadas__tit {
-  font-family: var(--fdc-f-body); font-size: clamp(1.15em, 1.5vw, 1.45em); font-weight: 700;
-  letter-spacing: .2em; text-transform: uppercase; line-height: 1.5; color: var(--fdc-tx);
+.fdc-carrusel__tit {
+  margin: 0;
+  font-family: var(--fdc-f-disp); font-size: clamp(1.9rem, 2.8vw, 2.9rem); font-weight: 800;
+  line-height: 1.02; letter-spacing: -.025em; color: var(--fdc-tx); text-wrap: balance;
 }
-.fdc-destacadas__raya { display: block; width: 56px; height: 4px; border-radius: 2px; background: var(--fdc-amarillo); margin: 20px 0 16px; }
-.fdc-destacadas__txt { font-size: .95em; line-height: 1.55; color: var(--fdc-tx-2); max-width: 30ch; margin-bottom: 22px; }
+
+.fdc-cinta {
+  --hueco: clamp(16px, 1.6vw, 24px);
+  --borde-izq: 10%; --borde-der: 16%;
+  container-type: inline-size;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  cursor: grab;
+  /* La cinta recorta lo que se sale, y eso incluía la sombra de la tarjeta al
+     pasar el cursor, que quedaba cortada. El relleno le da sitio a la sombra
+     y el margen negativo devuelve ese alto, para que la página no crezca. */
+  padding: 14px 0 56px; margin-bottom: -44px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--borde-izq), #000 calc(100% - var(--borde-der)), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 var(--borde-izq), #000 calc(100% - var(--borde-der)), transparent 100%);
+}
+.fdc-cinta::-webkit-scrollbar { display: none; }
+/* Sin desvanecido donde no hay nada más: al principio la primera tarjeta,
+   que es la principal, se ve entera. */
+.fdc-cinta--inicio { --borde-izq: 0%; }
+.fdc-cinta--fin    { --borde-der: 0%; }
+/* Arrastrando con el ratón: sin ajuste a tarjetas (se acomoda al soltar) y
+   sin seleccionar texto por accidente. */
+.fdc-cinta.is-arrastrando { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.fdc-cinta.is-arrastrando .fdc-card { pointer-events: none; }
+/* Mientras avanza sola, sin ajuste a tarjetas: lo devolvería a su sitio en
+   cada cuadro. Al detenerse se acomoda a la tarjeta más cercana. */
+.fdc-cinta.is-paseando { scroll-snap-type: none; }
+.fdc-cinta__fila { list-style: none; margin: 0; padding: 0; display: flex; width: max-content; }
+/* Tres a la vista. */
+.fdc-cinta__item {
+  flex: 0 0 auto; display: flex; scroll-snap-align: start;
+  width: max(270px, calc((100cqw - 2 * var(--hueco)) / 3));
+  margin-right: var(--hueco);
+}
+.fdc-cinta__item > * { width: 100%; }
+
+/* La tarjeta, en la cinta: póster cuadrado y entero, sin la copia desenfocada
+   que necesitaba la ventana apaisada. Textos de 16 px o más. */
+/* El marco sostiene la cinta y las dos flechas, que van en sus orillas,
+   centradas sobre la tarjeta. El centro se corrige por el relleno de la cinta
+   (14 px arriba, 56 abajo para la sombra): por eso «50 % − 21 px». */
+.fdc-carrusel__marco { position: relative; min-width: 0; }
+.fdc-carrusel__btn--ant, .fdc-carrusel__btn--sig {
+  position: absolute; z-index: 3; top: calc(50% - 21px); translate: 0 -50%;
+}
+.fdc-carrusel__btn--ant { left: -14px; }
+.fdc-carrusel__btn--sig { right: -14px; }
+/* Las flechas tienen que verse: son la señal de que hay más tarjetas que
+   las tres a la vista. «Siguiente» va en magenta relleno y late despacio hasta
+   que alguien usa el carrusel; «anterior», con contorno oscuro. */
+.fdc-carrusel__btn {
+  width: 58px; height: 58px; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  background: #fff; color: var(--fdc-tx); border: 2px solid var(--fdc-tx);
+  transition: background .2s ease, border-color .2s ease, color .2s ease, opacity .2s ease, transform .2s ease;
+}
+.fdc-carrusel__btn[data-dir="1"] {
+  background: #D4116F; border-color: #D4116F; color: #fff;
+  box-shadow: 0 8px 22px rgba(212,17,111,.32);
+}
+.fdc-carrusel__btn:hover:not(:disabled) { background: var(--fdc-tx); border-color: var(--fdc-tx); color: #fff; transform: scale(1.06); }
+/* Donde no hay nada más, la flecha desaparece: al principio solo se ve la de
+   «siguiente», que es justo la que hay que ver. */
+.fdc-carrusel__btn:disabled { opacity: 0; pointer-events: none; }
+.fdc-carrusel__btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.fdc-carrusel:not(.is-tocado) .fdc-carrusel__btn[data-dir="1"]:not(:disabled) { animation: fdc-latido 2.4s ease-in-out infinite; }
+@keyframes fdc-latido {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,17,111,.45), 0 8px 22px rgba(212,17,111,.32); }
+  50%      { box-shadow: 0 0 0 14px rgba(212,17,111,0), 0 8px 22px rgba(212,17,111,.32); }
+}
+.fdc-carrusel__btn[data-dir="-1"] svg { transform: scaleX(-1); }
+
+.fdc-carrusel .fdc-card { position: relative; }
+/* El póster sin su pleca de logos. Todos los pósters de 2026 llevan abajo la
+   misma franja blanca con los logotipos de las instituciones, y empieza al
+   75 % del alto (medido sobre los pósters publicados). En 4:3 y anclado
+   arriba se ve justo ese 75 %: el contenido del póster llena la tarjeta y la
+   franja queda fuera. La pleca completa ya está en el pie de la página. */
+.fdc-carrusel .fdc-card__media { aspect-ratio: 4 / 3; }
+.fdc-carrusel .fdc-card__img { object-fit: cover; object-position: top; }
+.fdc-carrusel .fdc-card__badge { width: 70px; }
+.fdc-carrusel .fdc-card__badge small { font-size: 1rem; letter-spacing: .04em; }
+.fdc-carrusel .fdc-card__badge b { font-size: 1.9rem; }
+.fdc-carrusel .fdc-card__cuerpo { display: flex; flex-direction: column; gap: 6px; }
+.fdc-card__tipo { margin: 0; font-size: 1rem; font-weight: 700; color: var(--fdc-tx-2); }
+/* Dos líneas como mucho: con tres, una tarjeta de título largo alargaba la
+   fila entera. */
+.fdc-carrusel .fdc-card__titulo { font-size: 1.32rem; -webkit-line-clamp: 2; line-clamp: 2; }
+.fdc-carrusel .fdc-card__cuando { font-size: 1rem; letter-spacing: 0; text-transform: none; font-weight: 600; color: var(--fdc-tx); }
+.fdc-card__sede {
+  /* Hasta dos líneas: «Centro Estatal de las Artes de Ensenada (CEART)» no
+     cabía en una y se cortaba a media palabra. */
+  margin: 0; font-size: 1rem; line-height: 1.35; color: var(--fdc-tx-2);
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+/* El enlace del título cubre la tarjeta; el botón de boleto queda encima. */
+.fdc-card__enlace { color: inherit; text-decoration: none; }
+.fdc-card__enlace::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.fdc-card__enlace:focus-visible { outline: none; }
+.fdc-card:has(.fdc-card__enlace:focus-visible) { outline: 3px solid var(--fdc-turquesa); outline-offset: 3px; }
+/* Sin póster: el color del eje con un aro blanco, a la misma medida. */
+.fdc-card__media--vacia { background: var(--eje); }
+.fdc-card__media--vacia::after {
+  content: ''; position: absolute; inset: 30%; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.9);
+}
+
+/* ---- cómo se entra: botón cuando hay algo que hacer, etiqueta si no ---- */
+.fdc-card__pie { margin-top: auto; padding-top: 12px; position: relative; z-index: 2; }
+.fdc-card__btn, .fdc-card__tag {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 9px 18px;
+  border-radius: 999px; border: 1.5px solid transparent;
+  font-family: var(--fdc-f-body); font-size: 1rem; font-weight: 700; line-height: 1.2;
+}
+.fdc-card__btn {
+  background: #D4116F; border-color: #D4116F; color: #fff; text-decoration: none;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+.fdc-card__btn:hover { background: var(--fdc-dark); border-color: var(--fdc-dark); transform: translateY(-1px); }
+/* Confirmar asistencia y lista de espera: opcionales, con contorno. */
+.fdc-card__btn--suave { background: #fff; color: var(--fdc-magenta-tx); }
+.fdc-card__btn--suave:hover { color: #fff; }
+.fdc-card__btn--tuyo { background: var(--fdc-verde); border-color: var(--fdc-verde); color: var(--fdc-dark); }
+.fdc-card__btn--tuyo:hover { color: #fff; }
+.fdc-card__tag { background: var(--fdc-gris); color: var(--fdc-tx-2); }
+/* Verde de texto sobre un 12 % de verde: 4.6:1, pasa a 16 px. */
+.fdc-card__tag--libre { background: color-mix(in srgb, var(--fdc-verde) 12%, #fff); color: var(--fdc-verde-tx); }
+
+/* ---- la última tarjeta: al programa completo ----
+   Turquesa con letra oscura (5.4:1). Se distingue de los pósters, del magenta
+   de los botones y del amarillo de la banda de más abajo. */
+.fdc-card--programa {
+  position: relative; justify-content: flex-end;
+  padding: clamp(22px, 2.4vw, 30px);
+  background: var(--fdc-turquesa); border-color: var(--fdc-turquesa); color: var(--fdc-dark);
+}
+.fdc-card--programa__aros svg {
+  position: absolute; right: -16%; top: -8%; width: 92%;
+  fill: none; stroke: rgba(255,255,255,.7); stroke-width: 1.4;
+}
+.fdc-card--programa__txt { position: relative; padding-right: 64px; }
+.fdc-card--programa__txt b {
+  display: block; font-family: var(--fdc-f-disp); font-size: clamp(1.8rem, 2.3vw, 2.4rem);
+  font-weight: 800; line-height: 1.02; letter-spacing: -.02em;
+}
+.fdc-card--programa__txt span { display: block; margin-top: 10px; font-size: 1.05rem; font-weight: 600; }
+.fdc-card--programa .fdc-card__ir {
+  position: absolute; right: clamp(22px, 2.4vw, 30px); bottom: clamp(22px, 2.4vw, 30px);
+  width: 52px; height: 52px; border-color: var(--fdc-dark); color: var(--fdc-dark);
+}
+.fdc-card--programa:hover .fdc-card__ir { background: var(--fdc-dark); border-color: var(--fdc-dark); color: #fff; }
+
+@media (max-width: 900px) {
+  .fdc-carrusel { grid-template-columns: 1fr; }
+  .fdc-carrusel__tit { max-width: 18ch; }
+  .fdc-cinta__item { width: max(250px, calc((100cqw - var(--hueco)) / 2)); }
+  .fdc-cinta { --borde-izq: 6%; --borde-der: 10%; }
+  .fdc-cinta--inicio { --borde-izq: 0%; }
+  .fdc-cinta--fin { --borde-der: 0%; }
+  .fdc-carrusel__btn { width: 46px; height: 46px; }
+  .fdc-carrusel__btn--ant { left: -6px; }
+  .fdc-carrusel__btn--sig { right: -6px; }
+}
+@media (max-width: 560px) {
+  .fdc-cinta__item { width: 78cqw; }
+}
 
 /* ================================================================ TARJETA ==
    La tarjeta de actividad del sistema: imagen arriba (50–60 %), etiqueta de
    fecha en color, título, dato secundario y flecha. Fondo blanco, borde de
    1 px, sombra casi nula. */
-.fdc-cards-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 26px); }
 .fdc-card {
   --c: var(--fdc-turquesa); --c-tx: #fff;
   display: flex; flex-direction: column; height: 100%;
@@ -387,73 +602,6 @@
 .fdc-card:hover .fdc-card__ir { background: var(--fdc-tx); border-color: var(--fdc-tx); color: #fff; }
 .fdc-card__ir svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ========================================================= 2. ESTA SEMANA ==
-   Lista cronológica: la fecha como gran separador editorial a la izquierda y
-   las actividades del día a la derecha. */
-.fdc-dias { display: grid; gap: clamp(28px, 4vw, 48px); }
-.fdc-dia {
-  display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
-  gap: clamp(20px, 4vw, 64px); align-items: start;
-  padding-top: clamp(24px, 3vw, 36px); border-top: 1px solid rgba(255,255,255,.35);
-}
-.fdc-dia__fecha { font-family: var(--fdc-f-disp); line-height: .9; color: currentColor; }
-.fdc-dia__fecha small { display: block; font-family: var(--fdc-f-body); font-size: .74em; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: currentColor; opacity: .75; margin-bottom: 8px; }
-.fdc-dia__fecha b { display: block; font-size: clamp(3.4em, 6vw, 5.6em); font-weight: 900; letter-spacing: -.04em; }
-.fdc-dia__fecha span { display: block; font-size: clamp(1em, 1.4vw, 1.2em); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-top: 6px; }
-.fdc-dia__fecha.is-hoy b { color: var(--fdc-amarillo); }
-.fdc-dia__hoy { display: inline-block; margin-top: 10px; padding: 4px 10px; border-radius: 999px; background: var(--fdc-amarillo); color: var(--fdc-dark); font-family: var(--fdc-f-body); font-size: .66em; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-
-.fdc-dia__lista { display: grid; gap: 12px; }
-/* Una fila por actividad: hora, miniatura del póster, texto y el botón de
-   boleto. Toda la fila lleva a la actividad (el enlace del título se estira
-   sobre ella); el botón queda por encima y hace lo suyo. */
-.fdc-fila {
-  --c: var(--fdc-turquesa);
-  position: relative;
-  display: grid; grid-template-columns: 84px 96px minmax(0, 1fr) auto;
-  gap: 8px 22px; align-items: center;
-  padding: 14px 16px 14px 22px; background: #fff; border-radius: 16px;
-  color: var(--fdc-tx); transition: transform .2s ease, box-shadow .2s ease;
-}
-.fdc-fila:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(23,32,51,.22); }
-.fdc-fila__hora { font-family: var(--fdc-f-disp); font-size: 1.45em; font-weight: 800; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--fdc-tx); }
-.fdc-fila__hora small { display: block; margin-top: 6px; font-family: var(--fdc-f-body); font-size: .5em; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--fdc-tx-3); }
-.fdc-fila__mini { position: relative; display: block; width: 96px; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--c); }
-.fdc-fila__mini img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
-.fdc-fila:hover .fdc-fila__mini img { transform: scale(1.06); }
-/* Sin póster: el color del eje con un aro blanco, como los del logotipo. */
-.fdc-fila__mini--vacia::after { content: ''; position: absolute; inset: 26%; border-radius: 50%; border: 2px solid rgba(255,255,255,.85); }
-.fdc-fila__txt { min-width: 0; }
-.fdc-fila__eje { display: flex; align-items: center; gap: 8px; font-size: .7em; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--fdc-tx-3); margin-bottom: 5px; }
-.fdc-fila__eje i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-.fdc-fila__tit { font-family: var(--fdc-f-disp); font-size: 1.2em; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
-.fdc-fila__tit a { color: inherit; }
-.fdc-fila__tit a::after { content: ''; position: absolute; inset: 0; border-radius: 16px; z-index: 1; }
-.fdc-fila__sede { font-size: .88em; color: var(--fdc-tx-2); margin-top: 4px; }
-.fdc-fila__estado { display: inline-block; margin-top: 8px; font-size: .68em; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-magenta-tx); }
-.fdc-fila__accion { position: relative; z-index: 2; }
-
-/* Botón de la fila: magenta; con el ratón encima se oscurece, sube un poco
-   y la flecha se adelanta. */
-.fdc-fila__btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  min-height: 48px; padding: 12px 22px; border-radius: 999px;
-  background: #D4116F; color: #fff; border: 1.5px solid #D4116F;
-  font-family: var(--fdc-f-body); font-size: .88em; font-weight: 600; white-space: nowrap;
-  transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease, gap .2s ease;
-}
-.fdc-fila__btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
-.fdc-fila__btn:hover { background: var(--fdc-dark); border-color: var(--fdc-dark); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(23,32,51,.25); }
-.fdc-fila__btn:hover svg { transform: translateX(4px); }
-.fdc-fila__btn--linea { background: transparent; color: var(--fdc-tx); border-color: var(--fdc-tx); }
-.fdc-fila__btn--linea:hover { background: var(--fdc-tx); color: #fff; }
-.fdc-fila__btn--tuyo { background: var(--fdc-verde); border-color: var(--fdc-verde); color: var(--fdc-dark); }
-.fdc-fila__btn--tuyo:hover { color: #fff; }
-.fdc-fila__btn--off { background: var(--fdc-gris); border-color: var(--fdc-gris); color: var(--fdc-tx-3); cursor: default; }
-.fdc-fila__btn--off:hover { background: var(--fdc-gris); border-color: var(--fdc-gris); transform: none; box-shadow: none; }
-.fdc-proximas__pie { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: clamp(32px, 4vw, 48px); padding-top: 24px; border-top: 1px solid rgba(255,255,255,.35); }
-.fdc-proximas__pie p { margin: 0; font-size: .92em; opacity: .85; }
-
 /* ============================================================== 3. EJES ====
    Cuatro tarjetas de color pleno, una por eje, con texto oscuro (pasa AA sobre
    los cuatro colores; el blanco no). Un círculo blanco asoma por la esquina. */
@@ -490,31 +638,40 @@
 
 /* ============================================================= 4. SEDES ==== */
 .fdc-sedes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); }
+/* Nombre y dirección, uno debajo del otro. Era una rejilla de dos columnas
+   para poner el número de actividades a la derecha; sin el número, la
+   dirección se metía en esa columna y aplastaba el nombre a una palabra por
+   renglón. La tarjeta llena su celda, así que las de una fila miden igual. */
+.fdc-sedes li { display: flex; }
 .fdc-sede {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: start;
+  flex: 1; display: flex; flex-direction: column; gap: 6px;
   padding: 22px 24px; background: #fff; border: 1px solid transparent; border-radius: 16px;
   color: var(--fdc-tx); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 .fdc-sede:hover { transform: translateY(-3px); box-shadow: var(--fdc-shadow-h); border-color: transparent; }
-.fdc-sede__n { grid-column: 2; grid-row: 1 / 3; font-family: var(--fdc-f-disp); font-size: 2.2em; font-weight: 900; line-height: 1; letter-spacing: -.03em; color: var(--fdc-tx); text-align: right; }
-.fdc-sede__n small { display: block; font-family: var(--fdc-f-body); font-size: .3em; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--fdc-tx-3); margin-top: 4px; }
 .fdc-sede h3 { font-family: var(--fdc-f-disp); font-size: 1.12em; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
-.fdc-sede p { font-size: .86em; color: var(--fdc-tx-3); line-height: 1.45; }
+.fdc-sede p { margin: 0; font-size: .94em; color: var(--fdc-tx-2); line-height: 1.45; }
 .fdc-sedes__nota { margin-top: 20px; }
 .fdc-sedes li:nth-child(4n+1) .fdc-sede { border-top: 4px solid var(--fdc-turquesa); }
 .fdc-sedes li:nth-child(4n+2) .fdc-sede { border-top: 4px solid var(--fdc-magenta); }
 .fdc-sedes li:nth-child(4n+3) .fdc-sede { border-top: 4px solid var(--fdc-amarillo); }
 .fdc-sedes li:nth-child(4n+4) .fdc-sede { border-top: 4px solid var(--fdc-verde); }
 
-/* ======================================================= 5. CÓMO ASISTIR === */
-.fdc-pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 40px); }
-.fdc-paso { position: relative; padding-top: 22px; border-top: 2px solid var(--fdc-dark); }
-.fdc-paso__n { display: block; font-family: var(--fdc-f-disp); font-size: clamp(3em, 5vw, 4.6em); font-weight: 900; line-height: .9; letter-spacing: -.04em; color: var(--fdc-tx); margin-bottom: 14px; }
-.fdc-paso:nth-child(1) .fdc-paso__n { color: var(--fdc-turquesa-tx); }
-.fdc-paso:nth-child(2) .fdc-paso__n { color: var(--fdc-magenta-tx); }
-.fdc-paso:nth-child(3) .fdc-paso__n { color: var(--fdc-tx); }
-.fdc-paso h3 { font-family: var(--fdc-f-disp); font-size: 1.35em; font-weight: 800; letter-spacing: -.01em; margin-bottom: 8px; }
-.fdc-paso p { font-size: .95em; line-height: 1.55; color: rgba(23,32,51,.82); }
+/* ===================================================== 5. AL PROGRAMA ====
+   Una banda amarilla con una frase y dos botones: ver el programa y
+   consultar los boletos. Sustituye a los tres pasos de «Cómo asistir». */
+.fdc-llamada { padding: clamp(52px, 6vw, 88px) 0; }
+/* La foto detrás, en gris y multiplicada sobre el amarillo, como en las
+   cabeceras de color. Más tenue que sobre magenta (.16 y no .26): aquí la
+   letra es oscura, y con más foto perdía contraste en las zonas oscuras. */
+.fdc-llamada.fdc-sec--foto::before { opacity: .16; background-position: center 40%; }
+.fdc-llamada__in {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: 28px clamp(28px, 5vw, 80px);
+}
+.fdc-llamada .fdc-h2 { margin: 0 0 14px; }
+.fdc-llamada .fdc-lead { margin: 0; max-width: 52ch; font-size: 1.1rem; }
+.fdc-acciones { display: flex; flex-wrap: wrap; gap: 12px 14px; }
 
 /* ============================================================ 6. MEMORIA === */
 .fdc-memoria { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
@@ -578,7 +735,7 @@
   font-size: clamp(2.8em, 7vw, 6.4em); line-height: .92; letter-spacing: -.03em;
   margin-bottom: clamp(48px, 6vw, 88px); max-width: 12ch;
 }
-.fdc-foot__cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,.14); }
+.fdc-foot__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,.14); }
 .fdc-foot__cols h4 { font-size: .72em; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 16px; }
 .fdc-foot__cols p { font-size: .95em; color: rgba(255,255,255,.82); line-height: 1.9; }
 .fdc-foot__cols a { transition: color .18s ease; }
@@ -670,12 +827,9 @@
 /* ========================================================== 11. RESPONSIVE = */
 @media (max-width: 1100px) {
   .fdc-ejes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .fdc-foot__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 1024px) {
   .fdc-hero__grid { grid-template-columns: 1fr; }
-  .fdc-destacadas { grid-template-columns: 1fr; gap: 20px; }
-  .fdc-destacadas__txt { max-width: 52ch; }
   .fdc-hero__collage { max-width: 520px; margin-inline: auto; width: 100%; }
   .fdc-insti { justify-content: center; text-align: center; }
   .fdc-insti__lema { align-items: center; }
@@ -683,15 +837,6 @@
   .fdc-memoria { grid-template-columns: 1fr; }
   .fdc-sedes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fdc-gal { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 176px; }
-}
-@media (max-width: 900px) {
-  .fdc-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .fdc-dia { grid-template-columns: 1fr; gap: 18px; }
-  .fdc-dia__fecha { display: flex; align-items: baseline; gap: 14px; }
-  .fdc-dia__fecha small { margin: 0; }
-  .fdc-dia__fecha b { font-size: 2.6em; }
-  .fdc-dia__fecha span { margin: 0; }
-  .fdc-pasos { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
   .fdc { font-size: max(16px, 1rem); }
@@ -702,21 +847,10 @@
   .fdc-hero__cta .fdc-btn { width: 100%; }
   .fdc-hero__rings--izq { display: none; }
   .fdc-insti__lema { padding-left: 0; border-left: 0; }
-  .fdc-cards-grid { grid-template-columns: 1fr; }
   .fdc-ejes { grid-template-columns: 1fr; }
   .fdc-sedes { grid-template-columns: 1fr; }
-  .fdc-fila {
-    grid-template-columns: 76px minmax(0, 1fr);
-    grid-template-areas: "mini hora" "mini txt" "accion accion";
-    gap: 6px 16px; padding: 14px;
-  }
-  .fdc-fila__mini { grid-area: mini; width: 76px; align-self: start; }
-  .fdc-fila__hora { grid-area: hora; display: flex; align-items: baseline; gap: 8px; font-size: 1.15em; }
-  .fdc-fila__hora small { margin: 0; }
-  .fdc-fila__txt { grid-area: txt; }
-  .fdc-fila__accion { grid-area: accion; margin-top: 8px; }
-  .fdc-fila__btn { width: 100%; }
   .fdc-acciones .fdc-btn { width: 100%; }
+  .fdc-llamada__in { grid-template-columns: 1fr; }
   .fdc-gal { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 10px; }
   .fdc-gal .g-wide { grid-column: span 2; }
   .fdc-foot__cols { grid-template-columns: 1fr; gap: 24px; }

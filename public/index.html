@@ -24,7 +24,7 @@
 <meta name="twitter:card"       content="summary_large_image">
 <meta name="theme-color" content="">
 </head>
-<body>
+<body class="pagina-ancha">
 
 <!-- La cabecera la monta assets/js/cabecera.js (al final de la página). -->
 <div data-cabecera></div>
@@ -35,16 +35,18 @@
      Pensada para un festival ACTIVO: hay programa publicado, sedes confirmadas y
      boletos por abrirse. El orden responde a lo que busca quien llega:
 
-       1. Portada          qué es, cuándo, tres actividades destacadas
-       2. Esta semana      lo próximo, en orden, con acceso a boletos
-       3. El festival      qué es y sus cuatro ejes, como entrada al programa
-       4. Sedes            dónde ocurre, con cuántas actividades por sede
-       5. Cómo asistir     entrada libre, boleto gratuito, confirmación
-       6. Memoria          video y lo que fue la edición 2025
-       7. Pie              contacto, instituciones, redes
+       1. Portada          qué es, cuándo, y un carrusel de actividades
+       2. El festival      qué es y sus cuatro ejes, como entrada al programa
+       3. Sedes            dónde ocurre, con cuántas actividades por sede
+       4. Al programa      llamada a ver el programa y a consultar boletos
+       5. Memoria          video y lo que fue la edición 2025
+       6. Pie              contacto, redes, instituciones
 
-     Todo lo que viene de la base de datos (portada, esta semana, cifras por eje,
-     sedes) lo pinta assets/js/programa-portada.js. Los huecos van vacíos y
+     El 9 de octubre de 2026 salieron «Esta semana» (la repetía el carrusel)
+     y «Cómo asistir» (el programa ya dice en cada actividad cómo se entra).
+
+     Todo lo que viene de la base de datos (carrusel, cifras por eje, sedes) lo
+     pinta assets/js/programa-portada.js. Los huecos van vacíos y
      ocultos con «hidden»: si falla la red, la página sigue completa sin ellos.
 ============================================================================= -->
 <div class="fdc fdc--bleed">
@@ -87,9 +89,9 @@
         </div>
       </div>
 
-      <!-- Collage: tres fotos propias en blanco y negro, en círculo, sobre
-           formas de la paleta. Música, danza y una charla. Entran una tras
-           otra al cargar. -->
+      <!-- Collage: tres fotos propias a color, en círculo, sobre formas de la
+           paleta. Música, danza y una charla. Entran una tras otra al cargar y
+           después cada círculo orbita despacio alrededor de su sitio. -->
       <div class="fdc-hero__collage" aria-hidden="true">
         <span class="fdc-hero__blob fdc-hero__blob--magenta"></span>
         <span class="fdc-hero__blob fdc-hero__blob--amarillo"></span>
@@ -127,19 +129,13 @@
       </div>
     </div>
 
-    <!-- Actividades destacadas: título a la izquierda y tres tarjetas. Las
-         tres primeras publicadas con póster, de hoy en adelante. -->
+    <!-- «El festival siempre tiene algo para ti»: carrusel que avanza solo,
+         con una selección de actividades y, al final, el programa completo.
+         La selección y su orden viven en programa-portada.js. -->
     <div class="fdc-hero__prog" id="fdc-hero-prog" hidden></div>
   </div>
 </header>
 
-<!-- ═══════════════════════════════ ESTA SEMANA ═══════════════════════════════════
-     Lo próximo del programa en orden cronológico, agrupado por día. Es la
-     sección que cambia todos los días del festival. Sin datos no aparece. -->
-<section class="fdc-sec fdc-sec--color fdc-sec--magenta fdc-sec--foto" id="fdc-proximas" hidden
-         style="--foto:url(/assets/img/desfile.jpg)">
-  <div class="fdc-wrap fdc-wrap--ancho" id="fdc-proximas-caja"></div>
-</section>
 
 <!-- ═══════════════════════════════ EL FESTIVAL ═══════════════════════════════════
      Qué es, en un párrafo, y los cuatro ejes como entrada al programa
@@ -236,42 +232,23 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════ CÓMO ASISTIR ══════════════════════════════════ -->
-<section class="fdc-sec fdc-sec--color fdc-sec--amarillo" id="fdc-boletos">
-  <div class="fdc-wrap fdc-wrap--ancho">
-    <div class="fdc-cabeza-sec">
-      <div>
-        <p class="fdc-eyebrow">Cómo asistir</p>
-        <h2 class="fdc-h2">Entrada libre.<br>Algunas piden boleto.</h2>
-      </div>
+<!-- ══════════════════════════════ AL PROGRAMA ══════════════════════════════════
+     Una llamada a la acción en lugar de los tres pasos de «Cómo asistir»: el
+     programa ya dice en cada actividad cómo se entra. Conserva el ancla
+     «fdc-boletos» porque el menú de todo el sitio enlaza aquí. -->
+<section class="fdc-sec fdc-sec--color fdc-sec--amarillo fdc-sec--foto fdc-llamada" id="fdc-boletos"
+         style="--foto:url(/assets/img/desfile.jpg)">
+  <div class="fdc-wrap fdc-wrap--ancho fdc-llamada__in">
+    <div>
+      <h2 class="fdc-h2">Todo el programa,<br>día por día</h2>
       <p class="fdc-lead">
-        Todo el festival es gratuito. Las actividades con cupo limitado piden
-        un boleto, también gratuito, que se consigue desde el programa en un
-        minuto y llega a tu teléfono.
+        Todas las actividades son gratuitas. Las que tienen cupo piden boleto,
+        también gratuito.
       </p>
     </div>
-
-    <ol class="fdc-pasos">
-      <li class="fdc-paso">
-        <span class="fdc-paso__n" aria-hidden="true">1</span>
-        <h3>Elige en el programa</h3>
-        <p>Explora por día, eje o sede. Cada actividad dice si la entrada es libre o si pide boleto o confirmación.</p>
-      </li>
-      <li class="fdc-paso">
-        <span class="fdc-paso__n" aria-hidden="true">2</span>
-        <h3>Consigue tu boleto</h3>
-        <p>Nombre y teléfono bastan. Recibes un código QR que se guarda en este mismo navegador, sin cuenta ni contraseña.</p>
-      </li>
-      <li class="fdc-paso">
-        <span class="fdc-paso__n" aria-hidden="true">3</span>
-        <h3>Llega y muéstralo</h3>
-        <p>En la entrada se lee tu código. Si una actividad se agota, puedes anotarte en lista de espera y pasas primero si sobran lugares.</p>
-      </li>
-    </ol>
-
     <div class="fdc-acciones">
       <a class="fdc-btn fdc-btn--magenta" href="/programa/">Ver el programa <span aria-hidden="true">→</span></a>
-      <a class="fdc-btn fdc-btn--linea" href="/mis-boletos/">Mis boletos</a>
+      <a class="fdc-btn fdc-btn--linea" href="/mis-boletos/">Consulta tus boletos</a>
     </div>
   </div>
 </section>
@@ -333,23 +310,6 @@
     <p class="fdc-foot__frase">El conocimiento<br>nos une.</p>
 
     <div class="fdc-foot__cols">
-      <div>
-        <h4>Festival</h4>
-        <p>
-          <a href="/programa/">Programa 2026</a><br>
-          <a href="#fdc-ejes">El festival</a><br>
-          <a href="#fdc-sedes">Sedes</a><br>
-          <a href="#fdc-boletos">Cómo asistir</a><br>
-          <a href="/mis-boletos/">Mis boletos</a>
-        </p>
-      </div>
-      <div>
-        <h4>Talleres</h4>
-        <p>
-          <a href="/laboratorio-arte-de-comunicar-ciencia/">El arte de comunicar ciencia</a><br>
-          <a href="/taller-comic-difusion-cientifica/">Cómic para difusión científica</a>
-        </p>
-      </div>
       <div id="fdc-participa">
         <h4>Participa y contacto</h4>
         <p>
