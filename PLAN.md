@@ -612,7 +612,7 @@ importante presenta: foto y semblanza. `sql/13-ponentes.sql`, módulo
   columna). `sitio` solo admite http(s): se pinta como enlace en la página.
 - **Bucket `ponentes`**, propio, porque las políticas del de `actividades`
   deciden por la carpeta de la actividad. Foto en su proporción original, hasta
-  1000 px (`foto-ponente.js`, que reutiliza la preparación de
+  640 px, entre 25 y 75 KB (`foto-ponente.js`, que reutiliza la preparación de
   `subir-poster.js`); el recorte redondo lo hace el CSS.
 - **`vista_programa_ponentes`**, aparte de `vista_programa`, que no se tocó.
   Trae `edicion_id` y `slug` para que la cartelera y la ficha la pidan en

@@ -40,7 +40,7 @@
 --
 --  CÓMO SE NOMBRAN LAS FOTOS
 --    <id del ponente>/foto-<sello>.webp
---  Un solo archivo, de hasta 1000 px por el lado largo, en su proporción
+--  Un solo archivo, de hasta 640 px por el lado largo, en su proporción
 --  original: el recorte redondo lo hace la página. El sello cambia en cada
 --  subida, igual que el póster, para que cada archivo sea inmutable.
 -- =============================================================================
@@ -262,7 +262,7 @@ grant update (papel, orden) on public.actividad_ponentes to authenticated;
 --  la carpeta de la actividad (ver la nota de la fase C en el plan).
 --
 --  Público en lectura, como el de pósters. 2 MB como segunda barrera: lo que
---  sube el sitio ronda los 150 KB.
+--  sube el sitio pesa entre 25 y 75 KB.
 -- =============================================================================
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('ponentes', 'ponentes', true, 2097152, array['image/webp', 'image/jpeg'])

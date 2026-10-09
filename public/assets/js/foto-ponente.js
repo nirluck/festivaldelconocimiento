@@ -12,11 +12,13 @@
      · NO se exige ninguna forma. Una foto de celular viene vertical, la de
        una banda viene apaisada. Se guarda en su proporción y el recorte
        redondo lo hace la página con «object-fit: cover».
-     · Un solo archivo, de hasta 1000 px por el lado largo. En la ficha la
-       foto se ve a unos 120 px; 1000 alcanza de sobra y deja margen para
-       usarla en carteles o en redes.
+     · Un solo archivo, de hasta 640 px por el lado largo. En la ficha la
+       foto se ve a 132 px dentro de un círculo: 640 da más de tres veces esa
+       medida por el lado corto, suficiente para pantallas de alta densidad.
+       Con 1000 px se subían unos 150 KB por foto sin ganar nada visible; con
+       640, entre 25 y 75 KB (29 de septiembre de 2026).
      · Se aceptan originales de hasta 12 MB: una foto de celular pasa con
-       facilidad de los 4 MB del póster. Lo que se sube ronda los 150 KB.
+       facilidad de los 4 MB del póster. Lo que se sube pesa una fracción.
 
    La ruta es «<id del ponente>/foto-<sello>.webp». El sello cambia en cada
    subida, así que el archivo es inmutable y se puede guardar en caché un año.
@@ -26,7 +28,7 @@ import { db } from './app.js';
 import { BUCKET_PONENTES } from './archivos.js';
 import { decodificar, reducir, codificar, ErrorPoster } from './subir-poster.js';
 
-const LADO_MAX = 1000;
+const LADO_MAX = 640;
 const LADO_MINIMO_SIN_AVISO = 320;
 const MB = 1024 * 1024;
 export const MAXIMO_FOTO = 12 * MB;
