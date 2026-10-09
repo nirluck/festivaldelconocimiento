@@ -57,15 +57,16 @@ body{ margin: 0; }
 .cab__marca img{ width: 34px; height: auto; display: block; }
 .cab__marca b{
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 700; font-size: .95rem; line-height: 1; letter-spacing: -.01em;
+  font-weight: 700; font-size: 1.06rem; line-height: 1; letter-spacing: -.01em;
   white-space: nowrap;
 }
 
 /* Etiqueta «Sistema» junto a la marca. Texto oscuro sobre amarillo: 9.9:1. */
 .cab__sistema{
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-size: .64rem; font-weight: 700; line-height: 1;
-  letter-spacing: .12em; text-transform: uppercase;
+  /* A 16 px en mayúsculas espaciadas competía con la marca: va como se
+     escribe, y la pastilla amarilla ya la hace etiqueta. */
+  font-size: 1rem; font-weight: 600; line-height: 1;
   color: var(--marca-oscuro); background: #F6D20A;
   padding: 5px 8px 4px; border-radius: 100px;
   white-space: nowrap;
@@ -94,7 +95,7 @@ body{ margin: 0; }
 .cab__nav a{
   color: rgba(255,255,255,.78); text-decoration: none;
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 600; font-size: .87rem;
+  font-weight: 600; font-size: 1rem;
   padding: 8px 13px; border-radius: 100px;
   white-space: nowrap; transition: background .16s ease, color .16s ease;
 }
@@ -106,6 +107,7 @@ body{ margin: 0; }
    Blanca y limpia; al bajar se vuelve translúcida con desenfoque y gana una
    línea. El estado activo es una línea cyan bajo el texto. En la landing va
    flotante sobre la portada, que también es blanca, así que arranca sólida.
+   (El 9 de octubre de 2026 se probó morada y después fucsia; volvió a blanca.)
    ========================================================================== */
 .cab--clara{
   background: #fff;
@@ -122,13 +124,17 @@ body{ margin: 0; }
    contenido, con los mismos márgenes: el logotipo del menú cae en la misma
    vertical que el contenido de la página. */
 .cab--clara .cab__in{ max-width: 1440px; padding: 0 clamp(20px, 5vw, 120px); box-sizing: border-box; }
+/* Las páginas con la retícula ancha (portada y programa, desde el 9 de
+   octubre de 2026) topan en 1680 px: la barra va con ellas para que el
+   logotipo siga en la misma vertical que el contenido. */
+.pagina-ancha .cab--clara .cab__in{ max-width: 1680px; }
 .cab--clara .cab__marca{ color: var(--marca-oscuro); }
 .cab--clara .cab__marca b{ font-family: 'Inter', sans-serif; font-weight: 700; }
 .cab--clara .cab__nav{ gap: 6px; }
 .cab--clara .cab__nav a,
 .cab--clara .cab__grupo-btn,
 .cab--clara .cab__discreto{
-  font-family: 'Inter', sans-serif; font-weight: 500; font-size: .9rem;
+  font-family: 'Inter', sans-serif; font-weight: 500; font-size: 1rem;
   color: #3B4457; border-radius: 0; padding: 8px 10px; position: relative;
 }
 .cab--clara .cab__nav a:hover,
@@ -163,6 +169,7 @@ body{ margin: 0; }
 }
 .cab--clara.cab--compacta .cab__nav a,
 .cab--clara.cab--compacta .cab__grupo-btn{ color: var(--marca-oscuro); border-bottom-color: #ECEBE7; }
+.cab--clara.cab--compacta .cab__quien{ color: #667085; }
 .cab--clara.cab--compacta .cab__nav a:hover,
 .cab--clara.cab--compacta .cab__grupo-btn:hover,
 .cab--clara.cab--compacta .cab__grupo.is-abierto .cab__grupo-btn{ color: #C90D70; }
@@ -176,7 +183,7 @@ body{ margin: 0; }
 .cab__grupo-btn{
   display: inline-flex; align-items: center; gap: 6px;
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 600; font-size: .87rem; line-height: 1;
+  font-weight: 600; font-size: 1rem; line-height: 1;
   color: rgba(255,255,255,.78);
   background: none; border: 0; cursor: pointer;
   padding: 8px 13px; border-radius: 100px;
@@ -214,11 +221,11 @@ body{ margin: 0; }
 .cab__panel b{
   display: block;
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 600; font-size: .92rem; letter-spacing: -.01em; color: #fff;
+  font-weight: 600; font-size: 1.06rem; letter-spacing: -.01em; color: #fff;
 }
 .cab__panel small{
   display: block; margin-top: 3px;
-  font-size: .76rem; line-height: 1.4; color: rgba(255,255,255,.58);
+  font-size: 1rem; line-height: 1.4; color: rgba(255,255,255,.72);
 }
 
 /* --------------------------------------------------------------- sesión --- */
@@ -229,21 +236,21 @@ body{ margin: 0; }
 .cab__discreto{
   color: rgba(255,255,255,.72); text-decoration: none;
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 600; font-size: .84rem; line-height: 1;
+  font-weight: 600; font-size: 1rem; line-height: 1;
   padding: 8px 12px; border-radius: 100px;
   white-space: nowrap; transition: background .16s ease, color .16s ease;
 }
 .cab__discreto:hover{ background: rgba(255,255,255,.13); color: #fff; }
 
 .cab__quien{
-  font-size: .8rem; color: rgba(255,255,255,.62);
+  font-size: 1rem; color: rgba(255,255,255,.72);
   max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 .cab__btn{
   display: inline-flex; align-items: center; justify-content: center;
   font-family: 'Space Grotesk','Inter',sans-serif;
-  font-weight: 600; font-size: .87rem; line-height: 1;
+  font-weight: 600; font-size: 1rem; line-height: 1;
   padding: 10px 18px; border-radius: 100px;
   text-decoration: none; border: 0; cursor: pointer;
   white-space: nowrap; transition: background .16s ease, transform .16s ease, color .16s ease;
@@ -262,7 +269,7 @@ body{ margin: 0; }
 .cab__btn--salir{
   background: none; color: rgba(255,255,255,.72);
   border: 1px solid rgba(255,255,255,.24);
-  padding: 8px 15px; font-size: .82rem;
+  padding: 8px 15px; font-size: 1rem;
 }
 .cab__btn--salir:hover{ background: rgba(255,255,255,.13); color: #fff; }
 
@@ -311,7 +318,7 @@ body{ margin: 0; }
 
 .cab--compacta .cab__nav{ flex-direction: column; align-items: stretch; gap: 0; }
 .cab--compacta .cab__nav a{
-  padding: 13px 4px; border-radius: 0; font-size: .98rem;
+  padding: 13px 4px; border-radius: 0; font-size: 1.06rem;
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .cab--compacta .cab__nav a:hover{ background: none; color: #F6D20A; }
@@ -321,7 +328,7 @@ body{ margin: 0; }
 .cab--compacta .cab__grupo{ flex-direction: column; }
 .cab--compacta .cab__grupo-btn{
   justify-content: space-between; width: 100%;
-  padding: 13px 4px; border-radius: 0; font-size: .98rem;
+  padding: 13px 4px; border-radius: 0; font-size: 1.06rem;
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .cab--compacta .cab__grupo-btn:hover,
@@ -340,8 +347,8 @@ body{ margin: 0; }
   flex-direction: column; align-items: stretch; gap: 10px;
   margin-top: 18px;
 }
-.cab--compacta .cab__btn{ width: 100%; padding: 14px 18px; font-size: .95rem; }
-.cab--compacta .cab__discreto{ text-align: center; padding: 12px 4px; font-size: .92rem; }
+.cab--compacta .cab__btn{ width: 100%; padding: 14px 18px; font-size: 1.06rem; }
+.cab--compacta .cab__discreto{ text-align: center; padding: 12px 4px; font-size: 1rem; }
 .cab--compacta .cab__quien{ max-width: none; text-align: center; padding: 4px 0 6px; }
 
 /* La cabecera flotante se vuelve sólida al abrir el menú */
