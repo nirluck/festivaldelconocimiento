@@ -214,13 +214,11 @@ async function pintarCartelera() {
   if (qSede && ACTS.some(a => a.sede === qSede)) sedeOn = qSede;
   if (qTipo && ACTS.some(a => a.tipo === qTipo)) tipoOn = qTipo;
 
-  // Con qué día abrir: si el festival está ocurriendo, el de hoy. Si no, todo.
-  // Quien entra un miércoles de festival quiere ver el miércoles, no bajar ocho
-  // encabezados buscándolo.
-  const hoy = iso(new Date());
+  // Con qué día abrir: SIEMPRE con todo (decisión del 12 de octubre de 2026;
+  // antes abría en el día de hoy si caía en el programa). Solo una liga con
+  // día (/programa/#2026-10-18) abre en ese día.
   const delHash = location.hash.replace(/^#/, '');
   if (delHash === 'todo' || DIAS.includes(delHash)) diaActivo = delHash;
-  else if (DIAS.includes(hoy) && ACTS.some(a => ocurreEl(a, hoy))) diaActivo = hoy;
 
   REJILLA = await import('/assets/js/programa-rejilla.js');
   REJILLA.montar(contextoRejilla(ed));
