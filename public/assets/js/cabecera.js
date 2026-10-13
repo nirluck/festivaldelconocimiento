@@ -297,8 +297,12 @@ function plantilla({ sistema, marcaHref, nav, auth }) {
         <a class="cab__marca" href="${esc(marcaHref)}"
            aria-label="${sistema ? 'Sistema del Festival del Conocimiento, inicio' : 'Festival del Conocimiento, inicio'}">
           <img src="/assets/img/icono-festcon.png" alt="" width="34">
-          <b>Festival del Conocimiento</b>
-          ${sistema ? '<span class="cab__sistema">Sistema</span>' : ''}
+          ${sistema
+            // En el sistema, solo el icono y «Sistema» (12 de octubre de 2026):
+            // el nombre completo no dejaba caber el menú y lo plegaba en
+            // hamburguesa a cualquier ancho. El aria-label lo sigue diciendo.
+            ? '<span class="cab__sistema">Sistema</span>'
+            : '<b>Festival del Conocimiento</b>'}
         </a>
 
         <button class="cab__toggle" type="button" aria-expanded="false"

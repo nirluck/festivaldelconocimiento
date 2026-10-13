@@ -19,7 +19,6 @@
 .vo-hero::after{filter:brightness(0);opacity:.16}
 .vo-hero .pg-kicker,
 .vo-hero .pg-hero__lede{color:var(--tx)}
-.vo-hero .pg-cifras{border-top-color:rgba(23,32,51,.25)}
 .vo-hero .pg-cifra span{color:var(--tx)}
 .vo-hero--corta{padding-bottom:clamp(24px,4vw,40px)}
 

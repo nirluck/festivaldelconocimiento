@@ -72,13 +72,9 @@ body{ margin: 0; }
   white-space: nowrap;
 }
 
-/* En pantallas estrechas la etiqueta no cabe junto al nombre y al botón del
-   menú: la barra no admite dos renglones. Se oculta el nombre y quedan el
-   icono y «Sistema». El enlace conserva su aria-label, así que se sigue
-   anunciando completo. */
-@media (max-width: 440px){
-  .cab--sistema .cab__marca b{ display: none; }
-}
+/* En el sistema la marca es solo el icono y «Sistema», a cualquier ancho (12
+   de octubre de 2026): cabecera.js ya no escribe el nombre ahí. El enlace
+   conserva su aria-label, así que se sigue anunciando completo. */
 
 /* ------------------------------------------------------------------- menú -- */
 .cab__menu{
@@ -246,6 +242,11 @@ body{ margin: 0; }
   font-size: 1rem; color: rgba(255,255,255,.72);
   max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* En el sistema, con el menú de administración (seis enlaces), la barra de
+   1240 px solo alcanza si el nombre se queda en 140 px: con 190, un nombre
+   largo la plegaba en hamburguesa (medido el 12 de octubre de 2026). El
+   nombre completo sigue en el «title». */
+.cab--sistema .cab__quien{ max-width: 140px; }
 
 .cab__btn{
   display: inline-flex; align-items: center; justify-content: center;

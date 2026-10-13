@@ -67,7 +67,6 @@ let ultimaActividad = null;
   await leerFechas();
   agrupar();
   pintarInvitacion();
-  pintarCifras();
   window.addEventListener('hashchange', () => pintar());
   pintar({ primera: true });
 })();
@@ -77,7 +76,6 @@ async function refrescar() {
   try { PUESTOS = await directorio(); } catch (e) { return; }
   await leerFechas();
   agrupar();
-  pintarCifras();
   pintar({ quieto: true });
 }
 
@@ -121,20 +119,6 @@ function pintarInvitacion() {
   caja.innerHTML = `<div class="pg-wrap"><p>
     <b>Invitación para estudiantes de ${escapar(inst.nombre)}.</b>
     Tu institución ya queda elegida al inscribirte.</p></div>`;
-  caja.hidden = false;
-}
-
-/* ================================================================= cifras */
-function pintarCifras() {
-  const abiertos = PUESTOS.filter(disponible);
-  const lugares = lugaresDe(abiertos);
-  const actividades = new Set(abiertos.map(p => p.actividad_id)).size;
-  const caja = $('#cifras');
-  if (!PUESTOS.length) { caja.hidden = true; return; }
-  caja.innerHTML = `
-    <div class="pg-cifra"><b>${lugares}</b><span>${lugares === 1 ? 'Lugar libre' : 'Lugares libres'}</span></div>
-    <div class="pg-cifra"><b>${actividades}</b><span>${actividades === 1 ? 'Actividad te espera' : 'Actividades te esperan'}</span></div>
-    <div class="pg-cifra"><b>${abiertos.length}</b><span>${abiertos.length === 1 ? 'Puesto abierto' : 'Puestos abiertos'}</span></div>`;
   caja.hidden = false;
 }
 
