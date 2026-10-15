@@ -159,9 +159,28 @@ class Modulo {
 
     const liga = urlActividad(a.slug, '');
 
+    // Cerrar o reabrir a mano. Usa la misma fecha de cierre que el Resumen
+    // («boletos_hasta»): cerrar = ponerla en este momento; reabrir = vaciarla,
+    // y entonces se cierra sola a la hora en que empieza la actividad.
+    const inicio = a.fecha ? inicioActividad(a.fecha, a.hora_inicio) : null;
+    const yaEmpezo = inicio && new Date(inicio) <= ahora;
+    const cerradoAMano = a.boletos_hasta && new Date(a.boletos_hasta) <= ahora;
+    let cierre = '';
+    if (cerradoAMano && !yaEmpezo) {
+      cierre = `
+        <button class="btn btn--linea btn--chico" type="button" data-reabrir-registro>Reabrir el registro</button>
+        <span class="bol-nota">Al reabrirlo, se cierra solo a la hora en que empieza la actividad.</span>`;
+    } else if (!cerradoAMano && !yaEmpezo) {
+      cierre = `
+        <button class="btn btn--linea btn--chico bol-peligro" type="button" data-cerrar-registro>Cerrar el registro ahora</button>
+        <span class="bol-nota">Nadie más podrá pedir boleto${this.registro ? ' ni confirmar' : ' ni anotarse en la lista de espera'}.
+          Lo ya emitido sigue valiendo.</span>`;
+    }
+
     this.$('#bol-ocupacion').innerHTML = `
       <h2>${this.registro ? 'Confirmaciones' : 'Ocupación'}</h2>
       <p class="leyenda">${ventana}</p>
+      ${cierre ? `<div class="bol-cierre">${cierre}</div>` : ''}
 
       <div class="bol-cifras">
         <div class="bol-cifra bol-cifra--grande">
@@ -192,6 +211,26 @@ class Modulo {
       </div>`;
 
     this.conectarCopiar(this.$('#bol-ocupacion'));
+
+    const cerrar = this.$('[data-cerrar-registro]');
+    cerrar?.addEventListener('click', () => {
+      // Dos pasos: el primer clic pregunta, el segundo cierra.
+      if (!cerrar.dataset.confirmar) {
+        cerrar.dataset.confirmar = '1';
+        cerrar.textContent = '¿Seguro? Cerrar el registro';
+        setTimeout(() => { if (cerrar.isConnected) { delete cerrar.dataset.confirmar; cerrar.textContent = 'Cerrar el registro ahora'; } }, 4000);
+        return;
+      }
+      const ya = new Date().toISOString();
+      const cambios = { boletos_hasta: ya };
+      // La base exige que el cierre sea después de la apertura: si la apertura
+      // estaba programada para después, se quita (nunca llegó a abrir).
+      if (a.boletos_desde && new Date(a.boletos_desde) >= new Date(ya)) cambios.boletos_desde = null;
+      this.cambiarVentana(cambios, `Registro cerrado. Nadie más puede pedir boleto${this.registro ? ' ni confirmar' : ' ni anotarse en la lista de espera'}; lo ya emitido sigue valiendo.`);
+    });
+    this.$('[data-reabrir-registro]')?.addEventListener('click', () =>
+      this.cambiarVentana({ boletos_hasta: null }, 'Registro reabierto. Se cerrará solo a la hora en que empieza la actividad.'));
+
     const rec = this.$('[data-recontar]');
     if (rec) rec.addEventListener('click', async () => {
       rec.disabled = true;
@@ -199,6 +238,16 @@ class Modulo {
       if (error || !data?.ok) return this.avisar('mal', error ? explicar(error) : 'No se pudo recalcular.');
       this.refrescar('Contadores recalculados desde los boletos.');
     });
+  }
+
+  /** Guarda la ventana de boletos y repinta la ocupación. */
+  async cambiarVentana(cambios, texto) {
+    const { error } = await db.from('actividades').update(cambios).eq('id', this.act.id);
+    if (error) return this.avisar('mal', explicar(error));
+    // El mismo objeto lo comparten las demás pestañas (Resumen lo verá así).
+    Object.assign(this.act, cambios);
+    this.pintarOcupacion();
+    this.avisar('ok', texto);
   }
 
   /** Cuántos entraron y cómo: con boleto, sin boleto, y qué parte de los boletos se usó. */
