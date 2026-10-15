@@ -19,3 +19,7 @@ desktop.ini
 # Archivos con contraseñas: nunca al repositorio
 *.local.sql
 pruebas/**/.ultima-salida.txt
+
+# Altas de administradores: llevan correos personales. Se corren a mano
+# desde el editor de Supabase y no se publican (9 y 14 de octubre de 2026).
+sql/ascender-administradores.sql
