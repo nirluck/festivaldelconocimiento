@@ -3,16 +3,12 @@
    ----------------------------------------------------------------------------
    La ventana del aviso de colecta (14 de octubre de 2026). Se abre:
 
-     · sola, la primera vez que alguien entra a la portada. Al cerrarla se
-       recuerda en este navegador y no vuelve a salir sola;
-     · siempre con /#ayuda, que es el enlace que se comparte;
+     · sola, cada vez que se carga la portada. Al principio solo salía la
+       primera vez y se recordaba en el navegador; desde el 14 de octubre sale
+       en cada visita, para que nadie se quede sin verla;
+     · con /#ayuda, que es el enlace que se comparte;
      · con el botón «Cómo ayudar» del cintillo.
-
-   Si el navegador no deja guardar (ventana privada, almacenamiento
-   bloqueado), se abre cada vez: es preferible a que no salga nunca.
    ========================================================================== */
-
-const CLAVE = 'fdc_ayuda_rachel_visto';
 
 /* El enlace que se comparte es siempre el del sitio publicado, también si
    esto corre en local. */
@@ -33,8 +29,8 @@ if (dlg && typeof dlg.showModal === 'function') {
   dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
 
   dlg.addEventListener('close', () => {
-    try { localStorage.setItem(CLAVE, '1'); } catch (e) { /* sin almacenamiento */ }
-    // Que volver a cargar la página no la abra otra vez por el #ayuda.
+    // Quitar el #ayuda de la dirección al cerrar, para que no quede pegado si
+    // la persona copia el enlace de la portada.
     if (location.hash === '#ayuda') history.replaceState(null, '', location.pathname + location.search);
   });
 
@@ -54,9 +50,7 @@ if (dlg && typeof dlg.showModal === 'function') {
     setTimeout(() => { copiar.textContent = texto; }, 2500);
   });
 
-  // Primera visita, o llegada por el enlace compartido. Un instante después
-  // de cargar, para que la página se vea detrás y no parezca un muro.
-  let visto = false;
-  try { visto = localStorage.getItem(CLAVE) === '1'; } catch (e) { /* sin almacenamiento */ }
-  if (location.hash === '#ayuda' || !visto) setTimeout(abrir, 700);
+  // En cada visita a la portada. Un instante después de cargar, para que la
+  // página se vea detrás y no parezca un muro.
+  setTimeout(abrir, 700);
 }
