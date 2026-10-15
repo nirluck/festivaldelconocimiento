@@ -1,7 +1,9 @@
 /* ============================================================================
    SOLIDARIDAD · TORMENTA RACHEL · Festival del Conocimiento
    ----------------------------------------------------------------------------
-   La ventana del aviso de colecta (14 de octubre de 2026). Se abre:
+   La ventana del aviso de colecta (14 de octubre de 2026): la lámina del
+   aviso, con sus botones de «Ver sedes y horarios» y de compartir activos.
+   Se abre:
 
      · sola, cada vez que se carga la portada. Al principio solo salía la
        primera vez y se recordaba en el navegador; desde el 14 de octubre sale
@@ -21,7 +23,10 @@ const MENSAJE =
 const dlg = document.getElementById('fdc-ayuda-dlg');
 
 if (dlg && typeof dlg.showModal === 'function') {
-  const abrir = () => { if (!dlg.open) dlg.showModal(); };
+  // Al abrir, el foco va a la ventana y no a su primer botón (cerrar): si no,
+  // al abrirse sola al cargar, ese botón mostraba un recuadro de foco sin que
+  // nadie hubiera usado el teclado.
+  const abrir = () => { if (!dlg.open) { dlg.showModal(); dlg.focus(); } };
 
   document.querySelectorAll('[data-abrir-ayuda]').forEach(b => b.addEventListener('click', abrir));
   dlg.querySelectorAll('[data-cerrar-ayuda]').forEach(b => b.addEventListener('click', () => dlg.close()));
@@ -34,20 +39,31 @@ if (dlg && typeof dlg.showModal === 'function') {
     if (location.hash === '#ayuda') history.replaceState(null, '', location.pathname + location.search);
   });
 
-  // Compartir
-  const wa = dlg.querySelector('[data-wa-ayuda]');
-  if (wa) wa.href = 'https://wa.me/?text=' + encodeURIComponent(MENSAJE);
-
-  const copiar = dlg.querySelector('[data-copiar-ayuda]');
-  if (copiar) copiar.addEventListener('click', async () => {
-    const texto = copiar.textContent;
-    try {
-      await navigator.clipboard.writeText(ENLACE);
-      copiar.textContent = 'Enlace copiado';
-    } catch (e) {
-      copiar.textContent = ENLACE;   // a la vista, para copiarlo a mano
+  // Compartir, desde la franja «Si no puedes donar…» de la lámina.
+  //   · En teléfono, el menú de compartir del sistema con la lámina misma
+  //     como imagen: llega a WhatsApp como foto con el texto y el enlace.
+  //   · Si el sistema no comparte archivos, el mismo menú con texto y enlace.
+  //   · En computadora, WhatsApp con el mensaje ya escrito.
+  const IMAGEN = '/assets/img/aviso-tormenta-rachel.webp';
+  const compartir = dlg.querySelector('[data-compartir-ayuda]');
+  if (compartir) compartir.addEventListener('click', async () => {
+    const datos = { title: 'Centros de acopio · Tormenta Rachel', text: MENSAJE };
+    if (navigator.share) {
+      try {
+        const r = await fetch(IMAGEN);
+        const archivo = new File([await r.blob()], 'aviso-tormenta-rachel.webp', { type: 'image/webp' });
+        if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+          await navigator.share({ ...datos, files: [archivo] });
+        } else {
+          await navigator.share({ ...datos, url: ENLACE });
+        }
+        return;
+      } catch (e) {
+        // Si la persona cerró el menú, no hay nada más que hacer.
+        if (e && e.name === 'AbortError') return;
+      }
     }
-    setTimeout(() => { copiar.textContent = texto; }, 2500);
+    window.open('https://wa.me/?text=' + encodeURIComponent(MENSAJE), '_blank', 'noopener');
   });
 
   // En cada visita a la portada. Un instante después de cargar, para que la

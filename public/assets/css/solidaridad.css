@@ -60,117 +60,55 @@
   .fdc-ayuda__btn { width: 100%; justify-content: center; }
 }
 
-/* ================================================================= VENTANA */
-/* Fondo blanco. El color va en lo que hay que distinguir: verde claro en lo
-   que sí se recibe y fucsia claro en lo que no. */
+/* ================================================================= VENTANA
+   La lámina del aviso (aviso-tormenta-rachel.webp, 1254 × 1254), entera. La
+   ventana es cuadrada como la imagen y nunca más alta que la pantalla, para
+   que se vea completa sin desplazarse.
+   ========================================================================== */
 .fdc-ayuda-dlg {
-  --ayuda-fondo: #fff;
-  --ayuda-linea: var(--fdc-border);
-  --ayuda-verde: #F0F7E4;        /* verde de la marca al 12 % */
-  --ayuda-verde-linea: #D5E8B0;
-  --ayuda-fucsia: #FCEBF3;       /* el #D4116F al 8 % */
-  --ayuda-fucsia-linea: #F2C3D9;
-  width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
+  width: min(680px, calc(100vw - 32px), calc(100dvh - 32px));
   padding: 0; border: 0; border-radius: 14px; overflow: hidden;
-  background: var(--ayuda-fondo); color: var(--fdc-tx);
-  box-shadow: 0 24px 64px rgba(23,32,51,.3);
+  background: #fff; box-shadow: 0 24px 64px rgba(23,32,51,.35);
 }
+/* El foco inicial va a la ventana misma (solidaridad.js); sin contorno. */
+.fdc-ayuda-dlg:focus { outline: none; }
 .fdc-ayuda-dlg::backdrop { background: rgba(23,32,51,.7); }
 .fdc-ayuda-dlg[open] { animation: fdc-ayuda-entra .25s ease-out; }
 @keyframes fdc-ayuda-entra { from { opacity: 0; } to { opacity: 1; } }
 /* Con la ventana abierta, la página de atrás no se desplaza. */
 html:has(.fdc-ayuda-dlg[open]) { overflow: hidden; }
 
-.fdc-ayuda-dlg__marco { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+.fdc-ayuda-dlg__marco { position: relative; }
+.fdc-ayuda-dlg__lamina { position: relative; }
+.fdc-ayuda-dlg__lamina img { display: block; width: 100%; height: auto; }
 
-.fdc-ayuda-dlg__cab {
-  position: relative;
-  padding: clamp(26px, 4vw, 34px) clamp(22px, 4vw, 38px) 20px;
-  border-bottom: 1px solid var(--ayuda-linea);
-}
-/* «Centros de acopio» como etiqueta amarilla con letra oscura. El amarillo de
-   la marca como letra sobre blanco no se lee (1.5:1); de fondo, sí. */
-.fdc-ayuda-dlg__ceja {
-  display: inline-block; margin: 0 0 12px; padding: 5px 12px; border-radius: 6px;
-  background: var(--fdc-amarillo); color: var(--fdc-dark);
-  font-size: 1rem; font-weight: 700; line-height: 1.3;
-}
-.fdc-ayuda-dlg__tit {
-  margin: 0; padding-right: 48px;
-  font-family: var(--fdc-f-body); font-size: clamp(1.6rem, 3.6vw, 2rem); font-weight: 700;
-  line-height: 1.15; letter-spacing: -.015em; color: var(--fdc-dark); text-wrap: balance;
-}
 .fdc-ayuda-dlg__cerrar {
-  position: absolute; top: 18px; right: 18px;
-  width: 44px; height: 44px; border-radius: 8px; cursor: pointer;
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
   display: grid; place-items: center;
-  background: #fff; border: 1px solid var(--ayuda-linea); color: var(--fdc-tx-2);
-  transition: border-color .2s ease, color .2s ease;
+  background: rgba(255,255,255,.92); border: 0; color: var(--fdc-dark);
+  box-shadow: 0 2px 10px rgba(23,32,51,.2);
+  transition: background .2s ease;
 }
-.fdc-ayuda-dlg__cerrar:hover { border-color: var(--fdc-dark); color: var(--fdc-dark); }
-.fdc-ayuda-dlg__cerrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.fdc-ayuda-dlg__cerrar:hover { background: #fff; }
+.fdc-ayuda-dlg__cerrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 
-.fdc-ayuda-dlg__cuerpo { padding: 24px clamp(22px, 4vw, 38px) clamp(26px, 3.6vw, 32px); }
-.fdc-ayuda-dlg__lead { margin: 0 0 26px; font-size: 1.06rem; line-height: 1.6; color: var(--fdc-tx); }
-.fdc-ayuda-dlg__sub {
-  margin: 0 0 12px;
-  font-family: var(--fdc-f-body); font-size: 1rem; font-weight: 700; color: var(--fdc-dark);
+/* Las dos zonas activas, sobre lo que la lámina trae dibujado. Medidas en la
+   imagen original: el botón «Ver sedes y horarios» va de (751, 1014) a
+   (1183, 1070) y la franja «Si no puedes donar…» de (233, 1072) a
+   (1037, 1143), sobre 1254 px. Llevan un margen de unos píxeles para que
+   sean fáciles de atinar. */
+.fdc-ayuda-dlg__zona {
+  position: absolute; z-index: 1; display: block;
+  padding: 0; border: 0; border-radius: 10px; cursor: pointer;
+  background: transparent;
+  transition: background .2s ease, box-shadow .2s ease;
 }
+.fdc-ayuda-dlg__zona:hover { background: rgba(255,255,255,.14); box-shadow: 0 0 0 3px rgba(255,255,255,.7); }
+.fdc-ayuda-dlg__zona:focus-visible { outline: 3px solid #F6D20A; outline-offset: 2px; }
+.fdc-ayuda-dlg__zona--sedes     { left: 59.4%; top: 80.4%; width: 35.4%; height: 5.4%; }
+.fdc-ayuda-dlg__zona--compartir { left: 18.2%; top: 85.5%; width: 64.9%; height: 5.9%; }
 
-/* Lo que se recibe: una lista sencilla, con un ícono de línea en gris. */
-.fdc-ayuda-dlg__cosas {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
-}
-.fdc-ayuda-dlg__cosas li {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border: 1px solid var(--ayuda-verde-linea); border-radius: 4px; background: var(--ayuda-verde);
-  font-size: 1rem; font-weight: 600; line-height: 1.25;
-}
-.fdc-ayuda-dlg__cosas svg {
-  flex: 0 0 auto; width: 24px; height: 24px; fill: none; stroke: var(--fdc-dark);
-  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
-}
-/* Lo que no se recibe, en una caja como las demás y a todo el ancho: suelto,
-   entre «Qué llevar» y «Dónde y cuándo», se leía como un subtítulo. El ícono
-   de prohibido y el texto en gris lo distinguen de lo que sí se recibe. */
-.fdc-ayuda-dlg__no {
-  display: flex; align-items: center; gap: 12px;
-  margin: 8px 0 26px; padding: 12px 14px;
-  border: 1px solid var(--ayuda-fucsia-linea); border-radius: 4px; background: var(--ayuda-fucsia);
-  font-size: 1rem; font-weight: 700; line-height: 1.25; color: var(--fdc-magenta-tx);   /* 4.8:1 */
-}
-.fdc-ayuda-dlg__no svg {
-  flex: 0 0 auto; width: 24px; height: 24px; fill: none; stroke: var(--fdc-magenta-tx);
-  stroke-width: 1.7; stroke-linecap: round;
-}
-.fdc-ayuda-dlg__donde { margin: 0 0 22px; font-size: 1.04rem; line-height: 1.55; color: var(--fdc-tx); }
-
-.fdc-ayuda-dlg__btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  min-height: 46px; padding: 10px 20px; border-radius: 8px; cursor: pointer;
-  background: var(--fdc-dark); color: #fff; border: 1.5px solid var(--fdc-dark);
-  font-family: var(--fdc-f-body); font-size: 1rem; font-weight: 600; text-decoration: none;
-  transition: background .2s ease, color .2s ease, border-color .2s ease;
-}
-.fdc-ayuda-dlg__btn:hover { background: #000; border-color: #000; }
-.fdc-ayuda-dlg__btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-/* Compartir: con contorno, en segundo plano frente a la información. */
-.fdc-ayuda-dlg__btn--wa,
-.fdc-ayuda-dlg__btn--linea { background: #fff; color: var(--fdc-dark); border-color: var(--ayuda-linea); }
-.fdc-ayuda-dlg__btn--wa:hover,
-.fdc-ayuda-dlg__btn--linea:hover { background: #fff; border-color: var(--fdc-dark); }
-
-.fdc-ayuda-dlg__compartir { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--ayuda-linea); }
-.fdc-ayuda-dlg__compartir p { margin: 0 0 14px; font-size: 1rem; color: var(--fdc-tx-2); }
-.fdc-ayuda-dlg__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
-
-.fdc-ayuda-dlg__lema { margin: 26px 0 0; font-size: 1rem; font-weight: 600; color: var(--fdc-tx-2); }
-
-@media (max-width: 560px) {
-  .fdc-ayuda-dlg__cosas { grid-template-columns: 1fr; }
-  .fdc-ayuda-dlg__btn { width: 100%; }
-}
 @media (prefers-reduced-motion: reduce) {
   .fdc-ayuda-dlg[open] { animation: none; }
 }
