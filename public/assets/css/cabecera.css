@@ -144,6 +144,18 @@ body{ margin: 0; }
   content: ''; position: absolute; left: 10px; right: 10px; bottom: 2px;
   height: 2px; border-radius: 2px; background: #10ABC4;
 }
+
+/* Por debajo de 1440 px, un poco menos de aire entre opciones. Con «Mis
+   boletos» siempre visible (19 oct 2026) el menú ya no cabía a 1280 y se
+   plegaba en el botón de tres rayas en una laptop común. */
+@media (max-width: 1439px){
+  .cab--clara .cab__nav{ gap: 2px; }
+  .cab--clara .cab__nav a,
+  .cab--clara .cab__grupo-btn,
+  .cab--clara .cab__discreto{ padding-inline: 8px; }
+  .cab--clara .cab__nav a[aria-current]::after,
+  .cab--clara .cab__grupo-btn[data-actual]::after{ left: 8px; right: 8px; }
+}
 .cab--clara .cab__panel{
   background: #fff; border-color: #E4E4E0;
   box-shadow: 0 22px 48px rgba(23,32,51,.14);

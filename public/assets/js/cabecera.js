@@ -108,23 +108,17 @@ const ruta = location.pathname;
 const esLanding = ruta === '/' || ruta === '/index.html';
 const esSistema = RUTAS_SISTEMA.some(r => ruta.startsWith(r));
 
-/* ¿Este navegador guardó boletos? Se lee directo del almacenamiento para no
-   importar el módulo de boletos en todas las páginas. Solo entonces aparece
-   «Mis boletos» en el menú: a quien no tiene ninguno no le dice nada. */
-/* Lo mismo para los turnos de voluntariado (voluntariado/almacen.js). */
+/* ¿Este navegador guardó turnos de voluntariado (voluntariado/almacen.js)?
+   Se lee directo del almacenamiento para no importar el módulo en todas las
+   páginas. Solo entonces aparece «Mis turnos» en el menú.
+
+   «Mis boletos» ya NO depende de esto (19 de octubre de 2026): va siempre,
+   porque quien perdió su boleto o cambió de teléfono es justo quien no tiene
+   nada guardado, y ahí es donde lo recupera. */
 function tieneTurnos() {
   try {
     const t = JSON.parse(localStorage.getItem('fdc_turnos') || '{}');
     return Object.values(t).some(x => x && x.estado === 'inscrito');
-  } catch (e) {
-    return false;
-  }
-}
-
-function tieneBoletos() {
-  try {
-    const t = JSON.parse(localStorage.getItem('fdc_boletos') || '{}');
-    return Object.values(t).some(b => b && b.estado !== 'cancelado');
   } catch (e) {
     return false;
   }
@@ -209,11 +203,10 @@ function cabeceraPublica(quien) {
     enlace(h.startsWith('#') && !esLanding ? '/' + h : h, t));
 
   const tras = PUBLICO.findIndex(([h]) => h === '/programa/') + 1;
-  piezas.splice(tras, 0, grupoTalleres());
+  // Programa → Talleres → Mis boletos: los boletos se piden en el programa y
+  // se consultan o recuperan aquí, así que van juntos.
+  piezas.splice(tras, 0, grupoTalleres(), enlace('/mis-boletos/', 'Mis boletos'));
 
-  if (tieneBoletos() || ruta.startsWith('/mis-boletos/')) {
-    piezas.push(enlace('/mis-boletos/', 'Mis boletos'));
-  }
   if (tieneTurnos() || ruta.startsWith('/mis-turnos/')) {
     piezas.push(enlace('/mis-turnos/', 'Mis turnos'));
   }
